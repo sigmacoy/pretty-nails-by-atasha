@@ -25,14 +25,12 @@
     --ring: 330 81% 60%;
     --radius: 0.5rem;
   }
-}
 
-@layer base {
   * {
-    @apply border-[hsl(var(--border))];
+    @apply border-border;
   }
   body {
-    @apply bg-[hsl(var(--background))] text-[hsl(var(--foreground))];
+    @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
@@ -57,27 +55,27 @@
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[hsl(var(--ring))] focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98];
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98];
   }
 
   .btn-primary {
-    @apply btn bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] shadow-sm hover:bg-[hsl(var(--primary))/0.9] hover:shadow-md hover:-translate-y-0.5 h-10;
+    @apply btn bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow-md hover:-translate-y-0.5 h-10;
   }
 
   .btn-secondary {
-    @apply btn bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))] shadow-sm hover:bg-[hsl(var(--secondary))/0.9] hover:shadow-md hover:-translate-y-0.5 h-10;
+    @apply btn bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/90 hover:shadow-md hover:-translate-y-0.5 h-10;
   }
 
   .btn-outline {
-    @apply btn border-2 border-[hsl(var(--input))] bg-[hsl(var(--background))] hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:border-[hsl(var(--accent))] hover:shadow-sm h-10;
+    @apply btn border-2 border-input bg-background hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-sm h-10;
   }
 
   .btn-ghost {
-    @apply btn hover:bg-[hsl(var(--accent))] hover:text-[hsl(var(--accent-foreground))] hover:shadow-sm h-10;
+    @apply btn hover:bg-accent hover:text-accent-foreground hover:shadow-sm h-10;
   }
 
   .btn-destructive {
-    @apply btn bg-[hsl(var(--destructive))] text-[hsl(var(--destructive-foreground))] shadow-sm hover:bg-[hsl(var(--destructive))/0.9] hover:shadow-md hover:-translate-y-0.5 h-10;
+    @apply btn bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow-md hover:-translate-y-0.5 h-10;
   }
 
   .btn-success {
@@ -89,11 +87,11 @@
   }
 
   .input {
-    @apply flex h-10 w-full rounded-lg border border-[hsl(var(--input))] bg-[hsl(var(--background))] px-3 py-2 text-sm ring-offset-[hsl(var(--background))] file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-[hsl(var(--muted-foreground))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--ring))] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .card {
-    @apply rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--card))] text-[hsl(var(--card-foreground))] shadow-sm;
+    @apply rounded-xl border border-border bg-card text-card-foreground shadow-sm;
   }
 
   .card-header {
@@ -105,7 +103,7 @@
   }
 
   .card-description {
-    @apply text-sm text-[hsl(var(--muted-foreground))];
+    @apply text-sm text-muted-foreground;
   }
 
   .card-content {
@@ -121,11 +119,11 @@
   }
 
   .badge-primary {
-    @apply badge bg-[hsl(var(--primary))/0.1] text-[hsl(var(--primary))];
+    @apply badge bg-primary/10 text-primary;
   }
 
   .badge-secondary {
-    @apply badge bg-[hsl(var(--secondary))/0.1] text-[hsl(var(--secondary-foreground))];
+    @apply badge bg-secondary/10 text-secondary-foreground;
   }
 
   .badge-success {
