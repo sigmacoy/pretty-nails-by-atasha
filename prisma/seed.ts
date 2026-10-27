@@ -193,31 +193,31 @@ async function main() {
       title: "Pink Ombre Soft Gel",
       description: "Delicate pink to white gradient with high-shine top coat",
       imageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?w=800&auto=format&fit=crop&q=80",
-      category: "GEL",
+      category: "Nail Gel",
     },
     {
       title: "French Tip with Pearl Accents",
       description: "Classic clean French tips adorned with dainty freshwater pearl details",
       imageUrl: "https://images.unsplash.com/photo-1632345031435-8727f6897d53?w=800&auto=format&fit=crop&q=80",
-      category: "NAIL_ART",
+      category: "Nail Art",
     },
     {
       title: "Cat Eye Velvet Blush",
       description: "Magnetic cat eye shimmer in romantic blush rose",
       imageUrl: "https://images.unsplash.com/photo-1519014816548-bf5fe059798b?w=800&auto=format&fit=crop&q=80",
-      category: "EXTENSION",
+      category: "Soft Gel Extension",
     },
     {
       title: "3D Floral Embossed Art",
       description: "Handcrafted 3D acrylic petals on baby pink soft gel base",
       imageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&auto=format&fit=crop&q=80",
-      category: "NAIL_ART",
+      category: "Nail Art",
     },
     {
       title: "Pastel Pedicure Perfection",
       description: "Soothing neutral gel pedicure with glossy top seal",
       imageUrl: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?w=800&auto=format&fit=crop&q=80",
-      category: "PEDICURE",
+      category: "Pedicure",
     },
   ];
 
@@ -225,124 +225,11 @@ async function main() {
     const existing = await prisma.gallery.findFirst({ where: { title: img.title } });
     if (!existing) {
       await prisma.gallery.create({ data: img });
+    } else {
+      await prisma.gallery.update({ where: { id: existing.id }, data: { category: img.category } });
     }
   }
   console.log("[SUCCESS] Gallery items loaded");
-
-  // 7. Seed Sample Bookings (Queue demonstration)
-  // Find upcoming Saturday
-  const nextSat = new Date(today);
-  const daysUntilSat = (6 - today.getDay() + 7) % 7 || 7;
-  nextSat.setDate(today.getDate() + daysUntilSat);
-  nextSat.setHours(0, 0, 0, 0);
-
-  const nailGelSvc = await prisma.service.findFirst({ where: { name: "Nail Gel" }, include: { variants: true } });
-  const extSvc = await prisma.service.findFirst({ where: { name: "Soft Gel Extension" }, include: { variants: true } });
-  const pedSvc = await prisma.service.findFirst({ where: { name: "Nail Gel Pedicure" }, include: { variants: true } });
-
-  if (nailGelSvc && extSvc && pedSvc) {
-    // Clear previous sample bookings for that date to avoid duplicate runs
-    const existingB = await prisma.booking.findMany({ where: { appointmentDate: nextSat } });
-    if (existingB.length === 0) {
-      // Booking 1 (Queue #1): 10:00 AM - 1:00 PM (Confirmed)
-      const b1 = await prisma.booking.create({
-        data: {
-          userId: client.id,
-          appointmentDate: nextSat,
-          startTime: "10:00",
-          endTime: "13:00",
-          status: "CONFIRMED",
-          totalPrice: 35000,
-          downpayment: 10000,
-          notes: "Nail gel medium with glossy finish.",
-          services: {
-            create: [
-              {
-                serviceId: nailGelSvc.id,
-                variantId: nailGelSvc.variants[1]?.id,
-                quantity: 1,
-                price: 35000,
-              },
-            ],
-          },
-        },
-      });
-
-      await prisma.payment.create({
-        data: {
-          bookingId: b1.id,
-          userId: client.id,
-          amount: 10000,
-          status: "PAID",
-          method: "GCASH",
-          reference: "GCASH-982143001",
-          verifiedAt: new Date(),
-        },
-      });
-
-      // Booking 2 (Queue #2): 13:00 - 17:00 (Pending, 4-hour extension)
-      const b2 = await prisma.booking.create({
-        data: {
-          userId: client.id,
-          appointmentDate: nextSat,
-          startTime: "13:00",
-          endTime: "17:00",
-          status: "PENDING",
-          totalPrice: 50000,
-          downpayment: 10000,
-          notes: "Soft gel extension long. Requesting French tips.",
-          services: {
-            create: [
-              {
-                serviceId: extSvc.id,
-                variantId: extSvc.variants[2]?.id,
-                quantity: 1,
-                price: 50000,
-              },
-            ],
-          },
-        },
-      });
-
-      await prisma.payment.create({
-        data: {
-          bookingId: b2.id,
-          userId: client.id,
-          amount: 10000,
-          status: "PAID",
-          method: "GCASH",
-          reference: "GCASH-881204912",
-        },
-      });
-
-      // Booking 3 (Queue #3): 14:00 - 17:00 (Pending - overlaps with Booking 2! Illustrates conflict queue system)
-      await prisma.booking.create({
-        data: {
-          userId: client.id,
-          appointmentDate: nextSat,
-          startTime: "14:00",
-          endTime: "17:00",
-          status: "PENDING",
-          totalPrice: 30000,
-          downpayment: 10000,
-          notes: "Pedicure appointment. Notice: potential time overlap with 13:00-17:00 slot.",
-          services: {
-            create: [
-              {
-                serviceId: pedSvc.id,
-                variantId: pedSvc.variants[0]?.id,
-                quantity: 1,
-                price: 30000,
-              },
-            ],
-          },
-        },
-      });
-
-      console.log(`[SUCCESS] Sample queue bookings created for ${nextSat.toDateString()}`);
-    }
-  }
-
   console.log("[DONE] Database seeded successfully.");
 }
 

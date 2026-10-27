@@ -3,6 +3,8 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { z } from "zod";
 
+export const dynamic = "force-dynamic";
+
 const gallerySchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().optional(),
@@ -25,7 +27,14 @@ export async function GET(req: NextRequest) {
       ];
     }
     if (category && category !== "All") {
-      where.category = category;
+      const legacyMap: Record<string, string> = {
+        "Nail Gel": "GEL",
+        "Soft Gel Extension": "EXTENSION",
+        "Pedicure": "PEDICURE",
+        "Nail Art": "NAIL_ART",
+      };
+      const legacyVal = legacyMap[category];
+      where.category = legacyVal ? { in: [category, legacyVal] } : category;
     }
 
     const images = await prisma.gallery.findMany({

@@ -2,11 +2,13 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
-import { Award, QrCode, Camera, CheckCircle, Clock, Sparkles, Loader2, ArrowUpRight, AlertCircle } from "lucide-react";
+import jsQR from "jsqr";
+import { Award, QrCode, Camera, CheckCircle, Clock, Sparkles, Loader2, ArrowUpRight, AlertCircle, X, Keyboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Input } from "@/components/ui/input";
 import { cn, formatCurrency, formatDate, getStampProgress, getStampsNeeded } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -24,9 +26,13 @@ export default function LoyaltyPage() {
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [scanProcessing, setScanProcessing] = useState(false);
+  const [manualCode, setManualCode] = useState("");
+  const [showManualInput, setShowManualInput] = useState(false);
   const [scanResult, setScanResult] = useState<{ success: boolean; message: string } | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -38,6 +44,9 @@ export default function LoyaltyPage() {
     if (session?.user) {
       fetchLoyaltyCard();
     }
+    return () => {
+      stopScanner();
+    };
   }, [session]);
 
   const fetchLoyaltyCard = async () => {
@@ -55,26 +64,36 @@ export default function LoyaltyPage() {
   };
 
   const startScanner = async () => {
+    setScanResult(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }
+        video: { facingMode: { ideal: "environment" } }
       });
       streamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        videoRef.current.setAttribute("playsinline", "true");
         await videoRef.current.play();
         setScanning(true);
-        scanQRCode();
+        requestAnimationFrame(scanQRCode);
       }
     } catch (error) {
-      console.error("Camera access denied:", error);
-      setScanResult({ success: false, message: "Camera access denied. Please allow camera permissions." });
+      console.error("Camera access error:", error);
+      setScanResult({
+        success: false,
+        message: "Camera access unavailable or denied. You can enter or paste the code directly below.",
+      });
+      setShowManualInput(true);
     }
   };
 
   const stopScanner = () => {
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
     }
     setScanning(false);
@@ -83,55 +102,64 @@ export default function LoyaltyPage() {
   const scanQRCode = () => {
     if (!videoRef.current || !scanning) return;
 
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
     const video = videoRef.current;
+    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+      const canvas = document.createElement("canvas");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+      if (context) {
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+          inversionAttempts: "dontInvert",
+        });
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context?.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    // In a real app, you'd use a QR code library like jsQR here
-    // For now, we'll simulate a successful scan
-    setTimeout(() => {
-      if (scanning) {
-        // Simulate scanning the shop's QR code
-        const imageData = context?.getImageData(0, 0, canvas.width, canvas.height);
-        // Check if we "found" a QR code (simulated)
-        const found = Math.random() > 0.7; // 30% chance for demo
-
-        if (found) {
+        if (code && code.data) {
           stopScanner();
-          handleQRScan("prettynails-shop-qr-code");
-        } else {
-          requestAnimationFrame(scanQRCode);
+          handleQRScan(code.data);
+          return;
         }
       }
-    }, 100);
+    }
+
+    if (scanning) {
+      animationFrameRef.current = requestAnimationFrame(scanQRCode);
+    }
   };
 
   const handleQRScan = async (qrData: string) => {
-    if (qrData !== "prettynails-shop-qr-code") {
-      setScanResult({ success: false, message: "Invalid QR code. Please scan the shop's loyalty QR code." });
+    if (!qrData || !qrData.trim()) {
+      setScanResult({ success: false, message: "Please provide a valid stamp code or QR code." });
       return;
     }
 
+    setScanProcessing(true);
     try {
       const res = await fetch("/api/loyalty/stamp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ qrCode: qrData }),
+        body: JSON.stringify({ qrCode: qrData.trim() }),
       });
 
       const data = await res.json();
       if (res.ok) {
-        setScanResult({ success: true, message: `Stamp earned! You now have ${data.stampCount} stamps.` });
+        setScanResult({
+          success: true,
+          message: data.message || `Stamp earned! You now have ${data.stampCount} stamps.`,
+        });
+        setManualCode("");
         fetchLoyaltyCard();
       } else {
-        setScanResult({ success: false, message: data.error || "Failed to add stamp" });
+        setScanResult({
+          success: false,
+          message: data.error || "Failed to add stamp. Please check the QR code.",
+        });
       }
     } catch (error) {
       setScanResult({ success: false, message: "Error processing stamp. Please try again." });
+    } finally {
+      setScanProcessing(false);
     }
   };
 
@@ -243,31 +271,105 @@ export default function LoyaltyPage() {
               ))}
             </div>
 
-            {/* QR Scanner Buttons */}
-            <div className="space-y-3">
-              <Button
-                onClick={startScanner}
-                disabled={scanning || isExpired}
-                className="w-full py-3 text-lg"
-                size="lg"
-              >
-                {scanning ? (
-                  <>Scanning... <Loader2 className="ml-2 h-5 w-5 animate-spin" /></>
-                ) : (
-                  <> <QrCode className="mr-2 h-5 w-5" /> Scan QR Code to Earn Stamp</>
-                )}
-              </Button>
+            {/* Active Video Scanner Preview */}
+            {scanning && (
+              <div className="relative rounded-2xl overflow-hidden border-2 border-primary-500 bg-black aspect-square max-w-sm mx-auto mb-6 shadow-lg">
+                <video
+                  ref={videoRef}
+                  playsInline
+                  autoPlay
+                  muted
+                  className="w-full h-full object-cover"
+                />
+                {/* Aiming Reticle Frame */}
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-56 h-56 border-2 border-white/80 rounded-2xl relative shadow-inner animate-pulse">
+                    <div className="absolute top-0 left-0 w-6 h-6 border-t-4 border-l-4 border-primary-400 rounded-tl" />
+                    <div className="absolute top-0 right-0 w-6 h-6 border-t-4 border-r-4 border-primary-400 rounded-tr" />
+                    <div className="absolute bottom-0 left-0 w-6 h-6 border-b-4 border-l-4 border-primary-400 rounded-bl" />
+                    <div className="absolute bottom-0 right-0 w-6 h-6 border-b-4 border-r-4 border-primary-400 rounded-br" />
+                  </div>
+                </div>
+                <div className="absolute bottom-3 left-0 right-0 flex justify-center px-4">
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="sm"
+                    onClick={stopScanner}
+                    className="shadow-md"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Close Camera
+                  </Button>
+                </div>
+              </div>
+            )}
 
-              {/* Prototype quick scan button */}
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => handleQRScan("prettynails-shop-qr-code")}
-                disabled={scanning || isExpired}
-                className="w-full text-xs text-primary-700 border-primary-200 hover:bg-primary-50"
-              >
-                Simulate Shop QR Stamp (Prototype Quick Test)
-              </Button>
+            {/* QR Scanner Buttons & Controls */}
+            <div className="space-y-3">
+              {!scanning && (
+                <Button
+                  onClick={startScanner}
+                  disabled={isExpired || scanProcessing}
+                  className="w-full py-3 text-lg font-semibold shadow-md"
+                  size="lg"
+                >
+                  <Camera className="mr-2 h-5 w-5" />
+                  Scan QR Code to Earn Stamp
+                </Button>
+              )}
+
+              {/* Manual input toggle & test options */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowManualInput(!showManualInput)}
+                  className="flex-1 text-xs text-gray-700"
+                >
+                  <Keyboard className="mr-1.5 h-3.5 w-3.5" />
+                  {showManualInput ? "Hide Code Input" : "Enter Code Manually"}
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQRScan("prettynails-stamp:cmvqpeceq00014ei5y81wg2ht")}
+                  disabled={scanProcessing || isExpired}
+                  className="flex-1 text-xs text-primary-700 border-primary-200 hover:bg-primary-50"
+                >
+                  {scanProcessing ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : null}
+                  Test Oct 31 Stamp (+1)
+                </Button>
+              </div>
+
+              {/* Manual Code Input Form */}
+              {showManualInput && (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (manualCode.trim()) handleQRScan(manualCode);
+                  }}
+                  className="flex gap-2 pt-2"
+                >
+                  <Input
+                    placeholder="e.g. prettynails-stamp:cmvqpeceq..."
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    className="text-xs"
+                  />
+                  <Button
+                    type="submit"
+                    size="sm"
+                    disabled={scanProcessing || !manualCode.trim()}
+                    className="text-xs shrink-0"
+                  >
+                    {scanProcessing ? <Loader2 className="h-3 w-3 animate-spin" /> : "Apply Stamp"}
+                  </Button>
+                </form>
+              )}
             </div>
 
             {isExpired && (

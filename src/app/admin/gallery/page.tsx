@@ -22,7 +22,18 @@ interface GalleryItem {
   createdAt: string;
 }
 
-const categories = ["GEL", "EXTENSION", "PEDICURE", "NAIL_ART"];
+const categories = ["Nail Gel", "Soft Gel Extension", "Pedicure", "Nail Art"];
+
+const normalizeCategory = (cat: string | null | undefined): string => {
+  if (!cat) return "";
+  const map: Record<string, string> = {
+    GEL: "Nail Gel",
+    NAIL_ART: "Nail Art",
+    EXTENSION: "Soft Gel Extension",
+    PEDICURE: "Pedicure",
+  };
+  return map[cat] || cat;
+};
 
 export default function AdminGalleryPage() {
   const { data: session, status } = useSession();
@@ -78,7 +89,7 @@ export default function AdminGalleryPage() {
 
   const filteredImages = images.filter(img => {
     const matchesSearch = img.title.toLowerCase().includes(search.toLowerCase()) || img.description?.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = category === "All" || img.category === category;
+    const matchesCategory = category === "All" || normalizeCategory(img.category) === category;
     return matchesSearch && matchesCategory;
   });
 
@@ -165,7 +176,7 @@ export default function AdminGalleryPage() {
                   {!img.isActive && <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center"><Badge variant="destructive">Inactive</Badge></div>}
                   <div className="absolute bottom-2 left-2 right-2">
                     <p className="font-medium text-white text-sm truncate">{img.title}</p>
-                    {img.category && <Badge variant="secondary" className="text-xs mt-1">{img.category}</Badge>}
+                    {img.category && <Badge variant="secondary" className="text-xs mt-1">{normalizeCategory(img.category)}</Badge>}
                   </div>
                 </div>
               ))}

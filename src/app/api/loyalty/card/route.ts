@@ -2,11 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(req: NextRequest) {
   try {
     const session = await auth();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    if (session.user.role === "ADMIN" || session.user.email === "owner@prettynails.com") {
+      return NextResponse.json({
+        stampCount: 0,
+        lastStampAt: null,
+        expiresAt: null,
+        isExpired: false,
+        stamps: [],
+        isAdmin: true,
+      });
     }
 
     let card = await prisma.loyaltyCard.findUnique({

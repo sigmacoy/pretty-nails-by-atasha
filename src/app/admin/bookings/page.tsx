@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock, User, CheckCircle, XCircle, MoreHorizontal, Loader2, Filter, ChevronLeft, ChevronRight, Download } from "lucide-react";
+import { Calendar, Clock, User, CheckCircle, XCircle, MoreHorizontal, Loader2, Filter, ChevronLeft, ChevronRight, Download, QrCode } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +53,7 @@ export default function AdminBookingsPage() {
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"queue" | "list">("queue");
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
+  const [stampModalBooking, setStampModalBooking] = useState<Booking | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
@@ -367,10 +369,31 @@ export default function AdminBookingsPage() {
                                 <Button
                                   size="sm"
                                   variant="info"
-                                  onClick={() => handleStatusChange(booking.id, "COMPLETED")}
+                                  onClick={async () => {
+                                    await handleStatusChange(booking.id, "COMPLETED");
+                                    setStampModalBooking(booking);
+                                  }}
                                   disabled={actionLoading === booking.id}
+                                  className="text-xs font-semibold px-2.5"
                                 >
-                                  {actionLoading === booking.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Complete"}
+                                  {actionLoading === booking.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <QrCode className="h-3 w-3 mr-1" />
+                                  )}
+                                  Complete & Stamp QR
+                                </Button>
+                              )}
+
+                              {booking.status === "COMPLETED" && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => setStampModalBooking(booking)}
+                                  className="text-xs text-primary-700 border-primary-200 hover:bg-primary-50 px-2.5 font-medium"
+                                >
+                                  <QrCode className="h-3 w-3 mr-1" />
+                                  Show Stamp QR
                                 </Button>
                               )}
 
@@ -483,7 +506,28 @@ export default function AdminBookingsPage() {
                               </>
                             )}
                             {booking.status === "CONFIRMED" && (
-                              <Button size="sm" variant="info" onClick={() => handleStatusChange(booking.id, "COMPLETED")} disabled={actionLoading === booking.id}>Complete</Button>
+                              <Button
+                                size="sm"
+                                variant="info"
+                                onClick={async () => {
+                                  await handleStatusChange(booking.id, "COMPLETED");
+                                  setStampModalBooking(booking);
+                                }}
+                                disabled={actionLoading === booking.id}
+                                className="text-xs px-2"
+                              >
+                                Complete & QR
+                              </Button>
+                            )}
+                            {booking.status === "COMPLETED" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setStampModalBooking(booking)}
+                                className="text-xs px-2 text-primary-700 border-primary-200"
+                              >
+                                QR
+                              </Button>
                             )}
                             <Button variant="ghost" size="icon" onClick={() => setSelectedBooking(booking)}>
                               <MoreHorizontal className="h-4 w-4" />
@@ -572,14 +616,90 @@ export default function AdminBookingsPage() {
                   </>
                 )}
                 {selectedBooking.status === "CONFIRMED" && (
-                  <Button variant="info" onClick={() => handleStatusChange(selectedBooking.id, "COMPLETED")} disabled={actionLoading === selectedBooking.id}>
-                    Mark Complete
+                  <Button
+                    variant="info"
+                    onClick={async () => {
+                      await handleStatusChange(selectedBooking.id, "COMPLETED");
+                      const b = selectedBooking;
+                      setSelectedBooking(null);
+                      setStampModalBooking(b);
+                    }}
+                    disabled={actionLoading === selectedBooking.id}
+                  >
+                    Complete & Stamp QR
+                  </Button>
+                )}
+                {selectedBooking.status === "COMPLETED" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      const b = selectedBooking;
+                      setSelectedBooking(null);
+                      setStampModalBooking(b);
+                    }}
+                    className="text-primary-700 border-primary-200 hover:bg-primary-50"
+                  >
+                    <QrCode className="h-4 w-4 mr-1" />
+                    Show Stamp QR
                   </Button>
                 )}
                 <Button variant="outline" onClick={() => setSelectedBooking(null)}>Close</Button>
               </DialogFooter>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Stamp QR Modal */}
+      <Dialog open={!!stampModalBooking} onOpenChange={(open) => !open && setStampModalBooking(null)}>
+        <DialogContent className="max-w-sm sm:max-w-md text-center p-6">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              <QrCode className="h-5 w-5 text-primary-600" />
+              Customer Loyalty Stamp QR
+            </DialogTitle>
+          </DialogHeader>
+          {stampModalBooking && (
+            <div className="space-y-4 py-3">
+              <div className="bg-primary-50/60 p-3 rounded-xl border border-primary-100">
+                <p className="font-bold text-gray-900 text-sm">
+                  {stampModalBooking.customerName || "Customer"}
+                </p>
+                <p className="text-xs text-primary-800 font-medium">
+                  Service Completed • Earns +1 Stamp
+                </p>
+              </div>
+
+              {/* QR Code Container */}
+              <div className="bg-white p-5 rounded-2xl border-2 border-primary-200 inline-block shadow-md">
+                <QRCodeSVG
+                  value={`prettynails-stamp:${stampModalBooking.id}`}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                  className="mx-auto"
+                />
+              </div>
+
+              <div className="space-y-1 text-xs text-gray-600">
+                <p className="font-medium text-gray-800">
+                  Ask the customer to open their Loyalty Card page on their phone and scan this QR code with their camera.
+                </p>
+                <p className="text-[11px] text-gray-400 font-mono bg-gray-50 py-1 px-2 rounded border border-gray-100 inline-block mt-1">
+                  Code: prettynails-stamp:{stampModalBooking.id}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="sm:justify-center">
+            <Button
+              type="button"
+              onClick={() => setStampModalBooking(null)}
+              className="w-full sm:w-auto px-6 font-semibold"
+            >
+              Done / Close
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

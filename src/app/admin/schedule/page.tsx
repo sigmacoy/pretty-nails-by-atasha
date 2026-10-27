@@ -19,8 +19,10 @@ import {
   Mail,
   Edit,
   Sliders,
-  AlertCircle
+  AlertCircle,
+  QrCode
 } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -94,6 +96,9 @@ export default function AdminSchedulePage() {
   const [customerNoteText, setCustomerNoteText] = useState("");
   const [customerNicknameText, setCustomerNicknameText] = useState("");
 
+  // Stamp QR dialog
+  const [stampModalBooking, setStampModalBooking] = useState<Booking | null>(null);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       window.location.href = "/login";
@@ -150,7 +155,7 @@ export default function AdminSchedulePage() {
   };
 
   const handleToggleDayAvailability = async (dateStr: string, currentIsAvailable: boolean) => {
-    const existing = availabilities.find((a) => a.date === dateStr);
+    const existing = availabilities.find((a) => a.date === dateStr || a.date.startsWith(dateStr));
     try {
       const res = await fetch(`/api/admin/availability`, {
         method: "POST",
@@ -245,7 +250,7 @@ export default function AdminSchedulePage() {
 
   // Find availability for selected day
   const selectedDayObj = new Date(selectedDateStr + "T00:00:00");
-  const selectedDayAvail = availabilities.find((a) => a.date === selectedDateStr);
+  const selectedDayAvail = availabilities.find((a) => a.date === selectedDateStr || a.date.startsWith(selectedDateStr));
   const isSelectedDayWeekend = isWeekend(selectedDayObj);
   const isSelectedDayAvailable = selectedDayAvail?.isAvailable ?? isSelectedDayWeekend;
 
@@ -370,7 +375,7 @@ export default function AdminSchedulePage() {
                   const isCurrentMonth = date.getMonth() === currentMonth;
                   const isSelected = dateStr === selectedDateStr;
                   const isWeekendDay = isWeekend(date);
-                  const avail = availabilities.find((a) => a.date === dateStr);
+                  const avail = availabilities.find((a) => a.date === dateStr || a.date.startsWith(dateStr));
                   const isAvailable = avail?.isAvailable ?? isWeekendDay;
                   const isPast = date < today;
 
@@ -461,11 +466,11 @@ export default function AdminSchedulePage() {
               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant={isSelectedDayAvailable ? "outline" : "success"}
+                  variant={isSelectedDayAvailable ? "destructive" : "success"}
                   onClick={() => handleToggleDayAvailability(selectedDateStr, isSelectedDayAvailable)}
-                  className="text-xs"
+                  className="text-xs font-semibold px-3 shadow-xs"
                 >
-                  {isSelectedDayAvailable ? "Block Date (Holiday/Break)" : "Open This Day"}
+                  {isSelectedDayAvailable ? "Block this Day" : "Unblock this Day / Open"}
                 </Button>
                 <Button
                   size="sm"
@@ -688,11 +693,31 @@ export default function AdminSchedulePage() {
                               <Button
                                 size="sm"
                                 variant="info"
-                                onClick={() => handleStatusChange(booking.id, "COMPLETED")}
+                                onClick={async () => {
+                                  await handleStatusChange(booking.id, "COMPLETED");
+                                  setStampModalBooking(booking);
+                                }}
                                 disabled={actionLoading === booking.id}
-                                className="h-7 text-xs px-2.5"
+                                className="h-7 text-xs px-2.5 font-semibold"
                               >
-                                {actionLoading === booking.id ? <Loader2 className="h-3 w-3 animate-spin" /> : "Complete & Stamp"}
+                                {actionLoading === booking.id ? (
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                ) : (
+                                  <QrCode className="h-3 w-3 mr-1" />
+                                )}
+                                Complete & Generate Stamp QR
+                              </Button>
+                            )}
+
+                            {booking.status === "COMPLETED" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setStampModalBooking(booking)}
+                                className="h-7 text-xs px-2.5 text-primary-700 border-primary-200 hover:bg-primary-50 font-medium"
+                              >
+                                <QrCode className="h-3 w-3 mr-1" />
+                                Show Stamp QR
                               </Button>
                             )}
                           </div>
@@ -810,6 +835,58 @@ export default function AdminSchedulePage() {
               Cancel
             </Button>
             <Button onClick={handleSaveCustomerNote}>Save Details</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Customer Stamp QR Modal */}
+      <Dialog open={!!stampModalBooking} onOpenChange={(open) => !open && setStampModalBooking(null)}>
+        <DialogContent className="max-w-sm sm:max-w-md text-center p-6">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl font-bold text-gray-900 flex items-center justify-center gap-2">
+              <QrCode className="h-5 w-5 text-primary-600" />
+              Customer Loyalty Stamp QR
+            </DialogTitle>
+          </DialogHeader>
+          {stampModalBooking && (
+            <div className="space-y-4 py-3">
+              <div className="bg-primary-50/60 p-3 rounded-xl border border-primary-100">
+                <p className="font-bold text-gray-900 text-sm">
+                  {stampModalBooking.user?.name || "Customer"}
+                </p>
+                <p className="text-xs text-primary-800 font-medium">
+                  Service Completed • Earns +1 Stamp
+                </p>
+              </div>
+
+              {/* QR Code Container */}
+              <div className="bg-white p-5 rounded-2xl border-2 border-primary-200 inline-block shadow-md">
+                <QRCodeSVG
+                  value={`prettynails-stamp:${stampModalBooking.id}`}
+                  size={200}
+                  level="H"
+                  includeMargin={true}
+                  className="mx-auto"
+                />
+              </div>
+
+              <div className="space-y-1 text-xs text-gray-600">
+                <p className="font-medium text-gray-800">
+                  Ask the customer to open their Loyalty Card page on their phone and scan this QR code with their camera.
+                </p>
+                <p className="text-[11px] text-gray-400 font-mono bg-gray-50 py-1 px-2 rounded border border-gray-100 inline-block mt-1">
+                  Code: prettynails-stamp:{stampModalBooking.id}
+                </p>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="sm:justify-center">
+            <Button
+              type="button"
+              onClick={() => setStampModalBooking(null)}
+              className="w-full sm:w-auto px-6 font-semibold"
+            >
+              Done / Close
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

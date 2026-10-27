@@ -38,7 +38,13 @@ export default function AdminLoyaltyPage() {
   useEffect(() => { if (session?.user?.role === "ADMIN") { fetchCards(); fetchSettings(); } }, [session]);
 
   const fetchCards = async () => {
-    try { const res = await fetch("/api/admin/loyalty"); if (res.ok) setCards(await res.json()); }
+    try {
+      const res = await fetch("/api/admin/loyalty");
+      if (res.ok) {
+        const raw = await res.json();
+        setCards(raw.filter((c: any) => c.user?.email !== "owner@prettynails.com" && !c.user?.name?.includes("Atasha")));
+      }
+    }
     catch (e) { console.error(e); }
     finally { setLoading(false); }
   };
