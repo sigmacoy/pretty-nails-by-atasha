@@ -232,27 +232,35 @@ export default function BookingPage() {
       const duration = calculateDuration();
       const endTime = calculateEndTime(selectedTime, duration);
 
+      // Format appointment date using local year/month/day to prevent UTC timezone shifts
+      const year = selectedDate.getFullYear();
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const day = String(selectedDate.getDate()).padStart(2, "0");
+      const appointmentDate = `${year}-${month}-${day}`;
+
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          appointmentDate: selectedDate.toISOString().split('T')[0],
+          appointmentDate,
           startTime: selectedTime,
           endTime,
           totalPrice,
           downpayment: DOWNPAYMENT,
-          notes,
-          inspirationImage: inspirationPreview,
-          paymentReference: paymentReference || undefined,
+          notes: notes?.trim() || null,
+          inspirationImage: inspirationPreview || null,
+          paymentReference: paymentReference?.trim() || null,
           services: selectedServices.map(s => ({
             serviceId: s.serviceId,
-            variantId: s.variantId,
-            quantity: s.quantity,
+            variantId: s.variantId || null,
+            quantity: s.quantity || 1,
           })),
-          addOns: Object.entries(selectedAddOns).map(([addOnId, quantity]) => ({
-            addOnId,
-            quantity,
-          })),
+          addOns: Object.entries(selectedAddOns)
+            .filter(([_, qty]) => qty > 0)
+            .map(([addOnId, quantity]) => ({
+              addOnId,
+              quantity,
+            })),
         }),
       });
 
@@ -547,7 +555,11 @@ export default function BookingPage() {
                           const file = e.target.files?.[0];
                           if (file) {
                             setInspirationImage(file);
-                            setInspirationPreview(URL.createObjectURL(file));
+                            const reader = new FileReader();
+                            reader.onload = (uploadEvent) => {
+                              setInspirationPreview(uploadEvent.target?.result as string);
+                            };
+                            reader.readAsDataURL(file);
                           }
                         }}
                       />
