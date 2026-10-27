@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXTAUTH_URL || "https://prettynailsbyatasha.vercel.app"),
   title: "Pretty Nails by Atasha",
   description: "Life is too short to have naked nails - Professional nail services by Atasha",
-  keywords: ["nail salon", "nail art", "gel nails", "nail extensions", "pedicure", "Philippines"],
+  keywords: ["nail salon", "nail art", "gel nails", "nail extensions", "pedicure", "Cebu City, Cebu, Philippines"],
   authors: [{ name: "Pretty Nails by Atasha" }],
   creator: "Pretty Nails by Atasha",
   publisher: "Pretty Nails by Atasha",

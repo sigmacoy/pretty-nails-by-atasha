@@ -58,18 +58,10 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative min-h-[85vh] flex items-center justify-center overflow-hidden">
+      <section className="relative min-h-[80vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 gradient-hero opacity-50" />
         <div className="relative z-10 container mx-auto px-4 py-16 text-center">
           <div className="max-w-4xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 backdrop-blur-sm shadow-md mb-8 border border-primary-100 text-xs sm:text-sm">
-              <span className="text-primary-700 font-semibold">Appointment Only</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-primary-700 font-semibold">Saturday & Sunday</span>
-              <span className="text-muted-foreground">•</span>
-              <span className="text-primary-700 font-semibold">8:00 AM - 10:00 PM</span>
-            </div>
-
             <h1 className="font-display text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-bold text-gray-900 mb-6 tracking-tight">
               Pretty Nails{" "}
               <span className="text-primary-600">by Atasha</span>
@@ -144,7 +136,7 @@ export default function HomePage() {
             <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-600">
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-primary-500" />
-                <span>Philippines</span>
+                <span>Cebu City, Cebu, Philippines</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-primary-500" />
@@ -272,8 +264,8 @@ export default function HomePage() {
                 </li>
               </ul>
 
-              {/* Dynamic Loyalty CTA Button (Point 3) */}
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+              {/* Dynamic Loyalty CTA Button */}
+              <div className="mt-8 flex items-center justify-center">
                 {session ? (
                   <Link
                     href="/loyalty"
@@ -283,18 +275,13 @@ export default function HomePage() {
                     View My Loyalty Card & Stamps
                   </Link>
                 ) : (
-                  <div className="space-y-1.5 text-center">
-                    <Link
-                      href="/login?callbackUrl=/loyalty"
-                      className="btn-primary px-6 py-2.5 inline-flex items-center gap-2 shadow-xs"
-                    >
-                      <Award className="h-5 w-5" />
-                      Sign in to Check Your Stamps
-                    </Link>
-                    <p className="text-xs text-gray-500">
-                      Sign in with your account to view your earned stamps & rewards
-                    </p>
-                  </div>
+                  <Link
+                    href="/login?callbackUrl=/loyalty"
+                    className="btn-primary px-6 py-2.5 inline-flex items-center gap-2 shadow-xs"
+                  >
+                    <Award className="h-5 w-5" />
+                    Sign in to Check Your Stamps
+                  </Link>
                 )}
               </div>
             </div>
@@ -345,7 +332,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4 text-primary-500" />
-                  <span>Philippines</span>
+                  <span>Cebu City, Cebu, Philippines</span>
                 </div>
               </div>
             </div>
