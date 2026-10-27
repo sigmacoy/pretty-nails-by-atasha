@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { Calendar, Clock, Sparkles, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Image as ImageIcon, Upload, X, QrCode, Phone, Info } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -81,6 +82,7 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [existingBooking, setExistingBooking] = useState<any | null>(null);
   const [dbAvailabilities, setDbAvailabilities] = useState<Array<{
     date: string;
     isAvailable: boolean;
@@ -99,7 +101,19 @@ export default function BookingPage() {
         }
       })
       .catch((err) => console.error("Could not fetch availability:", err));
-  }, []);
+
+    if (session?.user && session.user.role !== "ADMIN") {
+      fetch("/api/bookings")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const active = data.find((b: any) => b.status === "PENDING" || b.status === "CONFIRMED");
+            setExistingBooking(active || null);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [session]);
 
   // Generate available dates (Saturdays and Sundays for next 4 weeks)
   const availableDates = [];
@@ -383,116 +397,210 @@ export default function BookingPage() {
           </div>
         )}
 
+        {/* Existing Active Booking Banner for Logged In Customer */}
+        {existingBooking && (
+          <div className="mb-6 p-4 bg-pink-50 border border-primary-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center text-primary-700 shrink-0">
+                <Calendar className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-bold uppercase tracking-wider text-primary-800">
+                  Active Scheduled Appointment
+                </p>
+                <p className="text-sm font-semibold text-gray-900">
+                  {formatDate(existingBooking.appointmentDate)} at {existingBooking.startTime} - {existingBooking.endTime}
+                </p>
+                <p className="text-xs text-gray-600">
+                  Status: <span className="font-semibold text-primary-700 capitalize">{existingBooking.status.toLowerCase()}</span>
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/appointments"
+              className="inline-flex items-center justify-center px-4 py-2 rounded-lg bg-white border border-primary-200 text-xs font-bold text-primary-800 hover:bg-primary-50 shadow-2xs shrink-0"
+            >
+              View Current Appointment
+            </Link>
+          </div>
+        )}
+
         {/* Step 1: Date & Time Selection */}
         {step === 1 && (
           <Card className="mb-6">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-6 w-6 text-primary-600" />
-                Select Date & Time
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-6">
-                Available on Saturdays and Sundays only. Book up to 1 month in advance.
-              </p>
-
-              {/* Calendar */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-4">
-                  <Button variant="ghost" size="icon" onClick={() => {
-                    const newDate = new Date(currentYear, currentMonth - 1, 1);
-                    setSelectedDate(newDate);
-                  }}>
-                    <ChevronLeft className="h-5 w-5" />
-                  </Button>
-                  <span className="font-semibold text-lg capitalize">
-                    {firstDay.toLocaleDateString("en-PH", { month: "long", year: "numeric" })}
-                  </span>
-                  <Button variant="ghost" size="icon" onClick={() => {
-                    const newDate = new Date(currentYear, currentMonth + 1, 1);
-                    setSelectedDate(newDate);
-                  }}>
-                    <ChevronRight className="h-5 w-5" />
-                  </Button>
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => (
-                    <div key={day} className="text-center text-xs font-medium text-gray-500 py-2">
-                      {day}
-                    </div>
-                  ))}
-                  {monthDates.map((date, i) => {
-                    const available = isDateAvailable(date);
-                    const isBlocked = isDateBlockedByOwner(date);
-                    const selected = isDateSelected(date);
-
-                    return (
-                      <button
-                        key={i}
-                        onClick={() => handleDateClick(date)}
-                        disabled={!available}
-                        title={isBlocked ? "Owner unavailable / Break" : undefined}
-                        className={cn(
-                          "aspect-square rounded-lg text-sm font-medium transition-all relative flex flex-col items-center justify-center",
-                          selected
-                            ? "bg-primary-600 text-white shadow-xs font-bold"
-                            : available
-                            ? "hover:bg-primary-100 text-gray-900 font-semibold"
-                            : isBlocked
-                            ? "text-red-400 bg-red-50/50 line-through cursor-not-allowed border border-red-100"
-                            : "text-gray-300 cursor-not-allowed"
-                        )}
-                      >
-                        <span>{date.getDate()}</span>
-                        {isBlocked && (
-                          <span className="text-[9px] text-red-500 font-normal no-underline leading-none">Off</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
+            <CardHeader className="pb-3 border-b border-gray-100">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-primary-600" />
+                  Select Date & Time
+                </CardTitle>
+                <span className="text-xs text-primary-700 font-medium bg-primary-50 px-2.5 py-1 rounded-full border border-primary-100 w-fit">
+                  Saturdays & Sundays Only (8:00 AM - 10:00 PM)
+                </span>
               </div>
+            </CardHeader>
+            <CardContent className="pt-4">
+              {/* Responsive 2-Column Grid: Compact Calendar on Left, Time Slots on Right */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left: Compact Calendar Container */}
+                <div className="lg:col-span-7 bg-white p-3 sm:p-4 rounded-xl border border-gray-200 shadow-2xs max-w-sm sm:max-w-md w-full mx-auto">
+                  {/* Month Switcher Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                      onClick={() => {
+                        const newDate = new Date(currentYear, currentMonth - 1, 1);
+                        setSelectedDate(newDate);
+                      }}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="font-bold text-sm sm:text-base capitalize text-gray-900">
+                      {firstDay.toLocaleDateString("en-PH", { month: "long", year: "numeric" })}
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-600 hover:text-primary-700 hover:bg-primary-50"
+                      onClick={() => {
+                        const newDate = new Date(currentYear, currentMonth + 1, 1);
+                        setSelectedDate(newDate);
+                      }}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </div>
 
-              {/* Time Slots */}
-              {selectedDate && (
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
-                    <Clock className="h-5 w-5 text-primary-600" />
-                    Available Time Slots ({formatDate(selectedDate)})
-                  </h4>
-                  {selectedRecord?.note && (
-                    <p className="text-xs text-primary-800 bg-primary-50 border border-primary-100 p-2 rounded-lg mb-3">
-                      Note from Atasha: {selectedRecord.note}
-                    </p>
-                  )}
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {timeSlots.map(slot => (
-                      <button
-                        key={slot}
-                        onClick={() => handleTimeClick(slot)}
-                        disabled={!isTimeSlotAvailable(slot)}
+                  {/* Day of week labels */}
+                  <div className="grid grid-cols-7 gap-1 text-center mb-1">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
+                      <div
+                        key={day}
                         className={cn(
-                          "px-4 py-2 rounded-lg text-sm font-medium transition-all border",
-                          selectedTime === slot
-                            ? "bg-primary-600 text-white border-primary-600"
-                            : isTimeSlotAvailable(slot)
-                            ? "border-gray-200 hover:border-primary-300 hover:bg-primary-50"
-                            : "border-gray-200 text-gray-400 cursor-not-allowed"
+                          "text-[11px] font-bold py-1",
+                          day === "Sat" || day === "Sun" ? "text-primary-700 font-extrabold" : "text-gray-400"
                         )}
                       >
-                        {formatTime(slot)}
-                      </button>
+                        {day}
+                      </div>
                     ))}
                   </div>
+
+                  {/* Compact Days Grid - Lessened div height */}
+                  <div className="grid grid-cols-7 gap-1">
+                    {monthDates.map((date, i) => {
+                      const available = isDateAvailable(date);
+                      const isBlocked = isDateBlockedByOwner(date);
+                      const selected = isDateSelected(date);
+                      const isCurrentMonth = date.getMonth() === currentMonth;
+
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => handleDateClick(date)}
+                          disabled={!available}
+                          title={isBlocked ? "Owner unavailable / Break" : undefined}
+                          className={cn(
+                            "h-8 sm:h-9 w-full rounded-md text-xs font-semibold transition-all relative flex flex-col items-center justify-center",
+                            !isCurrentMonth && "text-gray-300 opacity-40",
+                            selected
+                              ? "bg-primary-600 text-white shadow-xs font-bold ring-2 ring-primary-400 ring-offset-1"
+                              : available
+                              ? "bg-primary-50/60 hover:bg-primary-100 text-primary-950 font-bold border border-primary-100"
+                              : isBlocked
+                              ? "text-red-400 bg-red-50/40 line-through cursor-not-allowed border border-red-100"
+                              : "text-gray-300 cursor-not-allowed"
+                          )}
+                        >
+                          <span>{date.getDate()}</span>
+                          {isBlocked && (
+                            <span className="text-[8px] text-red-500 font-normal no-underline leading-none">Off</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[11px] text-gray-500 pt-3 mt-2 border-t border-gray-100">
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-primary-100 border border-primary-300 inline-block" />
+                      Weekend Open
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="w-2.5 h-2.5 rounded bg-red-100 border border-red-300 inline-block" />
+                      Blocked / Off
+                    </span>
+                  </div>
                 </div>
-              )}
+
+                {/* Right: Time Slots Panel */}
+                <div className="lg:col-span-5 bg-gray-50/70 p-4 rounded-xl border border-gray-200 flex flex-col justify-between min-h-[220px]">
+                  <div>
+                    <h4 className="font-semibold text-sm text-gray-900 mb-2 flex items-center gap-1.5">
+                      <Clock className="h-4 w-4 text-primary-600" />
+                      {selectedDate ? (
+                        <span>Times for <strong className="text-primary-800">{formatDate(selectedDate)}</strong></span>
+                      ) : (
+                        <span>Available Time Slots</span>
+                      )}
+                    </h4>
+
+                    {selectedRecord?.note && (
+                      <p className="text-xs text-primary-800 bg-primary-50 border border-primary-100 p-2 rounded-lg mb-3">
+                        Note from Atasha: {selectedRecord.note}
+                      </p>
+                    )}
+
+                    {!selectedDate ? (
+                      <div className="text-center py-8 text-gray-500 text-xs space-y-1">
+                        <Calendar className="h-8 w-8 mx-auto text-gray-300 mb-1" />
+                        <p className="font-medium text-gray-700">Choose a Date</p>
+                        <p>Pick a highlighted Saturday or Sunday on the calendar to see available slots.</p>
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 gap-2 mt-2">
+                        {timeSlots.map((slot) => (
+                          <button
+                            key={slot}
+                            type="button"
+                            onClick={() => handleTimeClick(slot)}
+                            disabled={!isTimeSlotAvailable(slot)}
+                            className={cn(
+                              "px-3 py-2 rounded-lg text-xs font-semibold transition-all border text-center",
+                              selectedTime === slot
+                                ? "bg-primary-600 text-white border-primary-600 shadow-xs"
+                                : isTimeSlotAvailable(slot)
+                                ? "bg-white border-gray-200 text-gray-800 hover:border-primary-300 hover:bg-primary-50"
+                                : "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                            )}
+                          >
+                            {formatTime(slot)}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {selectedDate && selectedTime && (
+                    <div className="mt-4 pt-3 border-t border-gray-200/80 flex items-center justify-between text-xs">
+                      <span className="text-gray-600">Selected:</span>
+                      <span className="font-bold text-primary-800 bg-primary-50 px-2 py-0.5 rounded border border-primary-200">
+                        {formatTime(selectedTime)} • {formatDate(selectedDate)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
 
               <div className="mt-6 flex justify-end">
                 <Button
                   onClick={() => setStep(2)}
                   disabled={!selectedDate || !selectedTime}
-                  size="lg"
+                  size="default"
+                  className="px-6 font-semibold shadow-xs"
                 >
                   Next: Select Services
                   <ChevronRight className="ml-2 h-4 w-4" />

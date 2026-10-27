@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
-import { Menu, X, User, LogOut, LayoutDashboard, Award, ImageIcon, Calendar, Sparkles } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Award, ImageIcon, Calendar, Sparkles, Clock } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +21,7 @@ export function Header() {
 
   const navLinks = [
     { href: "/", label: "Home" },
+    { href: "/appointments", label: "Current Appointment", icon: Clock },
     { href: "/booking", label: "Book Appointment", icon: Calendar },
     { href: "/gallery", label: "Gallery", icon: ImageIcon },
     { href: "/loyalty", label: "Loyalty Card", icon: Award },

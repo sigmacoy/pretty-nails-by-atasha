@@ -1,12 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { Sparkles, Calendar, Award, ImageIcon, MapPin, Phone, Mail, Facebook, Instagram, User, ArrowRight } from "lucide-react";
+import { Sparkles, Calendar, Award, ImageIcon, MapPin, Phone, Mail, Facebook, Instagram, User, ArrowRight, Clock, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { formatDate, formatTime } from "@/lib/utils";
 
 export default function HomePage() {
   const { data: session } = useSession();
+  const [currentBooking, setCurrentBooking] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (session?.user && session.user.role !== "ADMIN") {
+      fetch("/api/bookings")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const active = data.find((b: any) => b.status === "PENDING" || b.status === "CONFIRMED");
+            setCurrentBooking(active || null);
+          }
+        })
+        .catch(console.error);
+    }
+  }, [session]);
 
   const services = [
     {
@@ -73,13 +90,23 @@ export default function HomePage() {
 
             {/* Primary Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-              <Link
-                href="/booking"
-                className="btn-primary px-8 py-3 text-lg w-full sm:w-auto flex items-center justify-center gap-2"
-              >
-                <Calendar className="h-5 w-5" />
-                Book Appointment
-              </Link>
+              {currentBooking ? (
+                <Link
+                  href="/appointments"
+                  className="btn-primary px-8 py-3 text-lg w-full sm:w-auto flex items-center justify-center gap-2 shadow-md"
+                >
+                  <Clock className="h-5 w-5" />
+                  View Current Appointment
+                </Link>
+              ) : (
+                <Link
+                  href="/booking"
+                  className="btn-primary px-8 py-3 text-lg w-full sm:w-auto flex items-center justify-center gap-2"
+                >
+                  <Calendar className="h-5 w-5" />
+                  Book Appointment
+                </Link>
+              )}
               <Link
                 href="/gallery"
                 className="btn-outline px-8 py-3 text-lg w-full sm:w-auto flex items-center justify-center gap-2"
@@ -101,19 +128,46 @@ export default function HomePage() {
               </div>
 
               {session ? (
-                <div className="flex items-center justify-between gap-2 pt-1">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-primary-600 shrink-0" />
-                    <span className="text-xs text-gray-800 font-medium truncate">
-                      {session.user.name || session.user.email} ({session.user.role === "ADMIN" ? "Owner" : "Customer"})
-                    </span>
+                <div className="space-y-2 pt-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <User className="h-4 w-4 text-primary-600 shrink-0" />
+                      <span className="text-xs text-gray-800 font-medium truncate">
+                        {session.user.name || session.user.email} ({session.user.role === "ADMIN" ? "Owner" : "Customer"})
+                      </span>
+                    </div>
+                    <Link
+                      href={session.user.role === "ADMIN" ? "/admin/dashboard" : "/profile"}
+                      className="text-xs font-semibold text-primary-700 hover:text-primary-800 hover:underline shrink-0"
+                    >
+                      {session.user.role === "ADMIN" ? "Admin Portal →" : "My Profile →"}
+                    </Link>
                   </div>
-                  <Link
-                    href={session.user.role === "ADMIN" ? "/admin/dashboard" : "/profile"}
-                    className="text-xs font-semibold text-primary-700 hover:text-primary-800 hover:underline shrink-0"
-                  >
-                    {session.user.role === "ADMIN" ? "Admin Portal →" : "My Profile →"}
-                  </Link>
+
+                  {/* Logged in customer: Current Appointment Notification */}
+                  {currentBooking && (
+                    <div className="mt-2 pt-2 border-t border-primary-100 bg-pink-50/80 p-2.5 rounded-lg flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-full bg-primary-600 text-white flex items-center justify-center shrink-0">
+                          <Calendar className="h-3.5 w-3.5" />
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-xs font-bold text-gray-900 truncate">
+                            {formatDate(currentBooking.appointmentDate)} • {currentBooking.startTime}
+                          </p>
+                          <p className="text-[10px] text-primary-700 font-medium truncate">
+                            {currentBooking.status === "PENDING" ? "Pending Confirmation" : "Confirmed Appointment"}
+                          </p>
+                        </div>
+                      </div>
+                      <Link
+                        href="/appointments"
+                        className="text-[11px] font-bold text-primary-800 bg-white px-2.5 py-1 rounded border border-primary-200 hover:bg-primary-50 shrink-0"
+                      >
+                        View Appointment
+                      </Link>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-2">

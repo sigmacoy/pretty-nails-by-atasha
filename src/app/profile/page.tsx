@@ -2,7 +2,8 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { Loader2, Calendar, Award, LogOut, User, Mail, Phone, Edit2, Save, X, Check, AlertTriangle, MessageCircle, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { Loader2, Calendar, Award, LogOut, User, Mail, Phone, Edit2, Save, X, Check, AlertTriangle, MessageCircle, ExternalLink, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -283,9 +284,17 @@ export default function ProfilePage() {
                     Appointment only • Saturday and Sunday • 8:00 AM - 10:00 PM
                   </p>
                 </div>
-                <Button size="sm" onClick={() => (window.location.href = "/booking")}>
-                  Book Appointment
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Link href="/appointments">
+                    <Button variant="outline" size="sm" className="text-xs">
+                      <Clock className="h-3.5 w-3.5 mr-1 text-primary-600" />
+                      Current Appointment
+                    </Button>
+                  </Link>
+                  <Button size="sm" onClick={() => (window.location.href = "/booking")} className="text-xs">
+                    Book Appointment
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 {loading ? (
