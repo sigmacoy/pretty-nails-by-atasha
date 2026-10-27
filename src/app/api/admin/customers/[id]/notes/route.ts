@@ -26,7 +26,7 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     if (parsed.data.nickname) {
       await prisma.user.update({
         where: { id: params.id },
-        data: { name: parsed.data.nickname }, // Using name field for nickname display
+        data: { nickname: parsed.data.nickname },
       });
     }
 

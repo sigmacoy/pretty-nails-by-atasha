@@ -95,10 +95,14 @@ export function Header() {
           ) : (
             <div className="flex items-center gap-2">
               <Link href="/login">
-                <Button variant="ghost" size="sm">Sign In</Button>
+                <Button variant="outline" size="sm" className="text-xs border-primary-200 text-primary-800 bg-primary-50 hover:bg-primary-100">
+                  Sign in as Client
+                </Button>
               </Link>
-              <Link href="/register">
-                <Button size="sm">Get Started</Button>
+              <Link href="/login">
+                <Button size="sm" className="text-xs bg-primary-600 hover:bg-primary-700 text-white">
+                  Sign in as Owner
+                </Button>
               </Link>
             </div>
           )}
@@ -170,17 +174,17 @@ export function Header() {
               <div className="border-t pt-4 space-y-2">
                 <Link
                   href="/login"
-                  className="block px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors"
+                  className="block px-3 py-2 text-primary-900 bg-primary-50 rounded-lg text-sm font-semibold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Sign In
+                  Sign in as Client
                 </Link>
                 <Link
-                  href="/register"
-                  className="block px-3 py-2 text-gray-700 hover:text-primary-600 hover:bg-gray-50 rounded-lg transition-colors"
+                  href="/login"
+                  className="block px-3 py-2 text-white bg-primary-600 rounded-lg text-sm font-semibold"
                   onClick={() => setMobileMenuOpen(false)}
                 >
-                  Get Started
+                  Sign in as Owner
                 </Link>
               </div>
             )}

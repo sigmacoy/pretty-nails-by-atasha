@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock, Sparkles, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Image as ImageIcon, Upload, X } from "lucide-react";
+import { Calendar, Clock, Sparkles, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Image as ImageIcon, Upload, X, QrCode, Phone, Info } from "lucide-react";
+import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -47,6 +48,7 @@ const addOns = [
   { id: "french-tip", name: "French Tip", price: 1000, perNail: true },
   { id: "ombre", name: "Ombre", price: 1000, perNail: true },
   { id: "marble", name: "Marble", price: 2000, perNail: true },
+  { id: "polka-dots", name: "Polka Dots", price: 1000, perNail: true },
   { id: "flakes", name: "Gold/Silver Flakes", price: 2000, perNail: true },
   { id: "cat-eye", name: "Cat Eye", price: 2000, perNail: true },
   { id: "glitters", name: "Glitters", price: 2000, perNail: true },
@@ -75,6 +77,7 @@ export default function BookingPage() {
   const [inspirationImage, setInspirationImage] = useState<File | null>(null);
   const [inspirationPreview, setInspirationPreview] = useState<string | null>(null);
   const [notes, setNotes] = useState("");
+  const [paymentReference, setPaymentReference] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
@@ -114,9 +117,9 @@ export default function BookingPage() {
 
   // Add next month days to fill grid
   while (monthDates.length % 7 !== 0) {
-    const date = new Date(monthDates[monthDates.length - 1]);
-    date.setDate(date.getDate() + 1);
-    monthDates.push(date);
+    const nextDate: Date = new Date(monthDates[monthDates.length - 1]);
+    nextDate.setDate(nextDate.getDate() + 1);
+    monthDates.push(nextDate);
   }
 
   const isDateAvailable = (date: Date) => {
@@ -240,6 +243,7 @@ export default function BookingPage() {
           downpayment: DOWNPAYMENT,
           notes,
           inspirationImage: inspirationPreview,
+          paymentReference: paymentReference || undefined,
           services: selectedServices.map(s => ({
             serviceId: s.serviceId,
             variantId: s.variantId,
@@ -644,23 +648,88 @@ export default function BookingPage() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                  <p className="font-medium mb-1">Important:</p>
-                  <ul className="list-disc list-inside space-y-1">
-                    <li>₱100 downpayment via GCash to confirm booking</li>
-                    <li>Cancel before 8 PM day before for refund</li>
-                    <li>No-show = downpayment forfeited</li>
-                    <li>Owner will confirm within 24 hours</li>
+                {/* GCash Reservation Payment */}
+                <div className="p-4 bg-primary-50/50 border border-primary-200 rounded-xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm flex items-center gap-1.5">
+                        <QrCode className="h-4 w-4 text-primary-600" />
+                        GCash Downpayment (Fixed ₱100)
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-0.5">
+                        Scan the shop GCash QR code or send payment to the owner account
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="border-primary-300 text-primary-800 bg-white">
+                      Reservation Fee
+                    </Badge>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-white p-4 rounded-lg border border-primary-100">
+                    <div className="flex flex-col items-center justify-center p-2 bg-gray-50 rounded-lg">
+                      <QRCodeSVG
+                        value="https://www.facebook.com/prettynailsbyatasha"
+                        size={130}
+                        bgColor="#ffffff"
+                        fgColor="#111827"
+                        level="M"
+                      />
+                      <span className="text-[10px] text-gray-500 mt-1">Shop GCash QR Code</span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <span className="text-gray-500 block">GCash Account Name:</span>
+                        <span className="font-bold text-gray-900 text-sm">Ma'am Atasha / Pretty Nails</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">GCash Number:</span>
+                        <span className="font-bold text-primary-700 text-sm font-mono">0977 284 6167</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block">Downpayment Amount:</span>
+                        <span className="font-bold text-gray-900">₱100.00</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="gcashRef" className="text-xs font-medium text-gray-700">
+                      GCash Reference Number (Optional / Recommended)
+                    </Label>
+                    <Input
+                      id="gcashRef"
+                      placeholder="e.g. 100293848192"
+                      value={paymentReference}
+                      onChange={(e) => setPaymentReference(e.target.value)}
+                      className="mt-1 bg-white"
+                    />
+                    <p className="text-[11px] text-gray-500 mt-1">
+                      Helps Ma'am Atasha verify your downpayment faster.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-xs text-yellow-900 space-y-1">
+                  <p className="font-semibold flex items-center gap-1">
+                    <Info className="h-4 w-4 text-yellow-700" />
+                    Important Booking & Cancellation Policy:
+                  </p>
+                  <ul className="list-disc list-inside space-y-0.5 text-yellow-800">
+                    <li>Fixed ₱100 downpayment via GCash secures your slot in the queue.</li>
+                    <li>You may cancel before 8:00 PM the day prior for refund/reschedule.</li>
+                    <li>No-shows forfeit the downpayment and may be blocked.</li>
+                    <li>Appointment only: Wait for owner confirmation in queue. Check status anytime on your profile.</li>
                   </ul>
                 </div>
 
-                <div className="flex justify-end gap-4 pt-4">
+                <div className="flex justify-end gap-3 pt-2">
                   <Button variant="outline" onClick={() => setStep(2)}>
-                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    <ChevronLeft className="mr-1.5 h-4 w-4" />
                     Back
                   </Button>
-                  <Button onClick={handleSubmit} disabled={loading} size="lg">
-                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : ""}
+                  <Button onClick={handleSubmit} disabled={loading} size="lg" className="px-6">
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                     Submit Booking Request
                   </Button>
                 </div>

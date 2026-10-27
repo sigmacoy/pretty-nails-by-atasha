@@ -152,7 +152,7 @@ export default function AdminGalleryPage() {
       <Card>
         <CardContent>
           {loading ? Array.from({length: 8}).map((_,i) => <div key={i} className="h-40 animate-pulse bg-gray-100 rounded mb-4" />) : filteredImages.length === 0 ? (
-            <div className="text-center py-12"><ImageIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No images found</p>
+            <div className="text-center py-12"><ImageIcon className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No images found</p></div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredImages.map(img => (

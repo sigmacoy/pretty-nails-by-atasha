@@ -151,7 +151,7 @@ export default function AdminServicesPage() {
       <Card>
         <CardContent>
           {loading ? Array.from({length: 3}).map((_,i) => <div key={i} className="h-20 animate-pulse bg-gray-100 rounded mb-4" />) : services.length === 0 ? (
-            <div className="text-center py-12"><Tag className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No services yet</p>
+            <div className="text-center py-12"><Tag className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No services yet</p></div>
           ) : (
             <div className="space-y-3">
               {services.map(s => (

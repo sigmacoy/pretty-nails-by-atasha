@@ -33,6 +33,7 @@ export default function HomePage() {
     { name: "French Tip", price: 10 },
     { name: "Ombre", price: 10 },
     { name: "Marble", price: 20 },
+    { name: "Polka Dots", price: 10 },
     { name: "Gold/Silver Flakes", price: 20 },
     { name: "Cat Eye", price: 20 },
     { name: "Glitters", price: 20 },
@@ -69,7 +70,7 @@ export default function HomePage() {
             <p className="text-xl md:text-2xl text-gray-600 mb-10 max-w-2xl mx-auto leading-relaxed font-medium">
               "Life is too short to have naked nails"
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
               <Link
                 href="/booking"
                 className="btn-primary px-8 py-3 text-lg w-full sm:w-auto"
@@ -84,6 +85,32 @@ export default function HomePage() {
                 View Gallery
                 <ImageIcon className="ml-2 h-5 w-5" />
               </Link>
+            </div>
+
+            {/* Prototype Quick Access */}
+            <div className="mb-10 p-3 max-w-md mx-auto bg-white/90 backdrop-blur-sm border border-primary-200 rounded-xl shadow-sm text-left">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-primary-800">
+                  Prototype Quick Access
+                </span>
+                <span className="text-[10px] bg-primary-100 text-primary-800 px-2 py-0.5 rounded-full font-semibold">
+                  1-Click Testing
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-pink-50 hover:bg-pink-100 text-primary-950 border border-primary-200 text-xs font-semibold text-center transition-colors"
+                >
+                  Sign in as Client
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex items-center justify-center px-3 py-2 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold text-center transition-colors"
+                >
+                  Sign in as Owner
+                </Link>
+              </div>
             </div>
             <div className="flex flex-wrap justify-center gap-8 text-sm text-gray-600">
               <div className="flex items-center gap-2">

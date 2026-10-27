@@ -29,7 +29,7 @@ export default function GalleryPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [editingImage, setEditingImage] = useState<typeof images[0] | null>(null);
   const [formData, setFormData] = useState({ title: "", description: "", category: "" });
-  const [uploading, setUploading] = false;
+  const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   useEffect(() => {

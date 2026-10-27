@@ -16,6 +16,7 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || "https://prettynailsbyatasha.vercel.app"),
   title: "Pretty Nails by Atasha",
   description: "Life is too short to have naked nails - Professional nail services by Atasha",
   keywords: ["nail salon", "nail art", "gel nails", "nail extensions", "pedicure", "Philippines"],
@@ -66,7 +67,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" class={`${inter.variable} ${playfair.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

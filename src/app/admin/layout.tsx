@@ -43,8 +43,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-white border-r transition-all duration-300 lg:relative lg:z-auto",
-          collapsed ? "w-20" : "w-64"
+          "fixed top-0 left-0 z-50 h-screen bg-white border-r transition-transform duration-300 lg:relative lg:z-auto w-64",
+          collapsed ? "lg:w-20" : "lg:w-64",
+          sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex flex-col h-full">
@@ -78,6 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={() => setSidebarOpen(false)}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors",
                         isActive

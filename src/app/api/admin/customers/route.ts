@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
     const customers = await prisma.user.findMany({
       where,
       include: {
-        _count: { select: { bookings: true, loyaltyStamps: true } },
+        _count: { select: { bookings: true } },
         loyaltyCard: true,
         notes: { orderBy: { createdAt: "desc" }, take: 5 },
       },

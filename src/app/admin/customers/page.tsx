@@ -15,10 +15,11 @@ import { cn } from "@/lib/utils";
 interface Customer {
   id: string;
   name: string | null;
+  nickname?: string | null;
   email: string;
   phone: string | null;
   createdAt: string;
-  _count: { bookings: number; loyaltyStamps: number };
+  _count: { bookings: number; loyaltyStamps?: number };
   loyaltyCard: { stampCount: number; expiresAt: string | null } | null;
   notes: Array<{ id: string; content: string; nickname: string | null; createdAt: string }>;
 }
@@ -77,7 +78,7 @@ export default function AdminCustomersPage() {
       <Card>
         <CardContent>
           {loading ? Array.from({length: 5}).map((_,i) => <div key={i} className="h-20 animate-pulse bg-gray-100 rounded mb-4" />) : customers.length === 0 ? (
-            <div className="text-center py-12"><User className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No customers found</p>
+            <div className="text-center py-12"><User className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No customers found</p></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
@@ -157,7 +158,7 @@ export default function AdminCustomersPage() {
               <Label htmlFor="note">Note *</Label>
               <textarea id="note" value={noteContent} onChange={e => setNoteContent(e.target.value)} className="w-full p-3 border border-gray-300 rounded-lg" rows={4} placeholder="Write your note here..." required />
             </div>
-            {editingCustomer?.notes.length > 0 && (
+            {editingCustomer && editingCustomer.notes && editingCustomer.notes.length > 0 && (
               <div className="border-t pt-4">
                 <h4 className="font-medium mb-2">Previous Notes</h4>
                 <div className="space-y-2 max-h-40 overflow-y-auto">

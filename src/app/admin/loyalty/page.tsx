@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 interface LoyaltyCard {
   id: string;
@@ -122,7 +122,7 @@ export default function AdminLoyaltyPage() {
         </CardHeader>
         <CardContent>
           {loading ? Array.from({length: 5}).map((_,i) => <div key={i} className="h-16 animate-pulse bg-gray-100 rounded mb-4" />) : cards.length === 0 ? (
-            <div className="text-center py-12"><Award className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No loyalty cards yet</p>
+            <div className="text-center py-12"><Award className="h-16 w-16 mx-auto text-gray-300 mb-4" /><p className="text-gray-500">No loyalty cards yet</p></div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">

@@ -27,9 +27,42 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       include: { user: true, loyaltyStamps: true },
     });
 
-    // If completed, check for loyalty stamp eligibility
-    if (parsed.data.status === "COMPLETED" && booking.loyaltyStamps.length === 0) {
-      // Stamp will be added when customer scans QR
+    // If completed, award loyalty stamps per salon policy
+    if (parsed.data.status === "COMPLETED") {
+      let card = await prisma.loyaltyCard.findUnique({ where: { userId: booking.userId } });
+      if (!card) {
+        card = await prisma.loyaltyCard.create({
+          data: {
+            userId: booking.userId,
+            stampCount: 0,
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+          },
+        });
+      }
+
+      const existingStamps = await prisma.loyaltyStamp.findMany({ where: { bookingId: booking.id } });
+      if (existingStamps.length === 0) {
+        // 1 stamp per nail set / ₱500; ₱1,000 or more earns 2 stamps
+        const stampsToAward = booking.totalPrice >= 100000 ? 2 : 1;
+        for (let i = 0; i < stampsToAward; i++) {
+          await prisma.loyaltyStamp.create({
+            data: {
+              cardId: card.id,
+              bookingId: booking.id,
+              source: "SERVICE",
+              amount: booking.totalPrice,
+            },
+          });
+        }
+        await prisma.loyaltyCard.update({
+          where: { id: card.id },
+          data: {
+            stampCount: card.stampCount + stampsToAward,
+            lastStampAt: new Date(),
+            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 12 months validity
+          },
+        });
+      }
     }
 
     return NextResponse.json(booking);

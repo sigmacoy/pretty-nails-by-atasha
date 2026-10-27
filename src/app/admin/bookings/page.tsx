@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 interface Booking {
   id: string;
   customerName: string;
+  customerNickname?: string | null;
   customerEmail: string;
   customerPhone: string | null;
   appointmentDate: string;
@@ -74,8 +75,22 @@ export default function AdminBookingsPage() {
       if (search) params.set("search", search);
       const res = await fetch(`/api/admin/bookings?${params}`);
       if (res.ok) {
-        const data = await res.json();
-        setBookings(data.bookings || data);
+        const raw = await res.json();
+        const list = Array.isArray(raw) ? raw : raw.bookings || [];
+        const normalized = list.map((b: any) => ({
+          ...b,
+          customerName: b.user?.name || b.customerName || "Customer",
+          customerNickname: b.user?.nickname || b.customerNickname || null,
+          customerEmail: b.user?.email || b.customerEmail || "",
+          customerPhone: b.user?.phone || b.customerPhone || null,
+          services: b.services?.map((s: any) => ({
+            serviceName: s.service?.name || s.serviceName || "Service",
+            variantName: s.variantName || "Standard",
+            quantity: s.quantity || 1,
+            price: s.price || 0,
+          })) || [],
+        }));
+        setBookings(normalized);
       }
     } catch (error) {
       console.error("Failed to fetch bookings:", error);
@@ -201,10 +216,10 @@ export default function AdminBookingsPage() {
           </div>
           <div className="flex items-end gap-2">
             <div className="flex gap-2">
-              <Button variant={viewMode === "queue" ? "default" : "outline" size="icon" onClick={() => setViewMode("queue")} title="Queue View">
+              <Button variant={viewMode === "queue" ? "default" : "outline"} size="icon" onClick={() => setViewMode("queue")} title="Queue View">
                 <Calendar className="h-4 w-4" />
               </Button>
-              <Button variant={viewMode === "list" ? "default" : "outline" size="icon" onClick={() => setViewMode("list")} title="List View">
+              <Button variant={viewMode === "list" ? "default" : "outline"} size="icon" onClick={() => setViewMode("list")} title="List View">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </div>
@@ -280,7 +295,14 @@ export default function AdminBookingsPage() {
                                 </span>
                               </div>
                               <div className="min-w-0">
-                                <p className="font-medium text-gray-900 truncate">{booking.customerName}</p>
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <p className="font-medium text-gray-900 truncate">{booking.customerName}</p>
+                                  {booking.customerNickname && (
+                                    <span className="text-xs text-primary-700 bg-primary-100 px-1.5 py-0.5 rounded font-medium">
+                                      "{booking.customerNickname}"
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="text-sm text-gray-500 truncate">{booking.customerEmail}</p>
                                 {booking.customerPhone && (
                                   <p className="text-sm text-gray-500">{booking.customerPhone}</p>
@@ -317,16 +339,16 @@ export default function AdminBookingsPage() {
                                 <Badge variant={booking.payment.status === "PAID" ? "success" : "warning"}>
                                   {booking.payment.status === "PAID" ? "Paid" : "Pending"}
                                 </Badge>
-                              )
+                              )}
                               <span className="font-semibold text-primary-600">{formatCurrency(booking.totalPrice)}</span>
 
                               {booking.status === "PENDING" && (
                                 <div className="flex gap-1">
                                   <Button
                                     size="sm"
+                                    variant="success"
                                     onClick={() => handleStatusChange(booking.id, "CONFIRMED")}
                                     disabled={actionLoading === booking.id}
-                                    className="bg-green-600 hover:bg-green-700"
                                   >
                                     {actionLoading === booking.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                                   </Button>
@@ -344,9 +366,9 @@ export default function AdminBookingsPage() {
                               {booking.status === "CONFIRMED" && (
                                 <Button
                                   size="sm"
+                                  variant="info"
                                   onClick={() => handleStatusChange(booking.id, "COMPLETED")}
                                   disabled={actionLoading === booking.id}
-                                  className="bg-blue-600 hover:bg-blue-700"
                                 >
                                   {actionLoading === booking.id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Complete"}
                                 </Button>
@@ -456,12 +478,12 @@ export default function AdminBookingsPage() {
                           <div className="flex gap-1">
                             {booking.status === "PENDING" && (
                               <>
-                                <Button size="sm" onClick={() => handleStatusChange(booking.id, "CONFIRMED")} disabled={actionLoading === booking.id} className="bg-green-600 hover:bg-green-700">Confirm</Button>
+                                <Button size="sm" variant="success" onClick={() => handleStatusChange(booking.id, "CONFIRMED")} disabled={actionLoading === booking.id}>Confirm</Button>
                                 <Button size="sm" variant="destructive" onClick={() => handleStatusChange(booking.id, "CANCELLED")} disabled={actionLoading === booking.id}>Cancel</Button>
                               </>
                             )}
                             {booking.status === "CONFIRMED" && (
-                              <Button size="sm" onClick={() => handleStatusChange(booking.id, "COMPLETED")} disabled={actionLoading === booking.id} className="bg-blue-600 hover:bg-blue-700">Complete</Button>
+                              <Button size="sm" variant="info" onClick={() => handleStatusChange(booking.id, "COMPLETED")} disabled={actionLoading === booking.id}>Complete</Button>
                             )}
                             <Button variant="ghost" size="icon" onClick={() => setSelectedBooking(booking)}>
                               <MoreHorizontal className="h-4 w-4" />
@@ -541,7 +563,7 @@ export default function AdminBookingsPage() {
               <DialogFooter>
                 {selectedBooking.status === "PENDING" && (
                   <>
-                    <Button onClick={() => handleStatusChange(selectedBooking.id, "CONFIRMED")} disabled={actionLoading === selectedBooking.id} className="bg-green-600">
+                    <Button variant="success" onClick={() => handleStatusChange(selectedBooking.id, "CONFIRMED")} disabled={actionLoading === selectedBooking.id}>
                       Confirm Booking
                     </Button>
                     <Button variant="destructive" onClick={() => handleStatusChange(selectedBooking.id, "CANCELLED")} disabled={actionLoading === selectedBooking.id}>
@@ -550,7 +572,7 @@ export default function AdminBookingsPage() {
                   </>
                 )}
                 {selectedBooking.status === "CONFIRMED" && (
-                  <Button onClick={() => handleStatusChange(selectedBooking.id, "COMPLETED")} disabled={actionLoading === selectedBooking.id} className="bg-blue-600">
+                  <Button variant="info" onClick={() => handleStatusChange(selectedBooking.id, "COMPLETED")} disabled={actionLoading === selectedBooking.id}>
                     Mark Complete
                   </Button>
                 )}

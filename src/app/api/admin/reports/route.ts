@@ -22,31 +22,43 @@ export async function GET(req: NextRequest) {
         break;
       case "last-month":
         startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+        endDate = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
         break;
       case "this-year":
         startDate = new Date(now.getFullYear(), 0, 1);
         break;
       case "last-year":
         startDate = new Date(now.getFullYear() - 1, 0, 1);
-        endDate = new Date(now.getFullYear() - 1, 11, 31);
+        endDate = new Date(now.getFullYear() - 1, 11, 31, 23, 59, 59);
         break;
       default:
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
     }
 
     const [
-      monthlyRevenue,
+      payments,
+      bookings,
       monthlyCustomers,
-      monthlyBookings,
       monthlyStamps,
-      revenueByMonth,
-      topServices,
-      bookingsByDay,
     ] = await Promise.all([
-      prisma.payment.aggregate({
-        where: { status: "PAID", verifiedAt: { gte: startDate, lte: endDate } },
-        _sum: { amount: true },
+      prisma.payment.findMany({
+        where: {
+          status: "PAID",
+          createdAt: { gte: startDate, lte: endDate },
+        },
+      }),
+      prisma.booking.findMany({
+        where: {
+          appointmentDate: { gte: startDate, lte: endDate },
+        },
+        include: {
+          services: {
+            include: {
+              service: true,
+            },
+          },
+          payment: true,
+        },
       }),
       prisma.user.count({
         where: {
@@ -54,44 +66,89 @@ export async function GET(req: NextRequest) {
           bookings: { some: { appointmentDate: { gte: startDate, lte: endDate } } },
         },
       }),
-      prisma.booking.count({
-        where: { appointmentDate: { gte: startDate, lte: endDate } },
+      prisma.loyaltyStamp.count({
+        where: { earnedAt: { gte: startDate, lte: endDate } },
       }),
-      prisma.loyaltyStamp.count({ where: { earnedAt: { gte: startDate, lte: endDate } } }),
-      prisma.$queryRaw`
-        SELECT to_char("verifiedAt", 'Mon') as month, SUM(amount) as revenue, COUNT(*) as bookings
-        FROM "Payment"
-        WHERE status = 'PAID' AND "verifiedAt" >= ${startDate} AND "verifiedAt" <= ${endDate}
-        GROUP BY to_char("verifiedAt", 'Mon'), EXTRACT(MONTH FROM "verifiedAt")
-        ORDER BY EXTRACT(MONTH FROM "verifiedAt")
-      `,
-      prisma.$queryRaw`
-        SELECT s.name, COUNT(*) as count, SUM(bs.price) as revenue
-        FROM "BookingService" bs
-        JOIN "Service" s ON bs."serviceId" = s.id
-        JOIN "Booking" b ON bs."bookingId" = b.id
-        WHERE b."appointmentDate" >= ${startDate} AND b."appointmentDate" <= ${endDate}
-        GROUP BY s.name
-        ORDER BY count DESC
-        LIMIT 5
-      `,
-      prisma.$queryRaw`
-        SELECT to_char("appointmentDate", 'Day') as day, COUNT(*) as count
-        FROM "Booking"
-        WHERE "appointmentDate" >= ${startDate} AND "appointmentDate" <= ${endDate}
-        GROUP BY to_char("appointmentDate", 'Day'), EXTRACT(DOW FROM "appointmentDate")
-        ORDER BY EXTRACT(DOW FROM "appointmentDate")
-      `,
     ]);
 
+    const monthlyRevenue = payments.reduce((acc, p) => acc + p.amount, 0);
+
+    // Group revenue by month
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthMap: Record<string, { month: string; revenue: number; bookings: number }> = {};
+
+    for (let i = 0; i < 6; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
+      const mName = monthNames[d.getMonth()];
+      monthMap[mName] = { month: mName, revenue: 0, bookings: 0 };
+    }
+
+    // Add current period payments/bookings to monthMap
+    payments.forEach(p => {
+      const mName = monthNames[new Date(p.createdAt).getMonth()];
+      if (monthMap[mName]) {
+        monthMap[mName].revenue += p.amount;
+      }
+    });
+
+    bookings.forEach(b => {
+      const mName = monthNames[new Date(b.appointmentDate).getMonth()];
+      if (monthMap[mName]) {
+        monthMap[mName].bookings += 1;
+      }
+    });
+
+    const revenueByMonth = Object.values(monthMap);
+
+    // Top services
+    const serviceCounts: Record<string, { name: string; count: number; revenue: number }> = {};
+    bookings.forEach(b => {
+      b.services.forEach(bs => {
+        const name = bs.service?.name || "Service";
+        if (!serviceCounts[name]) {
+          serviceCounts[name] = { name, count: 0, revenue: 0 };
+        }
+        serviceCounts[name].count += bs.quantity;
+        serviceCounts[name].revenue += bs.price || (b.totalPrice / (b.services.length || 1));
+      });
+    });
+
+    const topServices = Object.values(serviceCounts)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5);
+
+    // Bookings by day of week
+    const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+    const dayCounts: Record<string, number> = {
+      Sun: 0,
+      Mon: 0,
+      Tue: 0,
+      Wed: 0,
+      Thu: 0,
+      Fri: 0,
+      Sat: 0,
+    };
+
+    bookings.forEach(b => {
+      const dayName = daysOfWeek[new Date(b.appointmentDate).getDay()];
+      if (dayCounts[dayName] !== undefined) {
+        dayCounts[dayName] += 1;
+      }
+    });
+
+    const bookingsByDay = daysOfWeek.map(day => ({
+      day,
+      count: dayCounts[day],
+    }));
+
     return NextResponse.json({
-      monthlyRevenue: monthlyRevenue._sum.amount || 0,
+      monthlyRevenue,
       monthlyCustomers,
-      monthlyBookings,
+      monthlyBookings: bookings.length,
       monthlyStamps,
-      revenueByMonth: revenueByMonth || [],
-      topServices: topServices || [],
-      bookingsByDay: bookingsByDay || [],
+      revenueByMonth,
+      topServices,
+      bookingsByDay,
     });
   } catch (error) {
     console.error("Reports error:", error);

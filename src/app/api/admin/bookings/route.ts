@@ -11,13 +11,17 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date");
+    const start = searchParams.get("start");
+    const end = searchParams.get("end");
     const status = searchParams.get("status");
     const search = searchParams.get("search");
-    const limit = parseInt(searchParams.get("limit") || "50");
+    const limit = parseInt(searchParams.get("limit") || "100");
 
     const where: any = {};
     if (date) {
       where.appointmentDate = new Date(date);
+    } else if (start && end) {
+      where.appointmentDate = { gte: new Date(start), lte: new Date(end) };
     }
     if (status && status !== "ALL") {
       const statuses = status.split(",");
@@ -33,7 +37,7 @@ export async function GET(req: NextRequest) {
     const bookings = await prisma.booking.findMany({
       where,
       include: {
-        user: { select: { id: true, name: true, email: true, phone: true } },
+        user: { select: { id: true, name: true, nickname: true, email: true, phone: true } },
         services: { include: { service: true } },
         payment: true,
       },

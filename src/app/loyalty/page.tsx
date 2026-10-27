@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useState, useEffect, useRef } from "react";
-import { Award, QrCode, Camera, CheckCircle, Clock, Sparkles, Loader2, ArrowUpRight } from "lucide-react";
+import { Award, QrCode, Camera, CheckCircle, Clock, Sparkles, Loader2, ArrowUpRight, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -149,7 +149,7 @@ export default function LoyaltyPage() {
 
   const progress = loyaltyCard ? getStampProgress(loyaltyCard.stampCount, STAMPS_REQUIRED) : 0;
   const stampsNeeded = loyaltyCard ? getStampsNeeded(loyaltyCard.stampCount, STAMPS_REQUIRED) : STAMPS_REQUIRED;
-  const isExpired = loyaltyCard?.expiresAt && new Date(loyaltyCard.expiresAt) < new Date();
+  const isExpired = Boolean(loyaltyCard?.expiresAt && new Date(loyaltyCard.expiresAt) < new Date());
 
   return (
     <div className="min-h-screen py-12">
@@ -214,8 +214,9 @@ export default function LoyaltyPage() {
                   {stampsNeeded} more stamp{stampsNeeded !== 1 ? "s" : ""} for a free nail set!
                 </p>
               ) : (
-                <p className="text-lg text-green-600 font-medium">
-                  🎉 You've earned a free nail set! Claim it on your next visit.
+                <p className="text-lg text-green-600 font-medium flex items-center justify-center gap-2">
+                  <Award className="h-5 w-5 text-green-600" />
+                  You have earned a free nail set! Claim it on your next visit.
                 </p>
               )}
             </div>
@@ -228,7 +229,7 @@ export default function LoyaltyPage() {
                   className={cn(
                     "w-12 h-12 rounded-lg border-2 flex items-center justify-center transition-all",
                     i < (loyaltyCard?.stampCount || 0)
-                      ? "bg-primary-500 border-primary-500"
+                      ? "bg-primary-500 border-primary-500 shadow-sm"
                       : "bg-white border-gray-300"
                   )}
                 >
@@ -236,25 +237,38 @@ export default function LoyaltyPage() {
                     <CheckCircle className="h-6 w-6 text-white" />
                   )}
                   {i >= (loyaltyCard?.stampCount || 0) && (
-                    <span className="text-gray-400 text-xs">{i + 1}</span>
+                    <span className="text-gray-400 text-xs font-semibold">{i + 1}</span>
                   )}
                 </div>
               ))}
             </div>
 
-            {/* QR Scanner Button */}
-            <Button
-              onClick={startScanner}
-              disabled={scanning || isExpired}
-              className="w-full py-3 text-lg"
-              size="lg"
-            >
-              {scanning ? (
-                <>Scanning... <Loader2 className="ml-2 h-5 w-5 animate-spin" /></>
-              ) : (
-                <> <QrCode className="mr-2 h-5 w-5" /> Scan QR Code to Earn Stamp</>
-              )}
-            </Button>
+            {/* QR Scanner Buttons */}
+            <div className="space-y-3">
+              <Button
+                onClick={startScanner}
+                disabled={scanning || isExpired}
+                className="w-full py-3 text-lg"
+                size="lg"
+              >
+                {scanning ? (
+                  <>Scanning... <Loader2 className="ml-2 h-5 w-5 animate-spin" /></>
+                ) : (
+                  <> <QrCode className="mr-2 h-5 w-5" /> Scan QR Code to Earn Stamp</>
+                )}
+              </Button>
+
+              {/* Prototype quick scan button */}
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleQRScan("prettynails-shop-qr-code")}
+                disabled={scanning || isExpired}
+                className="w-full text-xs text-primary-700 border-primary-200 hover:bg-primary-50"
+              >
+                Simulate Shop QR Stamp (Prototype Quick Test)
+              </Button>
+            </div>
 
             {isExpired && (
               <p className="text-center text-sm text-red-600 mt-3">
@@ -269,11 +283,9 @@ export default function LoyaltyPage() {
                 scanResult.success ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
               )}>
                 {scanResult.success ? (
-                  <CheckCircle className="h-6 w-6 mx-auto mb-2" />
+                  <CheckCircle className="h-6 w-6 mx-auto mb-2 text-green-600" />
                 ) : (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="h-6 w-6">✕</span>
-                  </span>
+                  <AlertCircle className="h-6 w-6 mx-auto mb-2 text-red-600" />
                 )}
                 <p>{scanResult.message}</p>
                 <Button variant="ghost" size="sm" className="mt-2" onClick={() => setScanResult(null)}>
