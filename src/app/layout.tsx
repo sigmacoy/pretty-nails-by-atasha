@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
+import { Header } from "@/components/layout/header";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -68,8 +69,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable} antialiased`}>
-      <body className="min-h-screen bg-gradient-hero font-sans">
-        <Providers>{children}</Providers>
+      <body className="min-h-screen bg-gradient-hero font-sans flex flex-col">
+        <Providers>
+          <Header />
+          <div className="flex-1">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

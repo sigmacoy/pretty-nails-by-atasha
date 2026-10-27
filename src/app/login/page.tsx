@@ -4,7 +4,7 @@ import { Suspense, useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { Loader2, Mail, Lock, Eye, EyeOff, Facebook, Chrome, Sparkles, User, ShieldCheck } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, Facebook, Chrome, Sparkles, User, ShieldCheck, Calendar, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +40,8 @@ function LoginForm() {
       if (result?.error) {
         setErrorMessage("Invalid email or password");
       } else {
-        router.push(callbackUrl);
+        const targetUrl = callbackUrl && callbackUrl !== "/" ? callbackUrl : "/booking";
+        router.push(targetUrl);
         router.refresh();
       }
     } catch (err) {
@@ -59,17 +60,22 @@ function LoginForm() {
         ? { email: "owner@prettynails.com", password: "owner123" }
         : { email: "client@prettynails.com", password: "client123" };
 
+    const targetUrl =
+      role === "owner"
+        ? "/admin/dashboard"
+        : (callbackUrl && callbackUrl !== "/" ? callbackUrl : "/booking");
+
     try {
       const result = await signIn("credentials", {
         ...demoCredentials,
         redirect: false,
-        callbackUrl: role === "owner" ? "/admin/dashboard" : (callbackUrl || "/profile"),
+        callbackUrl: targetUrl,
       });
 
       if (result?.error) {
         setErrorMessage(`Failed to sign in as ${role}`);
       } else {
-        router.push(role === "owner" ? "/admin/dashboard" : (callbackUrl || "/profile"));
+        router.push(targetUrl);
         router.refresh();
       }
     } catch (err) {
@@ -102,6 +108,19 @@ function LoginForm() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          {callbackUrl?.includes("/booking") && (
+            <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg text-xs text-primary-900 flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-primary-600 shrink-0" />
+              <span>Sign in to book your appointment. You will be redirected right back to the booking calendar.</span>
+            </div>
+          )}
+          {callbackUrl?.includes("/loyalty") && (
+            <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg text-xs text-primary-900 flex items-center gap-2">
+              <Award className="h-4 w-4 text-primary-600 shrink-0" />
+              <span>Sign in to access your digital loyalty card, earn stamps, and track rewards.</span>
+            </div>
+          )}
+
           {/* Prototype Quick Access */}
           <div className="p-4 bg-primary-50/70 border border-primary-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
