@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Calendar, Clock, Sparkles, ChevronLeft, ChevronRight, CheckCircle, AlertCircle, Loader2, Image as ImageIcon, Upload, X, QrCode, Phone, Info } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
@@ -81,6 +81,25 @@ export default function BookingPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [dbAvailabilities, setDbAvailabilities] = useState<Array<{
+    date: string;
+    isAvailable: boolean;
+    startTime: string;
+    endTime: string;
+    maxSlots: number;
+    note?: string | null;
+  }>>([]);
+
+  useEffect(() => {
+    fetch("/api/availability")
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setDbAvailabilities(data);
+        }
+      })
+      .catch((err) => console.error("Could not fetch availability:", err));
+  }, []);
 
   // Generate available dates (Saturdays and Sundays for next 4 weeks)
   const availableDates = [];
@@ -122,13 +141,33 @@ export default function BookingPage() {
     monthDates.push(nextDate);
   }
 
+  const getDayAvailabilityRecord = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    const dateStr = `${y}-${m}-${d}`;
+    return dbAvailabilities.find((a) => a.date.startsWith(dateStr));
+  };
+
   const isDateAvailable = (date: Date) => {
     if (date < today) return false;
     if (!isWeekend(date)) return false;
     const maxDate = new Date(today);
     maxDate.setMonth(maxDate.getMonth() + 1);
     if (date > maxDate) return false;
+
+    // Check if owner explicitly blocked this date for breaks/holidays
+    const record = getDayAvailabilityRecord(date);
+    if (record && !record.isAvailable) return false;
+
     return true;
+  };
+
+  const isDateBlockedByOwner = (date: Date) => {
+    if (date < today) return false;
+    if (!isWeekend(date)) return false;
+    const record = getDayAvailabilityRecord(date);
+    return record ? !record.isAvailable : false;
   };
 
   const isDateSelected = (date: Date) => {
@@ -136,7 +175,10 @@ export default function BookingPage() {
     return date.toDateString() === selectedDate.toDateString();
   };
 
-  const timeSlots = generateTimeSlots("08:00", "22:00", 60); // Hourly slots
+  const selectedRecord = selectedDate ? getDayAvailabilityRecord(selectedDate) : null;
+  const dayStartTime = selectedRecord?.startTime || "08:00";
+  const dayEndTime = selectedRecord?.endTime || "22:00";
+  const timeSlots = generateTimeSlots(dayStartTime, dayEndTime, 60); // Hourly slots
 
   const isTimeSlotAvailable = (slot: string) => {
     if (!selectedDate) return false;
@@ -380,33 +422,50 @@ export default function BookingPage() {
                       {day}
                     </div>
                   ))}
-                  {monthDates.map((date, i) => (
-                    <button
-                      key={i}
-                      onClick={() => handleDateClick(date)}
-                      disabled={!isDateAvailable(date)}
-                      className={cn(
-                        "aspect-square rounded-lg text-sm font-medium transition-all",
-                        isDateSelected(date)
-                          ? "bg-primary-600 text-white"
-                          : isDateAvailable(date)
-                          ? "hover:bg-primary-100 text-gray-900"
-                          : "text-gray-300 cursor-not-allowed"
-                      )}
-                    >
-                      {date.getDate()}
-                    </button>
-                  ))}
+                  {monthDates.map((date, i) => {
+                    const available = isDateAvailable(date);
+                    const isBlocked = isDateBlockedByOwner(date);
+                    const selected = isDateSelected(date);
+
+                    return (
+                      <button
+                        key={i}
+                        onClick={() => handleDateClick(date)}
+                        disabled={!available}
+                        title={isBlocked ? "Owner unavailable / Break" : undefined}
+                        className={cn(
+                          "aspect-square rounded-lg text-sm font-medium transition-all relative flex flex-col items-center justify-center",
+                          selected
+                            ? "bg-primary-600 text-white shadow-xs font-bold"
+                            : available
+                            ? "hover:bg-primary-100 text-gray-900 font-semibold"
+                            : isBlocked
+                            ? "text-red-400 bg-red-50/50 line-through cursor-not-allowed border border-red-100"
+                            : "text-gray-300 cursor-not-allowed"
+                        )}
+                      >
+                        <span>{date.getDate()}</span>
+                        {isBlocked && (
+                          <span className="text-[9px] text-red-500 font-normal no-underline leading-none">Off</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
               {/* Time Slots */}
               {selectedDate && (
                 <div>
-                  <h4 className="font-medium text-gray-900 mb-4 flex items-center gap-2">
-                    <Clock className="h-5 w-5" />
+                  <h4 className="font-medium text-gray-900 mb-2 flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-primary-600" />
                     Available Time Slots ({formatDate(selectedDate)})
                   </h4>
+                  {selectedRecord?.note && (
+                    <p className="text-xs text-primary-800 bg-primary-50 border border-primary-100 p-2 rounded-lg mb-3">
+                      Note from Atasha: {selectedRecord.note}
+                    </p>
+                  )}
                   <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
                     {timeSlots.map(slot => (
                       <button
