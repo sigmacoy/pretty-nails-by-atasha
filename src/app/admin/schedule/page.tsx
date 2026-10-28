@@ -20,7 +20,8 @@ import {
   Edit,
   Sliders,
   AlertCircle,
-  QrCode
+  QrCode,
+  Trash2
 } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
@@ -215,6 +216,26 @@ export default function AdminSchedulePage() {
       }
     } catch (err) {
       console.error("Failed to save note:", err);
+    }
+  };
+
+  const handleDeleteBooking = async (bookingId: string, customerName: string) => {
+    if (!confirm(`Are you sure you want to delete the booking for "${customerName}"? (Prototype mode)`)) {
+      return;
+    }
+    setActionLoading(bookingId);
+    try {
+      const res = await fetch(`/api/admin/bookings/${bookingId}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchMonthData();
+      } else {
+        alert("Failed to delete booking");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error deleting booking");
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -690,25 +711,56 @@ export default function AdminSchedulePage() {
                               </>
                             )}
 
-                            {booking.status === "CONFIRMED" && (
-                              <Button
-                                size="sm"
-                                variant="info"
-                                onClick={async () => {
-                                  await handleStatusChange(booking.id, "COMPLETED");
-                                  setStampModalBooking(booking);
-                                }}
-                                disabled={actionLoading === booking.id}
-                                className="h-7 text-xs px-2.5 font-semibold"
-                              >
-                                {actionLoading === booking.id ? (
-                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                                ) : (
-                                  <QrCode className="h-3 w-3 mr-1" />
-                                )}
-                                Complete & Generate Stamp QR
-                              </Button>
-                            )}
+                            {booking.status === "CONFIRMED" && (() => {
+                              const hasNailSet = booking.services.some((s) => {
+                                const n = (s.service?.name || "").toLowerCase();
+                                return n.includes("gel") || n.includes("extension") || n.includes("pedicure");
+                              });
+                              const qualifies = hasNailSet || booking.totalPrice >= 50000;
+
+                              return qualifies ? (
+                                <Button
+                                  size="sm"
+                                  variant="info"
+                                  onClick={async () => {
+                                    await handleStatusChange(booking.id, "COMPLETED");
+                                    setStampModalBooking(booking);
+                                  }}
+                                  disabled={actionLoading === booking.id}
+                                  className="h-7 text-xs px-2.5 font-semibold"
+                                >
+                                  {actionLoading === booking.id ? (
+                                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  ) : (
+                                    <QrCode className="h-3 w-3 mr-1" />
+                                  )}
+                                  Complete &amp; QR
+                                </Button>
+                              ) : (
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    size="sm"
+                                    onClick={async () => {
+                                      await handleStatusChange(booking.id, "COMPLETED");
+                                    }}
+                                    disabled={actionLoading === booking.id}
+                                    className="h-7 text-xs px-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold"
+                                  >
+                                    Complete
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setStampModalBooking(booking)}
+                                    className="h-7 text-xs px-2 text-primary-700 border-primary-200 hover:bg-primary-50"
+                                    title="Show QR if customer decided to upgrade to a nail set"
+                                  >
+                                    <QrCode className="h-3 w-3 mr-1" />
+                                    QR
+                                  </Button>
+                                </div>
+                              );
+                            })()}
 
                             {booking.status === "COMPLETED" && (
                               <Button
@@ -721,6 +773,17 @@ export default function AdminSchedulePage() {
                                 Show Stamp QR
                               </Button>
                             )}
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteBooking(booking.id, booking.user?.name || "Customer")}
+                              disabled={actionLoading === booking.id}
+                              className="h-7 w-7 p-0 text-red-500 hover:text-red-700 hover:bg-red-50"
+                              title="Delete Booking (Prototype)"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </div>
                         </div>
                       </div>

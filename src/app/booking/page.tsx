@@ -42,6 +42,14 @@ const services = [
       { id: "pedicure", name: "Standard", price: 30000, duration: 180 },
     ],
   },
+  {
+    id: "cleaning",
+    name: "Nail Cleaning",
+    category: "CLEANING",
+    variants: [
+      { id: "cleaning-std", name: "Standard", price: 20000, duration: 45 },
+    ],
+  },
 ];
 
 const addOns = [

@@ -49,6 +49,11 @@ export default function HomePage() {
       price: 300,
       icon: Sparkles,
     },
+    {
+      name: "Nail Cleaning",
+      price: 200,
+      icon: Sparkles,
+    },
   ];
 
   const addOns = [
@@ -248,7 +253,7 @@ export default function HomePage() {
               Professional nail services tailored to your style. All prices in PHP.
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {services.map((service) => (
               <ServiceCard key={service.name} service={service} />
             ))}

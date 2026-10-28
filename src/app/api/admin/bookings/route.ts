@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
         user: { select: { id: true, name: true, nickname: true, email: true, phone: true } },
         services: { include: { service: true } },
         payment: true,
+        loyaltyStamps: true,
       },
       orderBy,
       take: limit,

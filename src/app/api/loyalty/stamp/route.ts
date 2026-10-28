@@ -56,6 +56,20 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Appointment not found for this QR code." }, { status: 404 });
       }
 
+      if (targetBooking.userId !== session.user.id && session.user.role !== "ADMIN") {
+        return NextResponse.json(
+          { error: "This visit QR code belongs to another customer's booking. Please ensure you are logged into your own account." },
+          { status: 403 }
+        );
+      }
+
+      if (targetBooking.status === "CANCELLED" || targetBooking.status === "NO_SHOW") {
+        return NextResponse.json(
+          { error: "This appointment was cancelled or recorded as a no-show and is not eligible for loyalty stamps." },
+          { status: 400 }
+        );
+      }
+
       // Check if already stamped
       if (targetBooking.loyaltyStamps.length > 0) {
         return NextResponse.json(
@@ -118,20 +132,50 @@ export async function POST(req: NextRequest) {
     }
 
     // Calculate stamps earned
-    // 1 stamp per nail set OR ₱500 paid amount; ₱1,000+ gives 2 stamps
-    let stampsEarned = 1;
-    let source = "SERVICE";
+    // Rule: 1 stamp per nail set OR 1 stamp per ₱500 paid amount; 2 stamps for ₱1,000+
+    // If a customer only books Nail Cleaning (< ₱500 and no nail sets), 0 stamps are earned.
+    const NAIL_SET_CATEGORIES = ["GEL", "EXTENSION", "PEDICURE"];
+    const hasNailSet = targetBooking.services.some((s: any) => {
+      const cat = s.service?.category?.toUpperCase() || "";
+      const name = s.service?.name?.toLowerCase() || "";
+      return (
+        NAIL_SET_CATEGORIES.includes(cat) ||
+        name.includes("gel") ||
+        name.includes("extension") ||
+        name.includes("pedicure")
+      );
+    });
+
     const amount = targetBooking?.totalPrice || 0;
+    let stampsEarned = 0;
+    let source = "SERVICE";
 
     if (amount >= 100000) {
+      // ₱1,000+ gives 2 stamps
       stampsEarned = 2;
       source = "AMOUNT";
+    } else if (hasNailSet) {
+      // 1 stamp per nail set (Nail Gel, Soft Gel Extension, Nail Gel Pedicure)
+      stampsEarned = 1;
+      source = "SERVICE";
     } else if (amount >= STAMP_PER_AMOUNT) {
+      // 1 stamp per ₱500 paid amount
       stampsEarned = Math.floor(amount / STAMP_PER_AMOUNT);
       source = "AMOUNT";
+    } else {
+      // Only Nail Cleaning (e.g. ₱200) without any nail sets and under ₱500
+      stampsEarned = 0;
     }
 
-    if (stampsEarned < 1) stampsEarned = 1;
+    if (stampsEarned === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "This appointment does not qualify for a loyalty stamp. Loyalty stamps require at least 1 nail set service (Nail Gel, Soft Gel Extension, Nail Gel Pedicure) or a minimum service total of ₱500.",
+        },
+        { status: 400 }
+      );
+    }
 
     // Get or create loyalty card for this customer
     let card = await prisma.loyaltyCard.findUnique({

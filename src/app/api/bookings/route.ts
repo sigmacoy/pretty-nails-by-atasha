@@ -82,7 +82,9 @@ export async function POST(req: NextRequest) {
 
       if (!svc) {
         const idLower = s.serviceId.toLowerCase();
-        if (idLower.includes("gel") && !idLower.includes("ext") && !idLower.includes("ped")) {
+        if (idLower.includes("clean")) {
+          svc = await prisma.service.findFirst({ where: { name: "Nail Cleaning" }, include: { variants: true } });
+        } else if (idLower.includes("gel") && !idLower.includes("ext") && !idLower.includes("ped")) {
           svc = await prisma.service.findFirst({ where: { name: "Nail Gel" }, include: { variants: true } });
         } else if (idLower.includes("ext")) {
           svc = await prisma.service.findFirst({ where: { name: "Soft Gel Extension" }, include: { variants: true } });

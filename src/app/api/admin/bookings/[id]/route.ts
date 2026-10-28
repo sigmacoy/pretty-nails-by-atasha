@@ -21,49 +21,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       return NextResponse.json({ error: "Invalid input" }, { status: 400 });
     }
 
+    // Owner updates booking status (e.g. to CONFIRMED or COMPLETED).
+    // Note: Per salon policy, owner completing an appointment does NOT auto-grant stamps.
+    // The customer must scan the QR code themselves to collect their digital stamp.
     const booking = await prisma.booking.update({
       where: { id: params.id },
       data: { status: parsed.data.status! },
-      include: { user: true, loyaltyStamps: true },
+      include: {
+        user: true,
+        services: { include: { service: true } },
+        loyaltyStamps: true,
+      },
     });
-
-    // If completed, award loyalty stamps per salon policy
-    if (parsed.data.status === "COMPLETED") {
-      let card = await prisma.loyaltyCard.findUnique({ where: { userId: booking.userId } });
-      if (!card) {
-        card = await prisma.loyaltyCard.create({
-          data: {
-            userId: booking.userId,
-            stampCount: 0,
-            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
-          },
-        });
-      }
-
-      const existingStamps = await prisma.loyaltyStamp.findMany({ where: { bookingId: booking.id } });
-      if (existingStamps.length === 0) {
-        // 1 stamp per nail set / ₱500; ₱1,000 or more earns 2 stamps
-        const stampsToAward = booking.totalPrice >= 100000 ? 2 : 1;
-        for (let i = 0; i < stampsToAward; i++) {
-          await prisma.loyaltyStamp.create({
-            data: {
-              cardId: card.id,
-              bookingId: booking.id,
-              source: "SERVICE",
-              amount: booking.totalPrice,
-            },
-          });
-        }
-        await prisma.loyaltyCard.update({
-          where: { id: card.id },
-          data: {
-            stampCount: card.stampCount + stampsToAward,
-            lastStampAt: new Date(),
-            expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 12 months validity
-          },
-        });
-      }
-    }
 
     return NextResponse.json(booking);
   } catch (error) {
@@ -79,7 +48,16 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    await prisma.booking.delete({ where: { id: params.id } });
+    await prisma.$transaction([
+      prisma.bookingService.deleteMany({ where: { bookingId: params.id } }),
+      prisma.payment.deleteMany({ where: { bookingId: params.id } }),
+      prisma.loyaltyStamp.updateMany({
+        where: { bookingId: params.id },
+        data: { bookingId: null },
+      }),
+      prisma.booking.delete({ where: { id: params.id } }),
+    ]);
+
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Delete booking error:", error);

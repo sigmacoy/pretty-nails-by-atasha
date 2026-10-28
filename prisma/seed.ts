@@ -42,6 +42,16 @@ async function main() {
         { name: "Standard", price: 30000 },
       ],
     },
+    {
+      name: "Nail Cleaning",
+      category: "CLEANING",
+      description: "Complete nail shaping, cuticle cleanup, and hygienic nail care",
+      basePrice: 20000,
+      duration: 45,
+      variants: [
+        { name: "Standard", price: 20000 },
+      ],
+    },
   ];
 
   for (const service of services) {

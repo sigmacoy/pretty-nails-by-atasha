@@ -103,26 +103,23 @@ export default function AdminLoyaltyPage() {
     }
   };
 
-  const handleCardAction = async (cardId: string, action: "ADD_STAMP" | "RESET" | "REDEEM", customerName: string) => {
-    if (action === "RESET" && !confirm(`Reset stamps for ${customerName} to 0?`)) return;
-    if (action === "REDEEM" && !confirm(`Redeem free nail set for ${customerName}? This will deduct 9 stamps.`)) return;
+  const handleCardAction = async (cardId: string, action: "REDEEM", customerName: string) => {
+    if (!confirm(`Redeem free nail set reward for ${customerName}? This will deduct 9 stamps.`)) return;
 
     setActionLoading(cardId);
     try {
       const res = await fetch("/api/admin/loyalty", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ cardId, action, amount: 1 }),
+        body: JSON.stringify({ cardId, action }),
       });
       if (res.ok) {
-        if (action === "ADD_STAMP") showToast(`Added +1 stamp for ${customerName}`);
-        if (action === "RESET") showToast(`Reset stamps to 0 for ${customerName}`);
-        if (action === "REDEEM") showToast(`Redeemed free nail set for ${customerName}`);
+        showToast(`Redeemed 1 free nail set for ${customerName}`);
         await fetchCards();
       }
     } catch (e) {
       console.error(e);
-      alert("Failed to update stamp card");
+      alert("Failed to redeem reward");
     } finally {
       setActionLoading(null);
     }
@@ -285,7 +282,7 @@ export default function AdminLoyaltyPage() {
 
                         <td className="p-3.5 text-right">
                           <div className="inline-flex items-center gap-1.5">
-                            {isReady && (
+                            {isReady ? (
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -296,27 +293,11 @@ export default function AdminLoyaltyPage() {
                               >
                                 <Gift className="h-3 w-3 mr-1" /> Redeem Free Set
                               </Button>
+                            ) : (
+                              <span className="text-[11px] text-gray-400 italic">
+                                Scan QR to earn
+                              </span>
                             )}
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCardAction(c.id, "ADD_STAMP", c.user.name || c.user.email)}
-                              disabled={actionLoading === c.id}
-                              className="h-7 px-2 text-xs hover:bg-pink-50 hover:text-primary-700"
-                              title="Award +1 Stamp to this card"
-                            >
-                              <Plus className="h-3 w-3 mr-1" /> +1 Stamp
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleCardAction(c.id, "RESET", c.user.name || c.user.email)}
-                              disabled={actionLoading === c.id}
-                              className="h-7 px-2 text-xs text-gray-500 hover:text-red-600 hover:bg-red-50"
-                              title="Reset stamps to 0"
-                            >
-                              <RotateCcw className="h-3 w-3" />
-                            </Button>
                           </div>
                         </td>
                       </tr>

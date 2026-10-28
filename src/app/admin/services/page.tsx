@@ -34,6 +34,7 @@ const categories = [
   { value: "GEL", label: "Nail Gel" },
   { value: "EXTENSION", label: "Soft Gel Extension" },
   { value: "PEDICURE", label: "Pedicure" },
+  { value: "CLEANING", label: "Nail Cleaning" },
   { value: "ADDON", label: "Add-on" },
 ];
 

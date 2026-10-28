@@ -50,33 +50,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Loyalty card not found" }, { status: 404 });
     }
 
+    if (action === "ADD_STAMP" || action === "RESET") {
+      return NextResponse.json(
+        { error: "Manual stamp adjustment is disabled. Customers must scan their visit QR code to record stamps." },
+        { status: 403 }
+      );
+    }
+
     let updated;
-    if (action === "ADD_STAMP") {
-      const newCount = card.stampCount + (amount || 1);
-      await prisma.loyaltyStamp.create({
-        data: {
-          cardId: card.id,
-          source: "ADMIN_AWARDED",
-          amount: 50000,
-        },
-      });
-      updated = await prisma.loyaltyCard.update({
-        where: { id: card.id },
-        data: {
-          stampCount: newCount,
-          lastStampAt: new Date(),
-        },
-      });
-    } else if (action === "RESET") {
-      await prisma.loyaltyStamp.deleteMany({ where: { cardId: card.id } });
-      updated = await prisma.loyaltyCard.update({
-        where: { id: card.id },
-        data: {
-          stampCount: 0,
-          lastStampAt: null,
-        },
-      });
-    } else if (action === "REDEEM") {
+    if (action === "REDEEM") {
       const newCount = Math.max(0, card.stampCount - 9);
       updated = await prisma.loyaltyCard.update({
         where: { id: card.id },
@@ -84,6 +66,8 @@ export async function POST(req: NextRequest) {
           stampCount: newCount,
         },
       });
+    } else {
+      return NextResponse.json({ error: "Invalid action" }, { status: 400 });
     }
 
     return NextResponse.json(updated);

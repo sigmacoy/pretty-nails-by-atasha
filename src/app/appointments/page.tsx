@@ -18,7 +18,8 @@ import {
   AlertTriangle,
   User,
   ShieldCheck,
-  CreditCard
+  CreditCard,
+  QrCode
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +69,9 @@ export default function CurrentAppointmentsPage() {
   const [cancellingBooking, setCancellingBooking] = useState<Booking | null>(null);
   const [cancelLoading, setCancelLoading] = useState(false);
   const [cancelMessage, setCancelMessage] = useState<string | null>(null);
+  const [claimModalBooking, setClaimModalBooking] = useState<Booking | null>(null);
+  const [claimingStamp, setClaimingStamp] = useState(false);
+  const [claimSuccessMessage, setClaimSuccessMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -126,6 +130,29 @@ export default function CurrentAppointmentsPage() {
     cutoff.setDate(cutoff.getDate() - 1);
     cutoff.setHours(20, 0, 0, 0); // 8:00 PM the night prior
     return new Date() < cutoff;
+  };
+
+  const handleClaimStamp = async (booking: Booking) => {
+    setClaimingStamp(true);
+    try {
+      const res = await fetch("/api/loyalty/stamp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ qrCode: `prettynails-stamp:${booking.id}` }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setClaimSuccessMessage(data.message || "Stamp successfully collected!");
+        await fetchBookings();
+      } else {
+        alert(data.error || "Failed to claim stamp.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error claiming stamp.");
+    } finally {
+      setClaimingStamp(false);
+    }
   };
 
   const getStatusBadge = (status: string) => {
@@ -398,35 +425,182 @@ export default function CurrentAppointmentsPage() {
         {/* Past Appointments History */}
         {pastBookings.length > 0 && (
           <div className="space-y-4 pt-4 border-t border-gray-200">
-            <h2 className="font-display text-xl font-bold text-gray-900">
-              Past Appointments
-            </h2>
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-xl font-bold text-gray-900">
+                Past Appointments History
+              </h2>
+              <span className="text-xs text-gray-500 font-medium">
+                {pastBookings.length} visit{pastBookings.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+
             <div className="space-y-3">
-              {pastBookings.map((b) => (
-                <div
-                  key={b.id}
-                  className="p-4 bg-white rounded-xl border border-gray-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-sm"
-                >
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-gray-900">{formatDate(b.appointmentDate)}</span>
-                      <Badge variant={getStatusBadge(b.status)} className="text-xs">
-                        {b.status}
-                      </Badge>
+              {pastBookings.map((b) => {
+                const isCompleted = b.status === "COMPLETED";
+                const isStamped = b.loyaltyStamps && b.loyaltyStamps.length > 0;
+                // Stamp eligibility: at least 1 nail set OR >= ₱500 total
+                const NAIL_SET_CATEGORIES = ["GEL", "EXTENSION", "PEDICURE"];
+                const hasNailSet = b.services.some(
+                  (s) =>
+                    NAIL_SET_CATEGORIES.includes(s.service?.category?.toUpperCase() || "") ||
+                    s.service?.name?.toLowerCase().includes("gel") ||
+                    s.service?.name?.toLowerCase().includes("extension") ||
+                    s.service?.name?.toLowerCase().includes("pedicure")
+                );
+                const isEligibleForStamp = hasNailSet || b.totalPrice >= 50000;
+
+                return (
+                  <div
+                    key={b.id}
+                    className="p-4 bg-white rounded-xl border border-gray-200 space-y-3 text-sm shadow-2xs hover:border-primary-200 transition-colors"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-gray-900">{formatDate(b.appointmentDate)}</span>
+                          <Badge variant={getStatusBadge(b.status)} className="text-xs">
+                            {b.status}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          {formatTime(b.startTime)} - {formatTime(b.endTime)} • {b.services.map((s) => s.service.name).join(", ")}
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right font-bold text-primary-700">
+                        {formatCurrency(b.totalPrice)}
+                      </div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {formatTime(b.startTime)} - {formatTime(b.endTime)} • {b.services.map((s) => s.service.name).join(", ")}
-                    </p>
+
+                    {/* Stamp Claim Section */}
+                    {isCompleted && (
+                      <div className="pt-2.5 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-pink-50/40 p-2.5 rounded-lg">
+                        <div className="flex items-center gap-2">
+                          {isStamped ? (
+                            <>
+                              <div className="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center shrink-0">
+                                <CheckCircle className="h-3.5 w-3.5" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-green-800">Digital Loyalty Stamp Collected</p>
+                                <p className="text-[11px] text-green-700">This visit is stamped on your loyalty card.</p>
+                              </div>
+                            </>
+                          ) : isEligibleForStamp ? (
+                            <>
+                              <div className="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                <AlertTriangle className="h-3.5 w-3.5" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-amber-900">Loyalty Stamp Unscanned</p>
+                                <p className="text-[11px] text-amber-800">
+                                  Forgot to scan at the salon? Tap to claim your digital stamp for this visit.
+                                </p>
+                              </div>
+                            </>
+                          ) : (
+                            <p className="text-[11px] text-gray-500 italic">
+                              Nail Cleaning service under ₱500 (No stamp eligible)
+                            </p>
+                          )}
+                        </div>
+
+                        {!isStamped && isEligibleForStamp && (
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setClaimSuccessMessage(null);
+                              setClaimModalBooking(b);
+                            }}
+                            className="bg-primary-600 hover:bg-primary-700 text-white text-xs h-8 px-3 font-semibold shrink-0"
+                          >
+                            <QrCode className="h-3.5 w-3.5 mr-1.5" />
+                            Claim Stamp
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="text-right font-bold text-gray-900">
-                    {formatCurrency(b.totalPrice)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
       </div>
+
+      {/* Claim Stamp Dialog */}
+      <Dialog open={!!claimModalBooking} onOpenChange={(open) => !open && setClaimModalBooking(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-primary-950 font-display">
+              <QrCode className="h-5 w-5 text-primary-600" />
+              Claim Visit Loyalty Stamp
+            </DialogTitle>
+          </DialogHeader>
+
+          {claimModalBooking && (
+            <div className="space-y-4 py-2 text-sm text-gray-700">
+              <div className="p-3 bg-pink-50/80 rounded-xl border border-primary-100">
+                <p className="font-bold text-gray-900">{formatDate(claimModalBooking.appointmentDate)}</p>
+                <p className="text-xs text-gray-600">
+                  {formatTime(claimModalBooking.startTime)} - {formatTime(claimModalBooking.endTime)}
+                </p>
+                <p className="text-xs text-primary-800 font-semibold mt-1">
+                  Services: {claimModalBooking.services.map((s) => s.service.name).join(", ")} &bull; {formatCurrency(claimModalBooking.totalPrice)}
+                </p>
+              </div>
+
+              {claimSuccessMessage ? (
+                <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-green-900 text-xs font-semibold flex items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  {claimSuccessMessage}
+                </div>
+              ) : (
+                <div className="space-y-2 text-xs text-gray-600">
+                  <p>
+                    Did you forget to scan the QR code while at the salon? Since this service has been completed, you can claim your digital stamp directly.
+                  </p>
+                  <p className="font-mono text-[11px] bg-gray-50 p-2 rounded border border-gray-100 text-gray-700">
+                    Visit Code: prettynails-stamp:{claimModalBooking.id}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2">
+            {!claimSuccessMessage ? (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setClaimModalBooking(null)}
+                  disabled={claimingStamp}
+                  className="text-xs"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => claimModalBooking && handleClaimStamp(claimModalBooking)}
+                  disabled={claimingStamp}
+                  className="bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold"
+                >
+                  {claimingStamp ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : <Award className="h-3.5 w-3.5 mr-1.5" />}
+                  Claim My Stamp (+1 Stamp)
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                onClick={() => setClaimModalBooking(null)}
+                className="w-full bg-primary-600 hover:bg-primary-700 text-white text-xs font-semibold"
+              >
+                Close
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Cancellation Dialog */}
       <Dialog open={!!cancellingBooking} onOpenChange={(open) => !open && setCancellingBooking(null)}>
