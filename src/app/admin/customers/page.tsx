@@ -88,8 +88,7 @@ export default function AdminCustomersPage() {
                     <th className="text-left p-3 font-medium text-gray-500">Contact</th>
                     <th className="text-left p-3 font-medium text-gray-500">Joined</th>
                     <th className="text-left p-3 font-medium text-gray-500">Bookings</th>
-                    <th className="text-left p-3 font-medium text-gray-500">Stamps</th>
-                    <th className="text-left p-3 font-medium text-gray-500">Loyalty</th>
+                    <th className="text-left p-3 font-medium text-gray-500">Loyalty (9 Stamps = 1 Free Set)</th>
                     <th className="text-left p-3 font-medium text-gray-500">Notes</th>
                     <th className="text-left p-3 font-medium text-gray-500">Actions</th>
                   </tr>
@@ -114,17 +113,31 @@ export default function AdminCustomersPage() {
                       </td>
                       <td className="p-3 text-sm text-gray-500">{formatDate(c.createdAt)}</td>
                       <td className="p-3"><Badge variant="secondary">{c._count.bookings}</Badge></td>
-                      <td className="p-3"><Badge variant="default">{c._count.loyaltyStamps}</Badge></td>
                       <td className="p-3">
                         {c.loyaltyCard ? (
-                          <div className="flex items-center gap-2">
-                            <Award className="h-4 w-4 text-yellow-500" />
-                            <span className="font-medium">{c.loyaltyCard.stampCount}/9</span>
-                            {c.loyaltyCard.expiresAt && new Date(c.loyaltyCard.expiresAt) < new Date() && (
-                              <Badge variant="destructive" className="text-xs">Expired</Badge>
-                            )}
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <Award className="h-4 w-4 text-primary-600 shrink-0" />
+                              <span className="font-semibold text-gray-900 text-sm">
+                                {c.loyaltyCard.stampCount} / 9 Stamps
+                              </span>
+                              {c.loyaltyCard.stampCount >= 9 && (
+                                <Badge variant="success" className="text-[10px] font-bold">Free Set Ready</Badge>
+                              )}
+                              {c.loyaltyCard.expiresAt && new Date(c.loyaltyCard.expiresAt) < new Date() && (
+                                <Badge variant="destructive" className="text-[10px]">Expired</Badge>
+                              )}
+                            </div>
+                            <div className="w-28 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-primary-600 rounded-full transition-all"
+                                style={{ width: `${Math.min((c.loyaltyCard.stampCount / 9) * 100, 100)}%` }}
+                              />
+                            </div>
                           </div>
-                        ) : <span className="text-gray-400 text-sm">No card</span>}
+                        ) : (
+                          <span className="text-gray-400 text-sm">No card</span>
+                        )}
                       </td>
                       <td className="p-3">
                         <Badge variant="outline">{c.notes.length} notes</Badge>

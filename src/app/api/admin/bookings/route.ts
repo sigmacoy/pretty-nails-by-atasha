@@ -36,6 +36,11 @@ export async function GET(req: NextRequest) {
       ];
     }
 
+    const sort = searchParams.get("sort");
+    const orderBy = sort === "desc"
+      ? [{ appointmentDate: "desc" as const }, { startTime: "desc" as const }, { createdAt: "desc" as const }]
+      : [{ appointmentDate: "asc" as const }, { startTime: "asc" as const }];
+
     const bookings = await prisma.booking.findMany({
       where,
       include: {
@@ -43,7 +48,7 @@ export async function GET(req: NextRequest) {
         services: { include: { service: true } },
         payment: true,
       },
-      orderBy: [{ appointmentDate: "asc" }, { startTime: "asc" }],
+      orderBy,
       take: limit,
     });
 

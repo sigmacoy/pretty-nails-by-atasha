@@ -14,8 +14,28 @@ export function formatCurrency(amount: number): string {
   }).format(amount / 100);
 }
 
+export function toLocalDateString(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-PH", {
+  if (!date) return "";
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date)) {
+    const [y, m, d] = date.split("T")[0].split("-").map(Number);
+    const local = new Date(y, m - 1, d);
+    return local.toLocaleDateString("en-PH", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-PH", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -24,7 +44,19 @@ export function formatDate(date: Date | string): string {
 }
 
 export function formatShortDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-PH", {
+  if (!date) return "";
+  if (typeof date === "string" && /^\d{4}-\d{2}-\d{2}/.test(date)) {
+    const [y, m, d] = date.split("T")[0].split("-").map(Number);
+    const local = new Date(y, m - 1, d);
+    return local.toLocaleDateString("en-PH", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  }
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-PH", {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -89,7 +121,7 @@ export function getAvailableDates(availabilities: { date: Date; isAvailable: boo
 
   const availableDates: Date[] = [];
   const availabilityMap = new Map(
-    availabilities.map(a => [a.date.toISOString().split('T')[0], a.isAvailable])
+    availabilities.map(a => [toLocalDateString(a.date), a.isAvailable])
   );
 
   let current = new Date(today);
@@ -97,7 +129,7 @@ export function getAvailableDates(availabilities: { date: Date; isAvailable: boo
 
   while (availableDates.length < maxDays && availableDates.length < 30) {
     if (isWeekend(current)) {
-      const dateKey = current.toISOString().split('T')[0];
+      const dateKey = toLocalDateString(current);
       if (availabilityMap.get(dateKey) !== false) {
         availableDates.push(new Date(current));
       }

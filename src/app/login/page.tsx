@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get("callbackUrl");
   const error = searchParams.get("error");
 
   const [email, setEmail] = useState("");
@@ -34,13 +34,16 @@ function LoginForm() {
         email,
         password,
         redirect: false,
-        callbackUrl,
+        callbackUrl: callbackUrl || "/",
       });
 
       if (result?.error) {
         setErrorMessage("Invalid email or password");
       } else {
-        const targetUrl = callbackUrl && callbackUrl !== "/" ? callbackUrl : "/booking";
+        const isOwner = email.toLowerCase().trim().includes("owner");
+        const targetUrl = isOwner
+          ? (callbackUrl && callbackUrl.startsWith("/admin") ? callbackUrl : "/admin/dashboard")
+          : (callbackUrl && callbackUrl !== "/" ? callbackUrl : "/");
         router.push(targetUrl);
         router.refresh();
       }
@@ -62,8 +65,8 @@ function LoginForm() {
 
     const targetUrl =
       role === "owner"
-        ? "/admin/dashboard"
-        : (callbackUrl && callbackUrl !== "/" ? callbackUrl : "/booking");
+        ? (callbackUrl && callbackUrl.startsWith("/admin") ? callbackUrl : "/admin/dashboard")
+        : (callbackUrl && callbackUrl !== "/" ? callbackUrl : "/");
 
     try {
       const result = await signIn("credentials", {
@@ -86,7 +89,7 @@ function LoginForm() {
   };
 
   const handleOAuthSignIn = (provider: string) => {
-    signIn(provider, { callbackUrl });
+    signIn(provider, { callbackUrl: callbackUrl && callbackUrl !== "/" ? callbackUrl : "/" });
   };
 
   return (

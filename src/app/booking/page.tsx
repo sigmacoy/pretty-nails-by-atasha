@@ -272,7 +272,7 @@ export default function BookingPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!session) {
-      router.push("/login");
+      router.push("/login?callbackUrl=/booking");
       return;
     }
     if (!selectedDate || !selectedTime || selectedServices.length === 0) {

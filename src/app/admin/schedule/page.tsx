@@ -29,7 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { formatDate, formatTime, formatCurrency, isWeekend } from "@/lib/utils";
+import { formatDate, formatTime, formatCurrency, isWeekend, toLocalDateString } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 
 interface Booking {
@@ -75,7 +75,7 @@ export default function AdminSchedulePage() {
   const { data: session, status } = useSession();
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [selectedDateStr, setSelectedDateStr] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [selectedDateStr, setSelectedDateStr] = useState<string>(toLocalDateString(new Date()));
   const [availabilities, setAvailabilities] = useState<Availability[]>([]);
   const [monthBookings, setMonthBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -114,8 +114,8 @@ export default function AdminSchedulePage() {
   const fetchMonthData = async () => {
     setLoading(true);
     try {
-      const startDate = new Date(currentYear, currentMonth, 1).toISOString().split("T")[0];
-      const endDate = new Date(currentYear, currentMonth + 1, 0).toISOString().split("T")[0];
+      const startDate = toLocalDateString(new Date(currentYear, currentMonth, 1));
+      const endDate = toLocalDateString(new Date(currentYear, currentMonth + 1, 0));
 
       const [availRes, bookingsRes] = await Promise.all([
         fetch(`/api/admin/availability?start=${startDate}&end=${endDate}`),
@@ -243,13 +243,14 @@ export default function AdminSchedulePage() {
   // Filter bookings for selected day & sort in Queue order (earliest startTime first)
   const selectedDayBookings = monthBookings
     .filter((b) => {
-      const bDate = new Date(b.appointmentDate).toISOString().split("T")[0];
+      const bDate = typeof b.appointmentDate === "string" ? b.appointmentDate.split("T")[0] : toLocalDateString(new Date(b.appointmentDate));
       return bDate === selectedDateStr;
     })
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   // Find availability for selected day
-  const selectedDayObj = new Date(selectedDateStr + "T00:00:00");
+  const [sy, sm, sd] = selectedDateStr.split("-").map(Number);
+  const selectedDayObj = new Date(sy, sm - 1, sd);
   const selectedDayAvail = availabilities.find((a) => a.date === selectedDateStr || a.date.startsWith(selectedDateStr));
   const isSelectedDayWeekend = isWeekend(selectedDayObj);
   const isSelectedDayAvailable = selectedDayAvail?.isAvailable ?? isSelectedDayWeekend;
@@ -371,7 +372,7 @@ export default function AdminSchedulePage() {
                 ))}
 
                 {monthDates.map((date, idx) => {
-                  const dateStr = date.toISOString().split("T")[0];
+                  const dateStr = toLocalDateString(date);
                   const isCurrentMonth = date.getMonth() === currentMonth;
                   const isSelected = dateStr === selectedDateStr;
                   const isWeekendDay = isWeekend(date);
@@ -381,7 +382,7 @@ export default function AdminSchedulePage() {
 
                   // Count bookings for this day
                   const dayBookings = monthBookings.filter((b) => {
-                    const bDate = new Date(b.appointmentDate).toISOString().split("T")[0];
+                    const bDate = typeof b.appointmentDate === "string" ? b.appointmentDate.split("T")[0] : toLocalDateString(new Date(b.appointmentDate));
                     return bDate === dateStr && b.status !== "CANCELLED";
                   });
 

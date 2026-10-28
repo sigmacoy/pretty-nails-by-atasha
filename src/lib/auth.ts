@@ -87,7 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             await prisma.loyaltyCard.create({
               data: {
                 userId: client.id,
-                stampCount: 5,
+                stampCount: 0,
                 expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
               },
             });

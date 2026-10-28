@@ -49,7 +49,7 @@ export default function AdminDashboard() {
     try {
       const [statsRes, bookingsRes] = await Promise.all([
         fetch("/api/admin/stats"),
-        fetch("/api/admin/bookings?limit=5&status=PENDING,CONFIRMED"),
+        fetch("/api/admin/bookings?limit=5&sort=desc"),
       ]);
 
       if (statsRes.ok) {
@@ -58,7 +58,21 @@ export default function AdminDashboard() {
       }
       if (bookingsRes.ok) {
         const bookingsData = await bookingsRes.json();
-        setRecentBookings(bookingsData.bookings || bookingsData);
+        const rawList = Array.isArray(bookingsData) ? bookingsData : (bookingsData.bookings || []);
+        const normalized: RecentBooking[] = rawList.map((b: any) => ({
+          id: b.id,
+          customerName: b.user?.nickname ? `${b.user.name} (${b.user.nickname})` : (b.user?.name || b.customerName || "Customer"),
+          customerEmail: b.user?.email || b.customerEmail || "",
+          date: b.appointmentDate || b.date,
+          time: b.startTime ? `${b.startTime}${b.endTime ? ` - ${b.endTime}` : ""}` : (b.time || ""),
+          status: b.status,
+          totalPrice: b.totalPrice,
+          services: b.services?.map((s: any) => ({
+            serviceName: s.service?.name || s.serviceName || "Service",
+            variantName: s.variantName || "",
+          })) || [],
+        }));
+        setRecentBookings(normalized);
       }
     } catch (error) {
       console.error("Failed to fetch dashboard data:", error);
