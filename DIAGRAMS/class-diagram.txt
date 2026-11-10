@@ -1,0 +1,715 @@
+classDiagram
+
+%% ===========================================
+%% ENTITY CLASSES
+%% ===========================================
+
+class User {
+    -id: String
+    -email: String
+    -emailVerified: LocalDateTime
+    -name: String
+    -nickname: String
+    -password: String
+    -image: String
+    -role: String
+    -phone: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+    +getAuthorities(): Collection~GrantedAuthority~
+    +getUsername(): String
+    +isAccountNonExpired(): boolean
+    +isAccountNonLocked(): boolean
+    +isCredentialsNonExpired(): boolean
+    +isEnabled(): boolean
+    +getPassword(): String
+}
+
+class Account {
+    -id: String
+    -userId: String
+    -type: String
+    -provider: String
+    -providerAccountId: String
+    -refreshToken: String
+    -accessToken: String
+    -expiresAt: Integer
+    -tokenType: String
+    -scope: String
+    -idToken: String
+    -sessionState: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Service {
+    -id: String
+    -name: String
+    -category: String
+    -description: String
+    -basePrice: BigDecimal
+    -duration: Integer
+    -isActive: Boolean
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class ServiceVariant {
+    -id: String
+    -serviceId: String
+    -name: String
+    -price: BigDecimal
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Booking {
+    -id: String
+    -userId: String
+    -status: String
+    -appointmentDate: LocalDate
+    -startTime: LocalTime
+    -endTime: LocalTime
+    -totalPrice: BigDecimal
+    -downpayment: BigDecimal
+    -notes: String
+    -inspirationImg: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class BookingService {
+    -id: String
+    -bookingId: String
+    -serviceId: String
+    -variantId: String
+    -quantity: Integer
+    -price: BigDecimal
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Payment {
+    -id: String
+    -bookingId: String
+    -userId: String
+    -amount: BigDecimal
+    -status: String
+    -method: String
+    -reference: String
+    -verifiedAt: LocalDateTime
+    -verifiedBy: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Availability {
+    -id: String
+    -date: LocalDate
+    -isAvailable: Boolean
+    -startTime: LocalTime
+    -endTime: LocalTime
+    -maxSlots: Integer
+    -note: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class LoyaltyCard {
+    -id: String
+    -userId: String
+    -stampCount: Integer
+    -lastStampAt: LocalDateTime
+    -expiresAt: LocalDateTime
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class LoyaltyStamp {
+    -id: String
+    -cardId: String
+    -bookingId: String
+    -earnedAt: LocalDateTime
+    -source: String
+    -amount: Integer
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class CustomerNote {
+    -id: String
+    -userId: String
+    -adminId: String
+    -content: String
+    -nickname: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Session {
+    -id: String
+    -sessionToken: String
+    -userId: String
+    -expires: LocalDateTime
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class VerificationToken {
+    -id: String
+    -identifier: String
+    -token: String
+    -expires: LocalDateTime
+    -createdAt: LocalDateTime
+}
+
+class Gallery {
+    -id: String
+    -title: String
+    -description: String
+    -imageUrl: String
+    -category: String
+    -isActive: Boolean
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+class Setting {
+    -id: String
+    -key: String
+    -value: String
+    -description: String
+    -createdAt: LocalDateTime
+    -updatedAt: LocalDateTime
+}
+
+%% ===========================================
+%% SERVICE CLASSES
+%% ===========================================
+
+class UserDetails {
+    <<interface>>
+    +getAuthorities(): Collection~GrantedAuthority~
+    +getPassword(): String
+    +getUsername(): String
+    +isAccountNonExpired(): boolean
+    +isAccountNonLocked(): boolean
+    +isCredentialsNonExpired(): boolean
+    +isEnabled(): boolean
+}
+
+class AuthService {
+    +register(registerRequest: RegisterRequest): AuthResponse
+    +login(loginRequest: LoginRequest): AuthResponse
+    +getCurrentUser(): User
+}
+
+class BookingService {
+    +createBooking(bookingRequest: BookingRequest): BookingResponse
+    +getUserBookings(userId: String): List~BookingResponse~
+    +getAdminBookings(page: Integer, size: Integer): Page~BookingResponse~
+    +updateBookingStatus(bookingId: String, status: String): BookingResponse
+}
+
+class ServiceService {
+    +getAllServices(): List~Service~
+    +getActiveServices(): List~Service~
+    +getActiveServicesByCategory(category: String): List~Service~
+    +createService(serviceRequest: ServiceRequest): Service
+    +updateService(id: String, serviceRequest: ServiceRequest): Service
+    +deleteService(id: String): void
+}
+
+class AvailabilityService {
+    +getAvailableDates(): List~Availability~
+    +getAdminAvailabilities(page: Integer, size: Integer): Page~Availability~
+    +upsertAvailability(availabilityRequest: AvailabilityRequest): Availability
+    +deleteAvailability(id: String): void
+}
+
+class LoyaltyService {
+    +getUserLoyaltyCard(userId: String): LoyaltyCardResponse
+    +addStampViaQrCode(qrCodeRequest: QrCodeRequest): LoyaltyStampResponse
+    +getAllLoyaltyCards(page: Integer, size: Integer): Page~LoyaltyCardResponse~
+    +processLoyaltyAction(actionRequest: LoyaltyActionRequest): LoyaltyActionResponse
+}
+
+class GalleryService {
+    +getPublicGallery(): List~Gallery~
+    +getAdminGallery(page: Integer, size: Integer): Page~Gallery~
+    +createGallery(galleryRequest: GalleryRequest): Gallery
+    +updateGallery(id: String, galleryRequest: GalleryRequest): Gallery
+    +deleteGallery(id: String): void
+}
+
+class AdminService {
+    +getAdminStats(): AdminStatsResponse
+    +getAdminReports(reportRequest: ReportRequest): ReportResponse
+    +getLoyaltySettings(): LoyaltySettingsResponse
+    +updateLoyaltySettings(settingsRequest: LoyaltySettingsRequest): LoyaltySettingsResponse
+    +getCustomers(page: Integer, size: Integer): Page~User~
+    +getCustomerNotes(userId: String): List~CustomerNote~
+    +addCustomerNote(noteRequest: CustomerNoteRequest): CustomerNote
+    +updateCustomerNote(noteId: String, noteRequest: CustomerNoteRequest): CustomerNote
+    +deleteCustomerNote(noteId: String): void
+}
+
+%% ===========================================
+%% CONTROLLER CLASSES
+%% ===========================================
+
+class AuthController {
+    +register(registerRequest: RegisterRequest): ResponseEntity~AuthResponse~
+    +login(loginRequest: LoginRequest): ResponseEntity~AuthResponse~
+    +getCurrentUser(): ResponseEntity~User~
+}
+
+class BookingController {
+    +createBooking(bookingRequest: BookingRequest): ResponseEntity~BookingResponse~
+    +getUserBookings(): ResponseEntity~List~BookingResponse~~
+    +getAdminBookings(page: Integer, size: Integer): ResponseEntity~Page~BookingResponse~~
+    +updateBookingStatus(bookingId: String, status: String): ResponseEntity~BookingResponse~
+}
+
+class ServiceController {
+    +getAllServices(): ResponseEntity~List~Service~~
+    +getActiveServices(): ResponseEntity~List~Service~~
+    +getActiveServicesByCategory(category: String): ResponseEntity~List~Service~~
+    +createService(serviceRequest: ServiceRequest): ResponseEntity~Service~
+    +updateService(id: String, serviceRequest: ServiceRequest): ResponseEntity~Service~
+    +deleteService(id: String): ResponseEntity~Void~
+}
+
+class AvailabilityController {
+    +getAvailableDates(): ResponseEntity~List~Availability~~
+    +getAdminAvailabilities(page: Integer, size: Integer): ResponseEntity~Page~Availability~~
+    +upsertAvailability(availabilityRequest: AvailabilityRequest): ResponseEntity~Availability~
+    +deleteAvailability(id: String): ResponseEntity~Void~
+}
+
+class GalleryController {
+    +getPublicGallery(): ResponseEntity~List~Gallery~~
+    +getAdminGallery(page: Integer, size: Integer): ResponseEntity~Page~Gallery~~
+    +createGallery(galleryRequest: GalleryRequest): ResponseEntity~Gallery~
+    +updateGallery(id: String, galleryRequest: GalleryRequest): ResponseEntity~Gallery~
+    +deleteGallery(id: String): ResponseEntity~Void~
+}
+
+class LoyaltyController {
+    +getUserLoyaltyCard(): ResponseEntity~LoyaltyCardResponse~
+    +addStampViaQrCode(qrCodeRequest: QrCodeRequest): ResponseEntity~LoyaltyStampResponse~
+    +getAllLoyaltyCards(page: Integer, size: Integer): ResponseEntity~Page~LoyaltyCardResponse~~
+    +processLoyaltyAction(actionRequest: LoyaltyActionRequest): ResponseEntity~LoyaltyActionResponse~
+}
+
+class AdminController {
+    +getAdminStats(): ResponseEntity~AdminStatsResponse~
+    +getAdminReports(reportRequest: ReportRequest): ResponseEntity~ReportResponse~
+    +getLoyaltySettings(): ResponseEntity~LoyaltySettingsResponse~
+    +updateLoyaltySettings(settingsRequest: LoyaltySettingsRequest): ResponseEntity~LoyaltySettingsResponse~
+    +getCustomers(page: Integer, size: Integer): ResponseEntity~Page~User~~
+    +getCustomerNotes(userId: String): ResponseEntity~List~CustomerNote~~
+    +addCustomerNote(noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
+    +updateCustomerNote(noteId: String, noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
+    +deleteCustomerNote(noteId: String): ResponseEntity~Void~
+}
+
+%% ===========================================
+%% SECURITY CLASSES
+%% ===========================================
+
+class SecurityConfig {
+    +securityFilterChain(http: HttpSecurity): SecurityFilterChain
+    +authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager
+    +passwordEncoder(): PasswordEncoder
+    +jwtAuthenticationFilter(): JwtAuthenticationFilter
+}
+
+class JwtAuthenticationFilter {
+    -jwtUtil: JwtUtil
+    -customUserDetailsService: CustomUserDetailsService
+    +doFilterInternal(request: HttpServletRequest, response: HttpServletResponse, filterChain: FilterChain): void
+}
+
+class CustomUserDetailsService {
+    -userRepository: UserRepository
+    +loadUserByUsername(email: String): UserDetails
+}
+
+class JwtUtil {
+    -secretKey: String
+    -expiration: Long
+    +generateToken(userDetails: UserDetails): String
+    +extractUsername(token: String): String
+    +extractClaim(token: String, claimsResolver: Function): T
+    +extractAllClaims(token: String): Claims
+    +isTokenValid(token: String, userDetails: UserDetails): boolean
+    +isTokenExpired(token: String): boolean
+}
+
+%% ===========================================
+%% REPOSITORY INTERFACES
+%% ===========================================
+
+class UserRepository {
+    <<interface>>
+    +findByEmail(email: String): Optional~User~
+    +findByPhone(phone: String): Optional~User~
+    +existsByEmail(email: String): boolean
+}
+
+class AccountRepository {
+    <<interface>>
+    +findByUserId(userId: String): List~Account~
+}
+
+class ServiceRepository {
+    <<interface>>
+    +findByIsActiveTrue(): List~Service~
+    +findByCategoryAndIsActiveTrue(category: String): List~Service~
+}
+
+class ServiceVariantRepository {
+    <<interface>>
+    +findByServiceId(serviceId: String): List~ServiceVariant~
+}
+
+class BookingRepository {
+    <<interface>>
+    +findByUserId(userId: String): List~Booking~
+    +findByStatus(status: String): List~Booking~
+    +findByAppointmentDate(appointmentDate: LocalDate): List~Booking~
+}
+
+class BookingServiceRepository {
+    <<interface>>
+    +findByBookingId(bookingId: String): List~BookingService~
+}
+
+class PaymentRepository {
+    <<interface>>
+    +findByBookingId(bookingId: String): Optional~Payment~
+    +findByUserId(userId: String): List~Payment~
+}
+
+class AvailabilityRepository {
+    <<interface>>
+    +findByDate(date: LocalDate): Optional~Availability~
+    +findByIsAvailableTrue(): List~Availability~
+}
+
+class LoyaltyCardRepository {
+    <<interface>>
+    +findByUserId(userId: String): Optional~LoyaltyCard~
+}
+
+class LoyaltyStampRepository {
+    <<interface>>
+    +findByCardId(cardId: String): List~LoyaltyStamp~
+    +findByBookingId(bookingId: String): Optional~LoyaltyStamp~
+}
+
+class CustomerNoteRepository {
+    <<interface>>
+    +findByUserId(userId: String): List~CustomerNote~
+    +findByAdminId(adminId: String): List~CustomerNote~
+}
+
+class SessionRepository {
+    <<interface>>
+    +findBySessionToken(sessionToken: String): Optional~Session~
+    +findByUserId(userId: String): List~Session~
+}
+
+class VerificationTokenRepository {
+    <<interface>>
+    +findByToken(token: String): Optional~VerificationToken~
+}
+
+class GalleryRepository {
+    <<interface>>
+    +findByIsActiveTrue(): List~Gallery~
+    +findByCategory(category: String): List~Gallery~
+}
+
+class SettingRepository {
+    <<interface>>
+    +findByKey(key: String): Optional~Setting~
+}
+
+%% ===========================================
+%% DTO CLASSES
+%% ===========================================
+
+class RegisterRequest {
+    -email: String
+    -password: String
+    -name: String
+    -nickname: String
+    -phone: String
+}
+
+class LoginRequest {
+    -email: String
+    -password: String
+}
+
+class AuthResponse {
+    -token: String
+    -user: User
+}
+
+class BookingRequest {
+    -appointmentDate: LocalDate
+    -startTime: LocalTime
+    -endTime: LocalTime
+    -services: List~BookingServiceRequest~
+    -notes: String
+    -inspirationImg: String
+}
+
+class BookingServiceRequest {
+    -serviceId: String
+    -variantId: String
+    -quantity: Integer
+}
+
+class BookingResponse {
+    -id: String
+    -userId: String
+    -status: String
+    -appointmentDate: LocalDate
+    -startTime: LocalTime
+    -endTime: LocalTime
+    -totalPrice: BigDecimal
+    -downpayment: BigDecimal
+    -notes: String
+    -inspirationImg: String
+    -services: List~BookingServiceResponse~
+    -payment: PaymentResponse
+    -createdAt: LocalDateTime
+}
+
+class BookingServiceResponse {
+    -id: String
+    -serviceId: String
+    -variantId: String
+    -quantity: Integer
+    -price: BigDecimal
+    -serviceName: String
+    -variantName: String
+}
+
+class ServiceRequest {
+    -name: String
+    -category: String
+    -description: String
+    -basePrice: BigDecimal
+    -duration: Integer
+    -isActive: Boolean
+    -variants: List~ServiceVariantRequest~
+}
+
+class ServiceVariantRequest {
+    -name: String
+    -price: BigDecimal
+}
+
+class AvailabilityRequest {
+    -date: LocalDate
+    -isAvailable: Boolean
+    -startTime: LocalTime
+    -endTime: LocalTime
+    -maxSlots: Integer
+    -note: String
+}
+
+class GalleryRequest {
+    -title: String
+    -description: String
+    -imageUrl: String
+    -category: String
+    -isActive: Boolean
+}
+
+class QrCodeRequest {
+    -qrCode: String
+}
+
+class LoyaltyCardResponse {
+    -id: String
+    -userId: String
+    -stampCount: Integer
+    -lastStampAt: LocalDateTime
+    -expiresAt: LocalDateTime
+    -userName: String
+    -userEmail: String
+}
+
+class LoyaltyStampResponse {
+    -id: String
+    -cardId: String
+    -bookingId: String
+    -earnedAt: LocalDateTime
+    -source: String
+    -amount: Integer
+}
+
+class LoyaltyActionRequest {
+    -userId: String
+    -action: String
+    -amount: Integer
+}
+
+class LoyaltyActionResponse {
+    -success: Boolean
+    -message: String
+    -newStampCount: Integer
+}
+
+class PaymentResponse {
+    -id: String
+    -amount: BigDecimal
+    -status: String
+    -method: String
+    -reference: String
+    -verifiedAt: LocalDateTime
+}
+
+class CustomerNoteRequest {
+    -content: String
+    -nickname: String
+}
+
+class AdminStatsResponse {
+    -totalUsers: Long
+    -totalBookings: Long
+    -totalRevenue: BigDecimal
+    -activeServices: Long
+    -pendingBookings: Long
+}
+
+class ReportRequest {
+    -startDate: LocalDate
+    -endDate: LocalDate
+    -type: String
+}
+
+class ReportResponse {
+    -type: String
+    -data: Map~String, Object~
+}
+
+class LoyaltySettingsResponse {
+    -stampsPerReward: Integer
+    -rewardDescription: String
+    -stampExpiryDays: Integer
+}
+
+class LoyaltySettingsRequest {
+    -stampsPerReward: Integer
+    -rewardDescription: String
+    -stampExpiryDays: Integer
+}
+
+%% ===========================================
+%% RELATIONSHIPS (ARROWS)
+%% ===========================================
+
+%% Entity Relationships
+User --|> UserDetails : implements
+
+User "1" *-- "0..*" Account : accounts
+User "1" *-- "0..*" Session : sessions
+User "1" *-- "0..*" Booking : bookings
+User "1" -- "0..1" LoyaltyCard : loyaltyCard
+User "1" *-- "0..*" CustomerNote : notes
+User "1" *-- "0..*" CustomerNote : adminNotes
+User "1" *-- "0..*" Payment : payments
+
+Account "0..*" -- "1" User : user
+
+Service "1" *-- "0..*" ServiceVariant : variants
+Service "1" *-- "0..*" BookingService : bookings
+
+ServiceVariant "0..*" -- "1" Service : service
+
+Booking "0..*" -- "1" User : user
+Booking "1" *-- "0..*" BookingService : services
+Booking "1" -- "0..1" Payment : payment
+Booking "1" *-- "0..*" LoyaltyStamp : loyaltyStamps
+
+BookingService "0..*" -- "1" Booking : booking
+BookingService "0..*" -- "1" Service : service
+
+Payment "0..*" -- "1" Booking : booking
+Payment "0..*" -- "1" User : user
+
+LoyaltyCard "0..1" -- "1" User : user
+LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
+
+LoyaltyStamp "0..*" -- "1" LoyaltyCard : card
+LoyaltyStamp "0..*" -- "1" Booking : booking
+
+CustomerNote "0..*" -- "1" User : user
+CustomerNote "0..*" -- "1" User : admin
+
+Session "0..*" -- "1" User : user
+
+%% Service/Controller Relationships
+AuthController --> AuthService : uses
+BookingController --> BookingService : uses
+ServiceController --> ServiceService : uses
+AvailabilityController --> AvailabilityService : uses
+GalleryController --> GalleryService : uses
+LoyaltyController --> LoyaltyService : uses
+AdminController --> AdminService : uses
+
+SecurityConfig --> JwtAuthenticationFilter : creates
+SecurityConfig --> CustomUserDetailsService : creates
+SecurityConfig --> JwtUtil : creates
+JwtAuthenticationFilter --> JwtUtil : uses
+JwtAuthenticationFilter --> CustomUserDetailsService : uses
+CustomUserDetailsService --> UserRepository : uses
+
+AuthService --> UserRepository : uses
+BookingService --> BookingRepository : uses
+BookingService --> BookingServiceRepository : uses
+BookingService --> PaymentRepository : uses
+BookingService --> LoyaltyStampRepository : uses
+BookingService --> AvailabilityRepository : uses
+ServiceService --> ServiceRepository : uses
+ServiceService --> ServiceVariantRepository : uses
+AvailabilityService --> AvailabilityRepository : uses
+LoyaltyService --> LoyaltyCardRepository : uses
+LoyaltyService --> LoyaltyStampRepository : uses
+LoyaltyService --> BookingRepository : uses
+GalleryService --> GalleryRepository : uses
+AdminService --> UserRepository : uses
+AdminService --> CustomerNoteRepository : uses
+AdminService --> BookingRepository : uses
+AdminService --> LoyaltyCardRepository : uses
+AdminService --> SettingRepository : uses
+
+%% DTO Relationships
+AuthService --> RegisterRequest : uses
+AuthService --> LoginRequest : uses
+AuthService --> AuthResponse : uses
+BookingService --> BookingRequest : uses
+BookingService --> BookingResponse : uses
+BookingService --> BookingServiceRequest : uses
+BookingService --> BookingServiceResponse : uses
+ServiceService --> ServiceRequest : uses
+AvailabilityService --> AvailabilityRequest : uses
+GalleryService --> GalleryRequest : uses
+LoyaltyService --> QrCodeRequest : uses
+LoyaltyService --> LoyaltyCardResponse : uses
+LoyaltyService --> LoyaltyStampResponse : uses
+LoyaltyService --> LoyaltyActionRequest : uses
+LoyaltyService --> LoyaltyActionResponse : uses
+AdminService --> AdminStatsResponse : uses
+AdminService --> ReportRequest : uses
+AdminService --> ReportResponse : uses
+AdminService --> LoyaltySettingsResponse : uses
+AdminService --> LoyaltySettingsRequest : uses
+AdminService --> CustomerNoteRequest : uses

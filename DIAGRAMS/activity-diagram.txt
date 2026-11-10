@@ -1,0 +1,519 @@
+flowchart TD
+    %% =============================
+    %% SWIMLANE SUBGRAPHS
+    %% =============================
+    subgraph Customer["Customer"]
+        direction TB
+        C1[Browse Services & Availability]
+        C2[Select Services & Date]
+        C3[View My Bookings]
+        C4[Earn Loyalty Stamps (QR)]
+        C5[Register]
+        C6[Login]
+        C7[Access Protected Routes]
+        C8[View Available Dates]
+        C9[View Services]
+        C10[Select Date, Services, Variants]
+        C11[Create Booking]
+        C12[Provide Payment Reference?]
+        C13[View My Bookings 2]
+        C14[Scan QR Code]
+        C15[View Public Gallery]
+    end
+
+    subgraph Admin["Admin"]
+        direction TB
+        A1[Manage Bookings]
+        A2[Update Booking Status]
+        A3[Manage Services]
+        A4[Manage Availability]
+        A5[Manage Gallery]
+        A6[Manage Loyalty]
+        A7[View Dashboard/Reports]
+        A8[Manage Customers & Notes]
+        A9[View All Bookings]
+        A10[Select Booking]
+        A11[Update Status]
+        A12[Repeat or Exit]
+        A13[Choose Action]
+        A14[Continue?]
+        A15[View Public Gallery Admin]
+        A16[Choose Action Gallery]
+        A17[Continue? Gallery]
+        A18[Choose Action Loyalty]
+        A19[Continue? Loyalty]
+        A20[View Dashboard]
+        A21[View Reports]
+        A22[Manage Customers]
+        A23[Add Customer Note]
+        A24[Continue? Dashboard]
+    end
+
+    subgraph System["System (Backend)"]
+        direction TB
+        S1[GET /api/services]
+        S2[GET /api/availability]
+        S3[POST /api/bookings]
+        S4[GET /api/bookings]
+        S5[POST /api/loyalty/stamp]
+        S6[GET /api/admin/bookings]
+        S7[PUT /api/admin/bookings/{id}/status]
+        S8[CRUD /api/admin/services]
+        S9[CRUD /api/admin/availability]
+        S10[CRUD /api/admin/gallery]
+        S11[GET/POST /api/admin/loyalty]
+        S12[GET /api/admin/stats]
+        S13[GET /api/admin/reports]
+        S14[GET/POST /api/admin/customers]
+        S15[POST /api/auth/register]
+        S16[Return User + Token]
+        S17[POST /api/auth/login]
+        S18[Generate JWT]
+        S19[Return Token]
+        S20[GET /api/auth/me]
+        S21[Return Profile]
+        S22[GET /api/availability 2]
+        S23[Return Available Dates]
+        S24[GET /api/services 2]
+        S25[Return Services]
+        S26[POST /api/bookings 2]
+        S27[Validate Availability]
+        S28[Check Date Exists]
+        S29[Check Max Slots]
+        S30[Resolve Services & Variants]
+        S31[Create Payment (PENDING)]
+        S32[Return Booking + QR Code]
+        S33[GET /api/bookings 2]
+        S34[Return Bookings]
+        S35[POST /api/loyalty/stamp 2]
+        S36[Verify QR Type]
+        S37[Find Booking by ID]
+        S38[Check Booking Status]
+        S39[Add Stamps to LoyaltyCard]
+        S40[Return Updated Stamps]
+        S41[Return Error: Booking Not Completed]
+        S42[Find Latest COMPLETED Booking]
+        S43[Return Error: No Completed Booking]
+        S44[GET /api/admin/bookings 2]
+        S45[Return Bookings List]
+        S46[PUT /api/admin/bookings/{id}/status 2]
+        S47[Update Booking Status]
+        S48[Check Payment Status]
+        S49[Mark Payment PAID]
+        S50[Return Updated Booking]
+        S51[GET /api/admin/services]
+        S52[Return Services]
+        S53[POST /api/admin/services]
+        S54[PUT /api/admin/services/{id}]
+        S55[DELETE /api/admin/services/{id}]
+        S56[GET /api/admin/services/{id}]
+        S57[Return Result]
+        S58[GET /api/admin/availability]
+        S59[Return List]
+        S60[POST /api/admin/availability]
+        S61[Insert or Update Availability]
+        S62[DELETE /api/admin/availability/{id}]
+        S63[GET /api/admin/availability/{id}]
+        S64[Return Result Avail]
+        S65[GET /api/gallery]
+        S66[Return Gallery]
+        S67[GET /api/admin/gallery]
+        S68[Return Items]
+        S69[POST /api/admin/gallery]
+        S70[PUT /api/admin/gallery/{id}]
+        S71[DELETE /api/admin/gallery/{id}]
+        S72[GET /api/admin/gallery/{id}]
+        S73[Return Result Gallery]
+        S74[GET /api/admin/loyalty]
+        S75[Return LoyaltyCards]
+        S76[POST /api/admin/loyalty (REDEEM)]
+        S77[Deduct Stamps from Card]
+        S78[Return Updated Card]
+        S79[GET/POST /api/admin/settings]
+        S80[Return Settings]
+        S81[GET /api/admin/stats 2]
+        S82[Aggregate Stats]
+        S83[Return Stats]
+        S84[GET /api/admin/reports 2]
+        S85[Generate Reports]
+        S86[Return Reports]
+        S87[GET /api/admin/customers]
+        S88[Return Customers]
+        S89[POST /api/admin/customers/{userId}/notes]
+        S90[Return Note]
+        S91[Handle Request]
+        S92[Execute Query]
+        S93[Return Success Response]
+        S94[Log Error]
+        S95[Determine Error Type]
+        S96[Return 400 Bad Request]
+        S97[Return 404 Not Found]
+        S98[Return 401 Unauthorized]
+        S99[Return 403 Forbidden]
+        S100[Return 500 Internal Server Error]
+    end
+
+    subgraph Database["Database"]
+        direction TB
+        D1[Fetch Services + Variants]
+        D2[Fetch Availabilities]
+        D3[Create User]
+        D4[Create LoyaltyCard]
+        D5[Validate Credentials]
+        D6[Fetch User Profile]
+        D7[Fetch Availabilities 2]
+        D8[Fetch Services + Variants 2]
+        D9[Validate Availability]
+        D10[Check Date Exists]
+        D11[Check Max Slots]
+        D12[Create Booking (PENDING)]
+        D13[Create BookingServices]
+        D14[Verify QR Type]
+        D15[Check Booking Status]
+        D16[Update Stamps]
+        D17[Find Latest COMPLETED Booking]
+        D18[Fetch Bookings (with filters)]
+        D19[Update Booking Status]
+        D20[Check Payment Status]
+        D21[Update Payment]
+        D22[Fetch All Services]
+        D23[Create Service + Variants]
+        D24[Update Service + Variants]
+        D25[Delete Service]
+        D26[Fetch Service]
+        D27[Fetch Availabilities 3]
+        D28[Insert or Update Availability]
+        D29[Delete Availability]
+        D30[Fetch Availability]
+        D31[Fetch Gallery Items]
+        D32[Fetch All Gallery Items]
+        D33[Create Gallery Item]
+        D34[Update Gallery Item]
+        D35[Delete Gallery Item]
+        D36[Fetch Gallery Item]
+        D37[Fetch All LoyaltyCards]
+        D38[Deduct Stamps from Card]
+        D39[Log Redemption]
+        D40[Fetch/Update Loyalty Settings]
+        D41[Aggregate Stats]
+        D42[Booking Counts by Status]
+        D43[Revenue]
+        D44[Customer Count]
+        D45[Service Popularity]
+        D46[Generate Reports]
+        D47[Bookings by Date]
+        D48[Revenue by Service]
+        D49[Customer Retention]
+        D50[Fetch Customers + Notes]
+        D51[Create Note]
+        D52[Execute Query]
+    end
+
+    %% =============================
+    %% MAIN TOP-LEVEL FLOWS
+    %% =============================
+    C1 --> S1
+    C1 --> S2
+    C2 --> S3
+    C3 --> S4
+    C4 --> S5
+
+    A1 --> S6
+    A2 --> S7
+    A3 --> S8
+    A4 --> S9
+    A5 --> S10
+    A6 --> S11
+    A7 --> S12
+    A7 --> S13
+    A8 --> S14
+
+    %% =============================
+    %% FLOW 1: REGISTRATION & LOGIN
+    %% =============================
+    C5 --> S15
+    S15 --> D3
+    S15 --> D4
+    D3 --> S16
+    D4 --> S16
+    S16 --> C6
+    C6 --> S17
+    S17 --> D5
+    D5 --> S18
+    S18 --> S19
+    S19 --> C7
+    C7 --> S20
+    S20 --> D6
+    D6 --> S21
+
+    %% =============================
+    %% FLOW 2: BOOKING FLOW (CUSTOMER)
+    %% =============================
+    C8 --> S22
+    S22 --> D7
+    D7 --> S23
+    S23 --> C9
+    C9 --> S24
+    S24 --> D8
+    D8 --> S25
+    S25 --> C10
+    C10 --> C11
+    C11 --> S26
+    S26 --> D9
+    S26 --> D10
+    S26 --> D11
+    D9 --> S27
+    D10 --> S28
+    D11 --> S29
+    S27 --> S30
+    S28 --> S30
+    S29 --> S30
+    S30 --> D12
+    S30 --> D13
+    D12 --> S31
+    D13 --> S31
+    S31 --> C12
+
+    C12 -->|Yes| S32
+    C12 -->|No| S31
+    S32 --> S32
+    S31 --> S32
+
+    S32 --> C13
+    C13 --> S33
+    S33 --> D18
+    D18 --> S34
+
+    %% =============================
+    %% FLOW 3: LOYALTY STAMP EARNING (QR CODE)
+    %% =============================
+    C14 --> S35
+    S35 --> S36
+    S36 -->|Booking QR| S37
+    S37 --> D14
+    D14 --> S38
+    S38 -->|COMPLETED| S39
+    S39 --> D16
+    D16 --> S40
+    S38 -->|Not COMPLETED| S41
+
+    S36 -->|Shop QR| D17
+    D17 --> S42
+    S42 -->|Found| S39
+    S42 -->|Not Found| S43
+
+    %% =============================
+    %% FLOW 4: ADMIN BOOKING MANAGEMENT
+    %% =============================
+    A9 --> S44
+    S44 --> D18
+    D18 --> S45
+    S45 --> A10
+    A10 --> A11
+    A11 --> S46
+    S46 --> D19
+    D19 --> S47
+    S47 -->|COMPLETED| S48
+    S48 --> D20
+    D20 -->|Payment != PAID| S49
+    S49 --> D21
+    S47 -->|Not COMPLETED| S50
+    S48 -->|Payment == PAID| S50
+    S49 --> D21
+    D21 --> S50
+    S50 --> A12
+    A12 -->|More Updates| A10
+    A12 -->|Done| A12
+
+    %% =============================
+    %% FLOW 5: ADMIN SERVICE MANAGEMENT
+    %% =============================
+    A13 --> S51
+    S51 --> D22
+    D22 --> S52
+    S52 --> A13
+    A13 -->|Create| S53
+    S53 --> D23
+    D23 --> S57
+    A13 -->|Update| S54
+    S54 --> D24
+    D24 --> S57
+    A13 -->|Delete| S55
+    S55 --> D25
+    D25 --> S57
+    A13 -->|Read| S56
+    S56 --> D26
+    D26 --> S57
+    S57 --> A14
+    A14 -->|Yes| A13
+    A14 -->|No| A14
+
+    %% =============================
+    %% FLOW 6: ADMIN AVAILABILITY MANAGEMENT
+    %% =============================
+    A13 --> S58
+    S58 --> D27
+    D27 --> S59
+    S59 --> A13
+    A13 -->|Upsert| S60
+    S60 --> D28
+    D28 --> S64
+    A13 -->|Delete| S61
+    S61 --> D29
+    D29 --> S64
+    A13 -->|View| S62
+    S62 --> D30
+    D30 --> S64
+    S64 --> A14
+    A14 -->|Yes| A13
+    A14 -->|No| A14
+
+    %% =============================
+    %% FLOW 7: ADMIN GALLERY MANAGEMENT
+    %% =============================
+    C15 --> S65
+    S65 --> D31
+    D31 --> S66
+
+    A15 --> S67
+    S67 --> D32
+    D32 --> S68
+    S68 --> A16
+    A16 -->|Create| S69
+    S69 --> D33
+    D33 --> S73
+    A16 -->|Update| S70
+    S70 --> D34
+    D34 --> S73
+    A16 -->|Delete| S71
+    S71 --> D35
+    D35 --> S73
+    A16 -->|Read| S72
+    S72 --> D36
+    D36 --> S73
+    S73 --> A17
+    A17 -->|Yes| A16
+    A17 -->|No| A17
+
+    %% =============================
+    %% FLOW 8: ADMIN LOYALTY MANAGEMENT
+    %% =============================
+    A18 --> S74
+    S74 --> D37
+    D37 --> S75
+    S75 --> A18
+    A18 -->|Redeem Stamps| S76
+    S76 --> D38
+    D38 --> D39
+    D39 --> S78
+    A18 -->|Configure Settings| S79
+    S79 --> D40
+    D40 --> S80
+    A18 -->|View Only| A18
+    S78 --> A19
+    S80 --> A19
+    A19 -->|Yes| A18
+    A19 -->|No| A19
+
+    %% =============================
+    %% FLOW 9: ADMIN DASHBOARD & REPORTS
+    %% =============================
+    A20 --> S81
+    S81 --> D41
+    D41 --> D42
+    D41 --> D43
+    D41 --> D44
+    D41 --> D45
+    D42 --> S83
+    D43 --> S83
+    D44 --> S83
+    D45 --> S83
+    S83 --> A21
+    A21 --> S84
+    S84 --> D46
+    D46 --> D47
+    D46 --> D48
+    D46 --> D49
+    D47 --> S86
+    D48 --> S86
+    D49 --> S86
+    S86 --> A22
+    A22 --> S87
+    S87 --> D50
+    D50 --> S88
+    S88 --> A23
+    A23 --> S89
+    S89 --> D51
+    D51 --> S90
+    S90 --> A24
+    A24 -->|Yes| A20
+    A24 -->|No| A24
+
+    %% =============================
+    %% PARALLEL SYSTEM OPERATIONS
+    %% =============================
+    subgraph ParallelOps["Parallel System Operations"]
+        direction LR
+        P1[Authentication & Authorization]
+        P2[Validate JWT]
+        P3[Check Roles (Customer/Admin)]
+        P4[Booking Validation]
+        P5[Check Availability]
+        P6[Check Max Slots]
+        P7[Resolve Services/Variants]
+        P8[Payment Processing]
+        P9[Create Payment Record]
+        P10[Update on Completion]
+        P11[Loyalty Calculation]
+        P12[Calculate Stamps]
+        P13[Check Redemption Eligibility]
+        P14[Notification System]
+        P15[Booking Confirmation]
+        P16[Status Change Alerts]
+        P17[Reminder Notifications]
+    end
+
+    P1 --> P2 --> P3
+    P4 --> P5 --> P6 --> P7
+    P8 --> P9 --> P10
+    P11 --> P12 --> P13
+    P14 --> P15 --> P16 --> P17
+
+    P3 --> AllValidations[All Validations Passed]
+    P7 --> AllValidations
+    P10 --> AllValidations
+    P13 --> AllValidations
+    P17 --> AllValidations
+    AllValidations --> ProceedOp[Proceed with Operation]
+
+    %% =============================
+    %% ERROR HANDLING FLOWS
+    %% =============================
+    S91 --> D52
+    D52 --> S92
+    S92 -->|Success| S93
+    S92 -->|Failure| S94
+    S94 --> S95
+    S95 -->|Validation Error| S96
+    S95 -->|Not Found| S97
+    S95 -->|Unauthorized| S98
+    S95 -->|Forbidden| S99
+    S95 -->|Server Error| S100
+
+    %% =============================
+    %% STYLING
+    %% =============================
+    classDef customer fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px;
+    classDef admin fill:#E3F2FD,stroke:#1565C0,stroke-width:2px;
+    classDef system fill:#FFF3E0,stroke:#E65100,stroke-width:2px;
+    classDef database fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px;
+    classDef decision fill:#FFFDE7,stroke:#FBC02D,stroke-width:2px;
+    classDef startend fill:#2E7D32,stroke:#1B5E20,color:#FFFFFF;
+    classDef parallel fill:#E8EAF6,stroke:#3F51B5,stroke-width:2px,stroke-dasharray: 5 5;
+
+    class C1,C2,C3,C4,C5,C6,C7,C8,C9,C10,C11,C12,C13,C14,C15 customer;
+    class A1,A2,A3,A4,A5,A6,A7,A8,A9,A10,A11,A12,A13,A14,A15,A16,A17,A18,A19,A20,A21,A22,A23,A24 admin;
+    class S1,S2,S3,S4,S5,S6,S7,S8,S9,S10,S11,S12,S13,S14,S15,S16,S17,S18,S19,S20,S21,S22,S23,S24,S25,S26,S27,S28,S29,S30,S31,S32,S33,S34,S35,S36,S37,S38,S39,S40,S41,S42,S43,S44,S45,S46,S47,S48,S49,S50,S51,S52,S53,S54,S55,S56,S57,S58,S59,S60,S61,S62,S63,S64,S65,S66,S67,S68,S69,S70,S71,S72,S73,S74,S75,S76,S77,S78,S79,S80,S81,S82,S83,S84,S85,S86,S87,S88,S89,S90,S91,S92,S93,S94,S95,S96,S97,S98,S99,S100 system;
+    class D1,D2,D3,D4,D5,D6,D7,D8,D9,D10,D11,D12,D13,D14,D15,D16,D17,D18,D19,D20,D21,D22,D23,D24,D25,D26,D27,D28,D29,D30,D31,D32,D33,D34,D35,D36,D37,D38,D39,D40,D41,D42,D43,D44,D45,D46,D47,D48,D49,D50,D51,D52 database;
+    class C12,S36,S38,S42,S47,S48,A13,A14,A16,A17,A18,A19,A24,S92,S95 decision;
+    class P1,P2,P3,P4,P5,P6,P7,P8,P9,P10,P11,P12,P13,P14,P15,P16,P17,AllValidations,ProceedOp parallel;

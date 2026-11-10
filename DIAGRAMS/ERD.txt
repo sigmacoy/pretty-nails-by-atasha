@@ -1,0 +1,241 @@
+
+erDiagram
+    %% ============================================================
+    %% Pretty Nails Nail Salon Booking System - Entity Relationship Diagram
+    %% ============================================================
+
+    %% ============================================================
+    %% ENTITIES
+    %% ============================================================
+
+    User {
+        Long id PK
+        String email
+        Boolean emailVerified
+        String name
+        String nickname
+        String password
+        String image
+        String role
+        String phone
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Account {
+        Long id PK
+        Long userId FK
+        String type
+        String provider
+        String providerAccountId
+        String refreshToken
+        String accessToken
+        DateTime expiresAt
+        String tokenType
+        String scope
+        String idToken
+        String sessionState
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Service {
+        Long id PK
+        String name
+        String category
+        String description
+        BigDecimal basePrice
+        Integer duration
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    ServiceVariant {
+        Long id PK
+        Long serviceId FK
+        String name
+        BigDecimal price
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Booking {
+        Long id PK
+        Long userId FK
+        String status
+        Date appointmentDate
+        Time startTime
+        Time endTime
+        BigDecimal totalPrice
+        BigDecimal downpayment
+        String notes
+        String inspirationImg
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    BookingService {
+        Long id PK
+        Long bookingId FK
+        Long serviceId FK
+        Long variantId FK
+        Integer quantity
+        BigDecimal price
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Payment {
+        Long id PK
+        Long bookingId FK,UK
+        Long userId FK
+        BigDecimal amount
+        String status
+        String method
+        String reference
+        DateTime verifiedAt
+        Long verifiedBy
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Availability {
+        Long id PK
+        Date date
+        Boolean isAvailable
+        Time startTime
+        Time endTime
+        Integer maxSlots
+        String note
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    LoyaltyCard {
+        Long id PK
+        Long userId FK,UK
+        Integer stampCount
+        DateTime lastStampAt
+        DateTime expiresAt
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    LoyaltyStamp {
+        Long id PK
+        Long cardId FK
+        Long bookingId FK
+        DateTime earnedAt
+        String source
+        Integer amount
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    CustomerNote {
+        Long id PK
+        Long userId FK
+        Long adminId FK
+        String content
+        String nickname
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Session {
+        Long id PK
+        String sessionToken
+        Long userId FK
+        DateTime expires
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    VerificationToken {
+        Long id PK
+        String identifier
+        String token
+        DateTime expires
+        DateTime createdAt
+    }
+
+    Gallery {
+        Long id PK
+        String title
+        String description
+        String imageUrl
+        String category
+        Boolean isActive
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    Setting {
+        Long id PK
+        String key
+        String value
+        String description
+        DateTime createdAt
+        DateTime updatedAt
+    }
+
+    %% ============================================================
+    %% RELATIONSHIPS WITH CARDINALITIES
+    %% ============================================================
+
+    %% User - Account (One-to-Many: User 1 --- * Account)
+    User ||--o{ Account : "accounts"
+
+    %% User - Session (One-to-Many: User 1 --- * Session)
+    User ||--o{ Session : "sessions"
+
+    %% User - Booking (One-to-Many: User 1 --- * Booking)
+    User ||--o{ Booking : "bookings"
+
+    %% User - LoyaltyCard (One-to-One: User 1 --- 1 LoyaltyCard) [unique]
+    User ||--|| LoyaltyCard : "loyaltyCard"
+
+    %% User - CustomerNote as customer (One-to-Many: User 1 --- * CustomerNote)
+    User ||--o{ CustomerNote : "notes (customer)"
+
+    %% User - CustomerNote as admin (One-to-Many: User 1 --- * CustomerNote)
+    User ||--o{ CustomerNote : "adminNotes (admin)"
+
+    %% User - Payment (One-to-Many: User 1 --- * Payment)
+    User ||--o{ Payment : "payments"
+
+    %% Service - ServiceVariant (One-to-Many: Service 1 --- * ServiceVariant)
+    Service ||--o{ ServiceVariant : "variants"
+
+    %% Service - BookingService (One-to-Many: Service 1 --- * BookingService)
+    Service ||--o{ BookingService : "bookings"
+
+    %% Booking - BookingService (One-to-Many: Booking 1 --- * BookingService)
+    Booking ||--o{ BookingService : "services"
+
+    %% Booking - Payment (One-to-ZeroOrOne: Booking 1 --- 0..1 Payment) [unique]
+    Booking ||--o| Payment : "payment"
+
+    %% Booking - LoyaltyStamp (One-to-Many: Booking 1 --- * LoyaltyStamp)
+    Booking ||--o{ LoyaltyStamp : "loyaltyStamps"
+
+    %% LoyaltyCard - LoyaltyStamp (One-to-Many: LoyaltyCard 1 --- * LoyaltyStamp)
+    LoyaltyCard ||--o{ LoyaltyStamp : "stamps"
+
+    %% ============================================================
+    %% LEGEND (as comments)
+    %% ============================================================
+    %% Cardinality Notation:
+    %% ||--||  : One-to-One (Exactly one on both sides)
+    %% ||--o{  : One-to-Many (One to zero or many)
+    %% ||--o|  : One-to-ZeroOrOne (One to zero or one)
+    %% }o--||  : Many-to-One (Zero or many to one)
+    %% o|      : Zero-or-One (Optional 0..1)
+    %% o{      : Zero-or-Many (Optional 0..*)
+    %% |{      : One-or-Many (Mandatory 1..*)
+    %% ||      : Exactly One (Mandatory 1..1)
+    %%
+    %% PK = Primary Key
+    %% FK = Foreign Key
+    %% UK = Unique Constraint
