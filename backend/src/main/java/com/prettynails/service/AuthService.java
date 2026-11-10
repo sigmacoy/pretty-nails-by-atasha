@@ -41,6 +41,7 @@ public class AuthService {
                 .build();
 
         user = userRepository.save(user);
+        userRepository.flush(); // Flush to populate @CreationTimestamp fields
 
         // Create loyalty card
         com.prettynails.entity.LoyaltyCard loyaltyCard = com.prettynails.entity.LoyaltyCard.builder()
@@ -49,6 +50,7 @@ public class AuthService {
                 .expiresAt(LocalDateTime.now().plusYears(1))
                 .build();
         loyaltyCardRepository.save(loyaltyCard);
+        loyaltyCardRepository.flush();
 
         String token = jwtUtil.generateToken(user);
         return AuthResponse.builder()

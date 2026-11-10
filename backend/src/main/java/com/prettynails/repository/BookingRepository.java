@@ -30,7 +30,13 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
            "(:start IS NULL OR :end IS NULL OR (b.appointmentDate >= :start AND b.appointmentDate <= :end)) AND " +
            "(:status IS NULL OR :status = 'ALL' OR b.status IN :statusList) AND " +
            "(:search IS NULL OR LOWER(b.user.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.user.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY b.appointmentDate :sortDirection, b.startTime :sortDirection, b.createdAt :sortDirection")
+           "ORDER BY " +
+           "CASE WHEN :sortDirection = 'ASC' THEN b.appointmentDate END ASC, " +
+           "CASE WHEN :sortDirection = 'DESC' THEN b.appointmentDate END DESC, " +
+           "CASE WHEN :sortDirection = 'ASC' THEN b.startTime END ASC, " +
+           "CASE WHEN :sortDirection = 'DESC' THEN b.startTime END DESC, " +
+           "CASE WHEN :sortDirection = 'ASC' THEN b.createdAt END ASC, " +
+           "CASE WHEN :sortDirection = 'DESC' THEN b.createdAt END DESC")
     Page<Booking> findAdminBookings(
             @Param("date") LocalDateTime date,
             @Param("start") LocalDateTime start,
