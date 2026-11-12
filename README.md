@@ -1,6 +1,6 @@
 # Pretty Nails by Atasha
 
-A comprehensive nail salon booking and management system built with Spring Boot, featuring customer booking, loyalty programs, service management, and gallery showcases.
+A comprehensive nail salon booking and management system built with Spring Boot 4.1.2 and Next.js 14, featuring customer booking, loyalty programs, service management, gallery showcases, and admin dashboard.
 
 ## Table of Contents
 
@@ -16,20 +16,24 @@ A comprehensive nail salon booking and management system built with Spring Boot,
 - [Testing](#testing)
 - [Project Structure](#project-structure)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Overview
 
-**Pretty Nails by Atasha** is a full-featured backend system for a nail salon business. It provides RESTful APIs for managing:
-- Customer authentication and profiles
-- Service catalog with variants (e.g., gel, acrylic, regular manicure)
-- Appointment booking and scheduling
+**Pretty Nails by Atasha** is a full-featured full-stack system for a nail salon business. It provides:
+
+**Backend (Spring Boot 4.1.2, Java 21):**
+- Customer authentication and profiles (JWT)
+- Service catalog with variants (gel, extension, pedicure, cleaning)
+- Appointment booking and scheduling with availability checks
 - Staff availability management
-- Loyalty program with stamp cards
+- Loyalty program with digital stamp cards
 - Gallery/portfolio showcase
 - Admin dashboard for business management
 
-The system is designed to integrate with a **Next.js frontend** (deployed separately) and uses **PostgreSQL on Supabase** for data persistence.
+**Frontend (Next.js 14, React 18, TypeScript, Tailwind CSS):**
+- Public site: Home, Services, Gallery, Availability
+- Customer portal: Booking flow, My Bookings, Loyalty Card, Profile
+- Admin portal: Dashboard, Bookings, Services, Availability, Gallery, Loyalty, Customers, Reports, Settings
 
 ## Tech Stack
 
@@ -37,20 +41,27 @@ The system is designed to integrate with a **Next.js frontend** (deployed separa
 |-------|------------|
 | **Backend Framework** | Spring Boot 4.1.2 |
 | **Language** | Java 21 |
-| **Build Tool** | Maven |
-| **Database** | PostgreSQL (hosted on Supabase) |
+| **Build Tool** | Maven (wrapper included) |
+| **Database** | PostgreSQL 16 (local) / Supabase Cloud |
 | **ORM** | Spring Data JPA / Hibernate |
 | **Security** | Spring Security + JWT (jjwt 0.12.5) |
 | **Validation** | Bean Validation (Hibernate Validator) |
 | **Utilities** | Lombok |
+| **Frontend Framework** | Next.js 14 (App Router) |
+| **Frontend Language** | TypeScript (strict) |
+| **Styling** | Tailwind CSS |
+| **Forms** | React Hook Form + Zod |
+| **HTTP Client** | Axios (with JWT interceptors) |
+| **Charts** | Recharts |
+| **Notifications** | Sonner (toasts) |
 | **Testing** | Spring Boot Test, Spring Security Test |
-| **Deployment** | Render (backend), Vercel/Netlify (frontend) |
+| **Deployment** | Render (backend), Vercel (frontend) |
 
 ### Development Environment
-- **IDE**: IntelliJ IDEA
-- **JDK**: OpenJDK 21 (Oracle aarch64)
-- **Maven**: Bundled (Maven 3)
-- **Language Level**: 21
+- **IDE**: IntelliJ IDEA / VS Code
+- **JDK**: OpenJDK 21
+- **Node.js**: 20+ with pnpm
+- **PostgreSQL**: 16 (Homebrew on macOS)
 
 ## Features
 
@@ -60,67 +71,71 @@ The system is designed to integrate with a **Next.js frontend** (deployed separa
 - Role-based access control (CUSTOMER, ADMIN)
 - Secure password encoding (BCrypt)
 - Custom UserDetailsService implementation
+- Profile management (update name, phone, nickname, avatar)
+- Password change with current password verification
 
 ### Service Management
 - CRUD operations for nail services
-- Service variants (e.g., "Gel Manicure - Short", "Gel Manicure - Long")
-- Pricing per variant
-- Service categorization
+- Service variants (e.g., "Gel Extension - Small", "Gel Extension - Medium", "Gel Extension - Long")
+- Per-variant pricing
+- Service categorization (CLEANING, GEL, EXTENSION, PEDICURE, ADDON)
 - Public service catalog endpoints
 
 ### Booking System
-- Create, read, update, cancel bookings
-- Booking with multiple services
+- Multi-step booking flow (Services → Date/Time → Details → Confirm)
+- Booking with multiple services and variants
 - Time slot validation against staff availability
-- Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED)
+- Max slots per time slot enforcement
+- Booking status tracking (PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW)
 - Customer booking history
+- Admin: one-click status updates
 
 ### Availability Management
-- Staff schedule management
-- Recurring and one-time availability slots
-- Conflict detection
+- Calendar-based schedule management
+- Per-date availability with time ranges
+- Max configurable slots per day
+- Holiday/block date support
 - Public availability查询 for booking
 
 ### Loyalty Program
-- Digital loyalty cards per customer
-- Stamp collection per visit
-- Configurable rewards (e.g., "10 stamps = 1 free service")
-- Automatic stamp issuance on completed bookings
-- Loyalty card balance查询
+- Digital loyalty cards per customer (auto-created on registration)
+- Stamp collection per completed visit
+- Configurable rewards (stamps per service, stamps per amount, free service reward)
+- Automatic stamp issuance on booking completion
+- QR code for in-salon stamp scanning
+- Admin: manual stamp add/remove/reset, card expiry extension
 
 ### Gallery/Portfolio
-- Image upload and management
+- Image upload and management (local file storage)
 - Service category tagging
 - Public gallery endpoints for frontend display
-- Featured image support
+- Active/inactive toggle
 
 ### Admin Dashboard
-- Booking management (view, update status)
-- Service management
-- Availability management
-- Customer management
-- Analytics endpoints
+- Real-time stats: customers, bookings, revenue, active loyalty cards
+- Booking management with filters and status actions
+- Service catalog editor with variants
+- Availability scheduler
+- Gallery manager
+- Loyalty program manager (view all cards, manual actions)
+- Customer CRM with internal notes
+- Revenue reports with charts (Recharts)
+- Salon settings (loyalty rules, stamp expiry)
 
 ## Architecture
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   Next.js       │────▶│  Spring Boot     │────▶│  PostgreSQL     │
-│   Frontend      │     │  Backend API     │     │  (Supabase)     │
-│   (Port 3000)   │     │  (Port 8080)     │     │                 │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
-                              │
-                              ▼
-                       ┌──────────────────┐
-                       │   JWT Auth       │
-                       │   Filter Chain   │
-                       └──────────────────┘
+┌────────────────────────┐     ┌──────────────────────────┐     ┌────────────────────────┐
+│    Next.js Frontend    │────▶│     Spring Boot API      │────▶│      PostgreSQL        │
+│    http://localhost:3000     │   http://localhost:8080    │   │   localhost:5432       │
+│  (Pages, Booking, UI)  │     │ (REST, JWT, Seeder)      │   │   or Supabase Cloud    │
+└────────────────────────┘     └──────────────────────────┘     └────────────────────────┘
 ```
 
-### Package Structure
+### Package Structure (Backend)
 ```
 com.prettynails
-├── config          # Configuration classes (Security, CORS, etc.)
+├── config          # Security, CORS, WebMvc configuration
 ├── controller      # REST controllers (API endpoints)
 ├── dto             # Data Transfer Objects (request/response)
 ├── entity          # JPA entities (database models)
@@ -132,111 +147,150 @@ com.prettynails
 
 ## API Endpoints
 
-### Authentication (`/api/auth`)
+All endpoints prefixed with `/api`. Auth: Public / JWT (Customer) / JWT (Admin)
+
+### Authentication (`/auth`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | POST | `/register` | Register new customer | Public |
 | POST | `/login` | Login, returns JWT | Public |
 | GET | `/me` | Get current user profile | JWT |
+| PUT | `/profile` | Update profile | JWT |
+| POST | `/change-password` | Change password | JWT |
 
-### Services (`/api/services`)
+### Services (`/services`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
 | GET | `/` | List all services | Public |
 | GET | `/{id}` | Get service by ID | Public |
-| GET | `/{id}/variants` | Get service variants | Public |
+| GET | `/category/{category}` | Get services by category | Public |
 | POST | `/` | Create service | ADMIN |
 | PUT | `/{id}` | Update service | ADMIN |
 | DELETE | `/{id}` | Delete service | ADMIN |
 
-### Bookings (`/api/bookings`)
+### Bookings (`/bookings`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/` | Create booking | JWT (CUSTOMER) |
-| GET | `/my-bookings` | Get current user's bookings | JWT (CUSTOMER) |
-| GET | `/{id}` | Get booking details | JWT (CUSTOMER/ADMIN) |
-| PUT | `/{id}/cancel` | Cancel booking | JWT (CUSTOMER) |
+| POST | `/` | Create booking | JWT (Customer) |
+| GET | `/my-bookings` | Get current user's bookings | JWT (Customer) |
+| GET | `/{id}` | Get booking details | JWT |
+| PUT | `/{id}/cancel` | Cancel booking | JWT (Customer) |
 | PUT | `/{id}/status` | Update booking status | ADMIN |
-| GET | `/` | List all bookings (admin) | ADMIN |
+| GET | `/` | List all bookings (paginated) | ADMIN |
 
-### Availability (`/api/availability`)
+### Availability (`/availability`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/slots` | Get available time slots | Public |
-| GET | `/staff/{staffId}` | Get staff schedule | Public |
-| POST | `/` | Create availability slot | ADMIN |
+| GET | `/` | List available dates | Public |
+| GET | `/{id}` | Get availability by ID | Public |
+| POST | `/` | Create/upsert availability | ADMIN |
 | PUT | `/{id}` | Update availability | ADMIN |
 | DELETE | `/{id}` | Delete availability | ADMIN |
 
-### Gallery (`/api/gallery`)
+### Gallery (`/gallery`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/` | List gallery images | Public |
-| GET | `/{id}` | Get gallery image | Public |
-| POST | `/` | Upload image | ADMIN |
-| DELETE | `/{id}` | Delete image | ADMIN |
+| GET | `/` | List active gallery images | Public |
+| GET | `/admin` | List all gallery (paginated) | ADMIN |
+| POST | `/admin` | Create gallery item | ADMIN |
+| PUT | `/admin/{id}` | Update gallery item | ADMIN |
+| DELETE | `/admin/{id}` | Delete gallery item | ADMIN |
 
-### Loyalty (`/api/loyalty`)
+### Loyalty (`/loyalty`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/card` | Get loyalty card | JWT (CUSTOMER) |
-| GET | `/stamps` | Get stamp history | JWT (CUSTOMER) |
+| GET | `/card` | Get user's loyalty card | JWT (Customer) |
+| POST | `/stamp` | Earn stamp via QR code | JWT (Customer) |
+| GET | `/admin` | List all cards (paginated) | ADMIN |
+| POST | `/admin/action` | Manual stamp action | ADMIN |
+| GET | `/admin/settings` | Get loyalty settings | ADMIN |
+| PUT | `/admin/settings` | Update loyalty settings | ADMIN |
 
-### Admin (`/api/admin`)
+### Admin (`/admin`)
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| GET | `/dashboard` | Admin dashboard stats | ADMIN |
-| GET | `/bookings` | All bookings | ADMIN |
-| GET | `/customers` | All customers | ADMIN |
-| GET | `/analytics` | Business analytics | ADMIN |
+| GET | `/stats` | Dashboard statistics | ADMIN |
+| GET | `/reports` | Revenue/service reports | ADMIN |
+| GET | `/customers` | List customers (paginated) | ADMIN |
+| GET | `/customers/{userId}/notes` | Get customer notes | ADMIN |
+| POST | `/customers/{userId}/notes` | Add customer note | ADMIN |
+| PUT | `/customers/notes/{noteId}` | Update customer note | ADMIN |
+| DELETE | `/customers/notes/{noteId}` | Delete customer note | ADMIN |
+
+### Payments (`/payments`)
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| GET | `/{bookingId}` | Get payment by booking | JWT |
+| POST | `/` | Create payment record | JWT |
+| PUT | `/admin/{id}/verify` | Verify payment (admin) | ADMIN |
+| GET | `/admin` | List all payments | ADMIN |
+
+### Upload (`/upload`)
+| Method | Endpoint | Description | Auth |
+|--------|----------|-------------|------|
+| POST | `/` | Upload image (multipart) | JWT |
 
 ## Getting Started
 
 ### Prerequisites
-- Java 21+
-- Maven 3.8+
-- PostgreSQL database (local or Supabase)
-- Git
+- **Java 21+** (`java -version`)
+- **Node.js 20+ & pnpm** (`node -v && pnpm -v`)
+- **PostgreSQL 16** (`brew install postgresql@16` on macOS)
+- **Git**
 
 ### Local Development Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd app-dev-capstone
-   ```
+#### 1. Database (Choose Option A or B)
 
-2. **Configure environment variables**
-   Create a `.env` file in `pretty-nails-backend/` or set these in your IDE:
-   ```env
-   DB_PASSWORD=your_supabase_password
-   JWT_SECRET=your_256_bit_secret_key_here
-   JWT_EXPIRATION=2592000000
-   PORT=8080
-   ```
+**Option A: Local PostgreSQL (Recommended)**
+```bash
+brew services start postgresql@16
+createdb prettynails
+```
 
-3. **Build the project**
-   ```bash
-   cd pretty-nails-backend
-   mvn clean install
-   ```
+**Option B: Supabase Cloud**
+- Create project at [supabase.com](https://supabase.com)
+- Get connection details from Settings → Database
 
-4. **Run the application**
-   ```bash
-   mvn spring-boot:run
-   ```
-   Or from IntelliJ: Run `PrettyNailsApplication.java`
+#### 2. Backend
+```bash
+cd pretty-nails-backend
 
-5. **Verify it's running**
-   - API: `http://localhost:8080`
-   - Health check: `http://localhost:8080/actuator/health` (if actuator enabled)
+# Local PostgreSQL
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 
-### Database Setup
-The application uses Hibernate `ddl-auto: update` - tables are created automatically on startup. For production, consider using Flyway/Liquibase migrations.
+# Supabase (set DB_PASSWORD first)
+export DB_PASSWORD=your_password && ./mvnw spring-boot:run
+```
+Verify: `curl http://localhost:8080/api/services`
+
+#### 3. Frontend (new terminal tab)
+```bash
+cd frontend
+pnpm install
+echo 'NEXT_PUBLIC_API_URL=http://localhost:8080/api' > .env.local
+pnpm dev
+```
+Verify: Open `http://localhost:3000`
+
+#### 4. Default Credentials
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@prettynails.com` | `admin123` |
+| Customer | Self-registered | Your password |
+
+### Quick Start (2 Terminal Tabs)
+```bash
+# Tab 1: Backend
+cd pretty-nails-backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+
+# Tab 2: Frontend
+cd frontend && pnpm dev
+```
 
 ## Configuration
 
-### Application Properties (`application.yml`)
+### Backend (`pretty-nails-backend/src/main/resources/application.yml`)
 
 ```yaml
 spring:
@@ -257,10 +311,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-
 jwt:
   secret: ${JWT_SECRET:cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n}
   expiration: ${JWT_EXPIRATION:2592000000}
@@ -275,102 +325,123 @@ app:
     email: admin@prettynails.com
     password: admin123
     phone: "+639000000000"
+  upload:
+    dir: uploads
+    max-file-size: 5242880
+    base-url: ""
 
 logging:
   level:
     com.prettynails: DEBUG
 ```
 
+### Local Profile (`application-local.yml`)
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/prettynails
+    username: ${DB_USER:${USER}}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+```
+
 ### Environment Variables
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `DB_PASSWORD` | Supabase/PostgreSQL password | Yes | - |
-| `JWT_SECRET` | JWT signing key (min 256 bits) | Yes | (dev default) |
-| `JWT_EXPIRATION` | Token expiry in milliseconds | No | 2592000000 (30 days) |
+| `DB_PASSWORD` | PostgreSQL/Supabase password | Local: No, Supabase: Yes | (empty for local) |
+| `JWT_SECRET` | JWT signing key (min 256 bits) | No | (dev default in code) |
+| `JWT_EXPIRATION` | Token expiry in ms | No | 2592000000 (30 days) |
 | `PORT` | Server port | No | 8080 |
+
+### Frontend (`frontend/.env.local`)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+```
 
 ## Database Schema
 
-### Core Entities
+### Core Entities (15 tables)
 
 | Entity | Description | Key Fields |
 |--------|-------------|------------|
-| `User` | Customer/admin accounts | id, email, password, role, phone, createdAt |
-| `Service` | Nail service definitions | id, name, description, category, imageUrl |
-| `ServiceVariant` | Service variations with pricing | id, serviceId, name, price, durationMinutes |
-| `Booking` | Customer appointments | id, userId, status, totalPrice, bookingDate |
-| `BookingService` | Booking-service junction | id, bookingId, serviceVariantId, quantity |
-| `Availability` | Staff time slots | id, staffId, dayOfWeek, startTime, endTime, isRecurring |
-| `LoyaltyCard` | Customer loyalty cards | id, userId, stamps, completedCards |
-| `LoyaltyStamp` | Individual stamp records | id, loyaltyCardId, bookingId, earnedAt |
-| `Gallery` | Portfolio images | id, title, imageUrl, category, isFeatured |
-| `Payment` | Payment records | id, bookingId, amount, method, status |
-| `Account` | User account details | id, userId, balance, loyaltyPoints |
+| `User` | Customer/admin accounts | id, email, password, role, name, phone, nickname, image |
+| `Account` | OAuth2 accounts | id, userId, type, provider, tokens |
+| `Service` | Nail service definitions | id, name, category, description, basePrice, duration, isActive |
+| `ServiceVariant` | Service variations with pricing | id, serviceId, name, price |
+| `Booking` | Customer appointments | id, userId, status, appointmentDate, startTime, endTime, totalPrice, downpayment |
+| `BookingService` | Booking-service junction | id, bookingId, serviceId, variantId, quantity, price |
+| `Payment` | Payment records | id, bookingId, userId, amount, status, method, reference, verifiedAt |
+| `Availability` | Salon time slots | id, date, isAvailable, startTime, endTime, maxSlots, note |
+| `LoyaltyCard` | Customer loyalty cards | id, userId, stampCount, lastStampAt, expiresAt |
+| `LoyaltyStamp` | Individual stamp records | id, cardId, bookingId, earnedAt, source, amount |
+| `CustomerNote` | Admin internal notes | id, userId, adminId, content, nickname |
+| `Session` | NextAuth sessions | id, sessionToken, userId, expires |
+| `VerificationToken` | Email verification tokens | id, identifier, token, expires |
+| `Gallery` | Portfolio images | id, title, description, imageUrl, category, isActive |
+| `Setting` | Key-value settings | id, key, value, description |
 
-### Relationships
+### Key Relationships
 - User 1───* Booking
+- User 1───1 LoyaltyCard 1───* LoyaltyStamp
 - Booking 1───* BookingService *───1 ServiceVariant
 - Service 1───* ServiceVariant
-- User 1───1 LoyaltyCard 1───* LoyaltyStamp
 - Booking 1───1 Payment
 
 ## Deployment
 
 ### Backend (Render)
+1. Connect repository to Render
+2. Create Web Service:
+   - Build: `cd pretty-nails-backend && ./mvnw clean install -DskipTests`
+   - Start: `cd pretty-nails-backend && java -jar target/prettynails-backend-*.jar`
+3. Set Environment Variables: `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`
+4. Deploy
 
-1. **Connect repository** to Render
-2. **Create a new Web Service**
-   - Build Command: `cd pretty-nails-backend && mvn clean install -DskipTests`
-   - Start Command: `cd pretty-nails-backend && java -jar target/prettynails-backend-1.0.0.jar`
-3. **Set Environment Variables** in Render dashboard:
-   - `DB_PASSWORD`
-   - `JWT_SECRET`
-   - `JWT_EXPIRATION`
-   - `PORT` (Render sets this automatically)
-4. **Deploy**
+### Database
+- **Local**: PostgreSQL 16
+- **Production**: Supabase (PostgreSQL with connection pooling)
 
-### Database (Supabase)
-- Project: [Supabase Dashboard](https://supabase.com/dashboard)
-- Connection pooling enabled for production
-- Run migrations manually for schema changes in production
-
-### Frontend (Vercel/Netlify)
-- Next.js frontend deployed separately
-- Configure `NEXT_PUBLIC_API_URL` to point to Render backend URL
-- CORS origins updated in `application.yml` for production domain
+### Frontend (Vercel)
+1. Import `frontend/` folder as separate project
+2. Set `NEXT_PUBLIC_API_URL` to production backend URL
+3. Deploy (auto-detects Next.js)
 
 ## Testing
 
-### Run Tests
+### Backend
 ```bash
 cd pretty-nails-backend
-mvn test
+./mvnw test                    # Unit + integration tests
+./mvnw jacoco:report           # Coverage report (target/site/jacoco/)
 ```
 
-### Test Coverage
+### Frontend
 ```bash
-mvn jacoco:report
+cd frontend
+pnpm type-check                # TypeScript strict check
+pnpm build                     # Production build (verifies all routes)
 ```
-Report available at `target/site/jacoco/index.html`
-
-### Test Structure
-- Unit tests: `src/test/java/.../service/`
-- Integration tests: `src/test/java/.../controller/`
-- Security tests: `src/test/java/.../security/`
 
 ## Project Structure
 
 ```
 app-dev-capstone/
-├── pom.xml                          # Parent POM
+├── pom.xml                          # Parent POM (optional multi-module)
 ├── README.md                        # This file
-├── pretty-nails-backend/            # Main Spring Boot application
+├── how-to-run.md                    # Detailed macOS setup guide
+├── .gitignore                       # Ignore patterns
+├── .gitattributes                   # Git LFS/line-endings config
+├── .mvn/wrapper/                    # Maven wrapper
+├── DIAGRAMS/                        # ERD, class, activity, DB schema, use-case
+├── docs/                            # Additional documentation
+├── scripts/                         # Utility scripts
+├── pretty-nails-backend/            # Spring Boot 4.1.2 application
 │   ├── pom.xml
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/prettynails/
-│   │   │   │   ├── config/          # Security, CORS, WebMvc config
+│   │   │   │   ├── config/          # Security, CORS, WebMvc
 │   │   │   │   ├── controller/      # REST controllers
 │   │   │   │   ├── dto/             # Request/Response DTOs
 │   │   │   │   ├── entity/          # JPA entities
@@ -379,11 +450,28 @@ app-dev-capstone/
 │   │   │   │   ├── service/         # Business logic
 │   │   │   │   └── PrettyNailsApplication.java
 │   │   │   └── resources/
-│   │   │       ├── application.yml  # Configuration
-│   │   │       └── db/migration/    # Flyway migrations (future)
-│   │   └── test/                    # Test classes
-│   └── target/                      # Build output
-└── backend/                         # Legacy/duplicate module (can be removed)
+│   │   │       ├── application.yml
+│   │   │       └── application-local.yml
+│   │   └── test/                    # Unit & integration tests
+│   └── target/                      # Build output (ignored)
+└── frontend/                        # Next.js 14 application
+    ├── package.json
+    ├── pnpm-lock.yaml
+    ├── tsconfig.json
+    ├── tailwind.config.ts
+    ├── next.config.mjs
+    ├── .env.local                   # Local env (ignored)
+    ├── src/
+    │   ├── app/                     # App Router pages
+    │   │   ├── (public)/            # Public routes
+    │   │   ├── (auth)/              # Auth routes
+    │   │   ├── (customer)/          # Customer portal
+    │   │   └── (admin)/admin/       # Admin portal
+    │   ├── components/              # React components
+    │   ├── lib/                     # Utilities, API client, validations
+    │   └── hooks/                   # Custom React hooks
+    ├── public/                      # Static assets
+    └── .next/                       # Build output (ignored)
 ```
 
 ## Contributing
@@ -395,14 +483,11 @@ app-dev-capstone/
 5. Submit a Pull Request
 
 ### Code Style
-- Follow Google Java Style Guide
+- **Java**: Google Java Style Guide (via IntelliJ formatter)
+- **TypeScript/React**: ESLint + Prettier (run `pnpm lint`)
 - Use Lombok for boilerplate reduction
 - Write tests for new features
 - Update documentation for API changes
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
@@ -410,10 +495,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **API Base URL (Local)**: `http://localhost:8080/api`
 - **API Base URL (Production)**: `https://prettynails-backend.onrender.com/api`
-- **Frontend Repository**: [Link to Next.js frontend repo]
+- **Frontend (Local)**: `http://localhost:3000`
 - **Supabase Dashboard**: https://supabase.com/dashboard/project/sdqvnqogadaynwfbtezj
 - **Render Dashboard**: https://dashboard.render.com
 
 ## Support
 
-For questions or issues, please open a GitHub issue or contact the development team.
+For questions or issues, please open a GitHub issue.
