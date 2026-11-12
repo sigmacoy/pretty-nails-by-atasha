@@ -1,35 +1,73 @@
-
+```mermaid
 flowchart TD
-    subgraph Customer
-        C1["Browse Services & Slots"]
-        C2["Book Appointment"]
-        C3["Submit Payment Proof"]
-        C4["Scan Loyalty QR"]
+    subgraph Customer ["Customer"]
+        C1["Browse Services, Gallery & Available Dates"]
+        C2["Select Service, Variants & Desired Slot"]
+        C3["Upload Inspiration Photo & Downpayment Receipt"]
+        C4["Receive Cancellation Notice"]
+        C5["Receive Confirmation & Appointment Summary"]
+        C6["Arrive at Salon & Attend Appointment"]
+        C7["Scan Completion QR Code via Mobile App"]
+        C8["Receive Free Service Reward Voucher"]
+        C9["View Updated Loyalty Card Progress"]
     end
 
-    subgraph Admin
-        A1["Review Bookings"]
-        A2["Verify Payment"]
-        A3["Complete Appointment"]
+    subgraph System ["System (Backend)"]
+        S1["Check Real-Time Slot Availability"]
+        S_Slot{"Slot Available?"}
+        S2["Create Booking (PENDING) & Save Payment Proof"]
+        S3["Cancel Booking, Release Slot & Notify Customer"]
+        S4["Update Status to CONFIRMED & Notify Customer"]
+        S5["Validate QR Code & Credit Stamp to LoyaltyCard"]
+        S_Stamps{"10 Stamps Reached?"}
+        S6["Issue Free Reward Voucher to Customer"]
+        S7["Save Accumulated Stamps to LoyaltyCard"]
     end
 
-    subgraph System
-        S1["Check Availability"]
-        S2["Save Booking"]
-        S3["Verify"]
-        S4["Issue Stamps"]
+    subgraph Admin ["Admin"]
+        A1["Review Booking Details & Payment Proof"]
+        A_Valid{"Payment Valid?"}
+        A2["Reject / Cancel Booking with Reason"]
+        A3["Approve & Confirm Booking"]
+        A4["Perform Scheduled Nail Care / Art Service"]
+        A5["Mark Booking COMPLETED & Display Session QR Code"]
     end
 
     Start([Start]) --> C1
-    C1 --> S1
-    S1 --> C2
-    C2 --> S2
-    S2 --> C3
-    C3 --> A1
-    A1 --> A2
-    A2 --> A3
-    A3 --> C4
-    C4 --> S3
-    S3 --> S4
-    S4 --> EndNode([End])
+    C1 --> C2
+    C2 --> S1
+    S1 --> S_Slot
 
+    S_Slot -->|No| C2
+    S_Slot -->|Yes| C3
+
+    C3 --> S2
+    S2 --> A1
+
+    A1 --> A_Valid
+    A_Valid -->|Reject| A2
+    A_Valid -->|Approve| A3
+
+    A2 --> S3
+    S3 --> C4
+    C4 --> EndCancelled([Booking Cancelled])
+
+    A3 --> S4
+    S4 --> C5
+    C5 --> C6
+    C6 --> A4
+    A4 --> A5
+
+    A5 --> C7
+    C7 --> S5
+    S5 --> S_Stamps
+
+    S_Stamps -->|Yes| S6
+    S_Stamps -->|No| S7
+
+    S6 --> C8
+    S7 --> C9
+
+    C8 --> EndComplete([Salon Visit & Loyalty Completed])
+    C9 --> EndComplete
+```

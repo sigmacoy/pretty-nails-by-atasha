@@ -1,10 +1,18 @@
-
+```mermaid
 classDiagram
+    %% ============================================================
+    %% Pretty Nails Salon - Core Domain Class Diagram (Simplified)
+    %% ============================================================
+
     class User {
         -id: String
         -name: String
         -email: String
+        -phone: String
         -role: String
+        +register(): Boolean
+        +updateProfile(name: String, phone: String): void
+        +hasRole(role: String): Boolean
     }
 
     class Service {
@@ -12,53 +20,126 @@ classDiagram
         -name: String
         -category: String
         -basePrice: BigDecimal
+        -duration: Integer
+        +addVariant(variant: ServiceVariant): void
+        +updateDetails(name: String, basePrice: BigDecimal, duration: Integer): void
+        +calculateStartingPrice(): BigDecimal
     }
 
     class ServiceVariant {
         -id: String
+        -serviceId: String
         -name: String
         -price: BigDecimal
+        +updatePrice(newPrice: BigDecimal): void
+        +getEffectivePrice(): BigDecimal
     }
 
     class Booking {
         -id: String
+        -userId: String
         -appointmentDate: LocalDate
-        -status: String
+        -startTime: LocalTime
+        -endTime: LocalTime
         -totalPrice: BigDecimal
+        -downpayment: BigDecimal
+        -status: String
+        -inspirationImg: String
+        +calculateTotal(): BigDecimal
+        +confirm(): void
+        +cancel(): void
     }
 
     class BookingService {
         -id: String
+        -bookingId: String
+        -serviceVariantId: String
         -quantity: Integer
         -price: BigDecimal
+        +calculateSubtotal(): BigDecimal
+        +updateQuantity(quantity: Integer): void
     }
 
     class Payment {
         -id: String
+        -bookingId: String
+        -userId: String
         -amount: BigDecimal
+        -paymentMethod: String
         -status: String
-        -method: String
+        -referenceNumber: String
+        -receiptUrl: String
+        +processPayment(): Boolean
+        +verifyPayment(adminId: String): void
+        +refund(): Boolean
+    }
+
+    class Availability {
+        -id: String
+        -staffId: String
+        -dayOfWeek: String
+        -startTime: LocalTime
+        -endTime: LocalTime
+        -isRecurring: Boolean
+        +isAvailable(time: LocalTime): Boolean
+        +updateSchedule(start: LocalTime, end: LocalTime): void
     }
 
     class LoyaltyCard {
         -id: String
+        -userId: String
         -stampCount: Integer
+        -completedCards: Integer
+        +addStamp(stamp: LoyaltyStamp): void
+        +canRedeem(): Boolean
+        +redeemReward(): Boolean
     }
 
     class LoyaltyStamp {
         -id: String
+        -loyaltyCardId: String
+        -bookingId: String
         -amount: Integer
         -earnedAt: LocalDateTime
+        +issueStamp(): void
+        +validateStamp(): Boolean
     }
 
+    class Gallery {
+        -id: String
+        -title: String
+        -imageUrl: String
+        -category: String
+        -isFeatured: Boolean
+        +toggleFeatured(): void
+        +updateDetails(title: String, category: String): void
+    }
+
+    class CustomerNote {
+        -id: String
+        -userId: String
+        -note: String
+        -createdAt: LocalDateTime
+        +addNote(content: String): void
+        +updateNote(content: String): void
+    }
+
+    %% ============================================================
+    %% Relationships & Cardinalities
+    %% ============================================================
     User "1" *-- "0..*" Booking : bookings
     User "1" -- "0..1" LoyaltyCard : loyaltyCard
     User "1" *-- "0..*" Payment : payments
-    Service "1" *-- "0..*" ServiceVariant : variants
-    Service "1" *-- "0..*" BookingService : bookings
-    ServiceVariant "1" -- "0..*" BookingService : bookingServices
-    Booking "1" *-- "0..*" BookingService : services
-    Booking "1" -- "0..1" Payment : payment
-    Booking "1" *-- "0..*" LoyaltyStamp : loyaltyStamps
-    LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
+    User "1" *-- "0..*" CustomerNote : customerNotes
+    User "1" -- "0..*" Availability : staffAvailabilities
+    User "1" ..> "0..*" Gallery : manages
 
+    Service "1" *-- "1..*" ServiceVariant : variants
+    ServiceVariant "1" -- "0..*" BookingService : bookingServices
+
+    Booking "1" *-- "1..*" BookingService : services
+    Booking "1" -- "0..1" Payment : payment
+    Booking "1" -- "0..*" LoyaltyStamp : loyaltyStamps
+
+    LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
+```
