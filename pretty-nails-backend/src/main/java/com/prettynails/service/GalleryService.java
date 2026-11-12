@@ -29,6 +29,12 @@ public class GalleryService {
                 .collect(Collectors.toList());
     }
 
+    public GalleryDto getGalleryById(String id) {
+        Gallery gallery = galleryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Gallery", "id", id));
+        return mapToDto(gallery);
+    }
+
     @Transactional
     public GalleryDto createGallery(GalleryRequest request) {
         Gallery gallery = Gallery.builder()

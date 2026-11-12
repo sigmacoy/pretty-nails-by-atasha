@@ -2,6 +2,8 @@ package com.prettynails.repository;
 
 import com.prettynails.entity.LoyaltyStamp;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -14,5 +16,8 @@ public interface LoyaltyStampRepository extends JpaRepository<LoyaltyStamp, Stri
 
     List<LoyaltyStamp> findByCardId(String cardId);
 
-    long countStampsSince(LocalDateTime since);
+    List<LoyaltyStamp> findByCardIdOrderByEarnedAtDesc(String cardId);
+
+    @Query("SELECT COUNT(ls) FROM LoyaltyStamp ls WHERE ls.earnedAt >= :since")
+    long countStampsSince(@Param("since") LocalDateTime since);
 }

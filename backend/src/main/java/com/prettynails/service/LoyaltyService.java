@@ -1,18 +1,22 @@
 package com.prettynails.service;
 
-import com.prettynails.dto.AuthDtos.UserDto;
 import com.prettynails.dto.LoyaltyDtos.*;
-import com.prettynails.entity.*;
+import com.prettynails.entity.LoyaltyCard;
+import com.prettynails.entity.LoyaltyStamp;
+import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
 import com.prettynails.exception.ResourceNotFoundException;
-import com.prettynails.repository.*;
+import com.prettynails.repository.LoyaltyCardRepository;
+import com.prettynails.repository.LoyaltyStampRepository;
+import com.prettynails.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,341 +25,311 @@ public class LoyaltyService {
 
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final LoyaltyStampRepository loyaltyStampRepository;
-    private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    private final SettingRepository settingRepository;
 
-    private static final String SHOP_QR_CODE = "prettynails-shop-qr-code";
-    private static final String STAMP_PREFIX = "prettynails-stamp:";
-    private static final int DEFAULT_STAMPS_REQUIRED = 10;
-    private static final int DEFAULT_STAMP_EXPIRY_MONTHS = 12;
-    private static final int STAMP_PER_AMOUNT_THRESHOLD = 50000; // ₱500 in centavos
-    private static final int STAMP_PER_AMOUNT_DOUBLE_THRESHOLD = 100000; // ₱1000 in centavos
-
-    // --- User-facing methods ---
-
-    public LoyaltyCardDto getUserLoyaltyCard(String userId) {
-        LoyaltyCard card = loyaltyCardRepository.findByUserId(userId)
-                .orElseGet(() -> createLoyaltyCard(userId));
-
-        return mapToLoyaltyCardDto(card, false);
-    }
-
+    /**
+     * Adds a stamp to the user's loyalty card when a booking is completed.
+     *
+     * @param bookingId the ID of the completed booking
+     * @param userId the ID of the user
+     * @return the updated stamp count
+     * @throws ResourceNotFoundException if the user has no loyalty card
+     * @throws BadRequestException if a stamp already exists for this booking
+     */
     @Transactional
-    public StampResponse addStampViaQrCode(String userId, StampRequest request) {
-        String qrCode = request.getQrCode();
-        if (qrCode == null || qrCode.trim().isEmpty()) {
-            return StampResponse.builder()
-                    .success(false)
-                    .message("QR code is required")
-                    .build();
+    public int addStampOnBookingCompletion(String bookingId, String userId) {
+        // 1. Find user's LoyaltyCard by userId
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
+
+        // 2. Check if stamp already exists for this bookingId (prevent duplicates)
+        if (loyaltyStampRepository.existsByBookingId(bookingId)) {
+            throw new BadRequestException("Stamp already exists for booking: " + bookingId);
         }
 
-        String bookingId = parseBookingIdFromQrCode(qrCode);
+        // 3. Increment stampCount, update lastStampAt, recalculate expiresAt (12 months from last stamp)
+        int newStampCount = loyaltyCard.getStampCount() + 1;
+        LocalDateTime now = LocalDateTime.now();
+        loyaltyCard.setStampCount(newStampCount);
+        loyaltyCard.setLastStampAt(now);
+        loyaltyCard.setExpiresAt(now.plusMonths(12));
 
-        if (bookingId == null) {
-            // Shop QR code - find latest completed booking without stamp
-            return processShopQrCode(userId);
-        }
+        loyaltyCardRepository.save(loyaltyCard);
 
-        // Per-booking QR code
-        return processBookingQrCode(userId, bookingId);
+        // 4. Create LoyaltyStamp record with source="SERVICE", earnedAt=now, link to booking
+        LoyaltyStamp stamp = LoyaltyStamp.builder()
+                .cardId(loyaltyCard.getId())
+                .bookingId(bookingId)
+                .earnedAt(now)
+                .source("SERVICE")
+                .build();
+
+        loyaltyStampRepository.save(stamp);
+
+        // 5. Return updated stampCount
+        return newStampCount;
     }
 
-    // --- Admin methods ---
+    /**
+     * Get user's loyalty card
+     */
+    public LoyaltyCardDto getLoyaltyCard(String userId) {
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
 
-    public List<AdminLoyaltyCardDto> getAllLoyaltyCards() {
-        List<LoyaltyCard> cards = loyaltyCardRepository.findCustomerCards();
-        return cards.stream()
-                .map(this::mapToAdminLoyaltyCardDto)
+        return mapToLoyaltyCardDto(loyaltyCard);
+    }
+
+    /**
+     * Get user's stamp history
+     */
+    public List<LoyaltyStampDto> getStampHistory(String userId) {
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
+
+        List<LoyaltyStamp> stamps = loyaltyStampRepository.findByCardIdOrderByEarnedAtDesc(loyaltyCard.getId());
+        return stamps.stream()
+                .map(this::mapToLoyaltyStampDto)
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Add stamp via QR code (customer facing)
+     * Supports formats:
+     * - "BOOKING:<bookingId>"
+     * - "bookingId:stampType:timestamp"
+     */
     @Transactional
-    public AdminLoyaltyCardDto processLoyaltyAction(String adminId, LoyaltyActionRequest request) {
-        if (!"REDEEM".equalsIgnoreCase(request.getAction())) {
-            throw new BadRequestException("Invalid action. Only REDEEM is supported.");
+    public StampResponse addStampViaQr(String userId, String qrCode) {
+        if (qrCode == null || qrCode.isBlank()) {
+            return StampResponse.builder()
+                    .success(false)
+                    .stampCount(0)
+                    .message("Invalid QR code format")
+                    .build();
         }
 
-        LoyaltyCard card = loyaltyCardRepository.findById(request.getCardId())
-                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "id", request.getCardId()));
+        String bookingId;
+        String stampType = "SERVICE";
 
-        int redeemAmount = request.getAmount() != null ? request.getAmount() : 1;
-        if (redeemAmount <= 0) {
-            throw new BadRequestException("Redeem amount must be positive");
-        }
-
-        if (card.getStampCount() < redeemAmount) {
-            throw new BadRequestException("Insufficient stamps for redemption");
-        }
-
-        card.setStampCount(card.getStampCount() - redeemAmount);
-        card.setUpdatedAt(LocalDateTime.now());
-        loyaltyCardRepository.save(card);
-
-        return mapToAdminLoyaltyCardDto(card);
-    }
-
-    // --- Helper methods ---
-
-    private LoyaltyCard createLoyaltyCard(String userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
-
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiresAt = now.plusMonths(getStampExpiryMonths());
-
-        LoyaltyCard card = LoyaltyCard.builder()
-                .userId(userId)
-                .stampCount(0)
-                .lastStampAt(null)
-                .expiresAt(expiresAt)
-                .build();
-
-        return loyaltyCardRepository.save(card);
-    }
-
-    private String parseBookingIdFromQrCode(String qrCode) {
-        qrCode = qrCode.trim();
-
-        // Shop QR code
-        if (SHOP_QR_CODE.equals(qrCode)) {
-            return null;
-        }
-
-        // Direct booking ID format: "prettynails-stamp:<bookingId>"
-        if (qrCode.startsWith(STAMP_PREFIX)) {
-            return qrCode.substring(STAMP_PREFIX.length());
-        }
-
-        // Try to parse as JSON
-        try {
-            // Simple JSON parsing for bookingId
-            int bookingIdIndex = qrCode.indexOf("bookingId");
-            if (bookingIdIndex >= 0) {
-                int start = qrCode.indexOf(':', bookingIdIndex);
-                int end = qrCode.indexOf('"', start + 2);
-                if (start >= 0 && end > start) {
-                    return qrCode.substring(start + 2, end);
+        String trimmedQr = qrCode.trim();
+        if (trimmedQr.startsWith("BOOKING:")) {
+            bookingId = trimmedQr.substring("BOOKING:".length()).trim();
+            if (bookingId.isEmpty()) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Invalid QR code format")
+                        .build();
+            }
+            if (bookingId.contains(":")) {
+                String[] subParts = bookingId.split(":");
+                bookingId = subParts[0];
+                if (subParts.length > 1 && !subParts[1].isBlank()) {
+                    stampType = subParts[1];
                 }
             }
-        } catch (Exception ignored) {
-            // Not valid JSON, treat as direct booking ID
-        }
-
-        // Assume it's a direct booking ID
-        return qrCode;
-    }
-
-    private StampResponse processBookingQrCode(String userId, String bookingId) {
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
-
-        // Verify booking belongs to user
-        if (!booking.getUserId().equals(userId)) {
-            return StampResponse.builder()
-                    .success(false)
-                    .message("This booking does not belong to you")
-                    .build();
-        }
-
-        // Check if booking is completed
-        if (!"COMPLETED".equals(booking.getStatus())) {
-            return StampResponse.builder()
-                    .success(false)
-                    .message("Booking must be completed to earn stamps")
-                    .build();
+        } else {
+            String[] parts = trimmedQr.split(":");
+            if (parts.length < 2) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Invalid QR code format")
+                        .build();
+            }
+            bookingId = parts[0];
+            stampType = parts[1];
         }
 
         // Check if stamp already exists for this booking
         if (loyaltyStampRepository.existsByBookingId(bookingId)) {
+            LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                    .orElse(null);
             return StampResponse.builder()
                     .success(false)
-                    .message("Stamp already earned for this booking")
-                    .build();
-        }
-
-        // Calculate stamps earned
-        int stampsEarned = calculateStampsForBooking(booking);
-
-        if (stampsEarned <= 0) {
-            return StampResponse.builder()
-                    .success(false)
-                    .message("No stamps earned for this service")
+                    .stampCount(loyaltyCard != null ? loyaltyCard.getStampCount() : 0)
+                    .message("Stamp already exists for this booking")
                     .build();
         }
 
         // Get or create loyalty card
-        LoyaltyCard card = loyaltyCardRepository.findByUserId(userId)
-                .orElseGet(() -> createLoyaltyCard(userId));
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    LoyaltyCard newCard = LoyaltyCard.builder()
+                            .userId(userId)
+                            .stampCount(0)
+                            .expiresAt(LocalDateTime.now().plusYears(1))
+                            .build();
+                    return loyaltyCardRepository.save(newCard);
+                });
 
-        // Check if card is expired and reset if needed
-        if (isCardExpired(card)) {
-            card.setStampCount(0);
-            card.setLastStampAt(null);
-        }
-
-        // Update card
-        card.setStampCount(card.getStampCount() + stampsEarned);
-        card.setLastStampAt(LocalDateTime.now());
-        card.setExpiresAt(LocalDateTime.now().plusMonths(getStampExpiryMonths()));
-        card = loyaltyCardRepository.save(card);
+        // Add stamp
+        int newStampCount = (loyaltyCard.getStampCount() != null ? loyaltyCard.getStampCount() : 0) + 1;
+        LocalDateTime now = LocalDateTime.now();
+        loyaltyCard.setStampCount(newStampCount);
+        loyaltyCard.setLastStampAt(now);
+        loyaltyCard.setExpiresAt(now.plusMonths(12));
+        loyaltyCardRepository.save(loyaltyCard);
 
         // Create stamp record
         LoyaltyStamp stamp = LoyaltyStamp.builder()
-                .cardId(card.getId())
+                .cardId(loyaltyCard.getId())
                 .bookingId(bookingId)
-                .earnedAt(LocalDateTime.now())
-                .source(determineStampSource(booking))
-                .amount(calculateStampAmount(booking))
+                .earnedAt(now)
+                .source(stampType)
                 .build();
         loyaltyStampRepository.save(stamp);
 
         return StampResponse.builder()
                 .success(true)
-                .stampCount(card.getStampCount())
-                .stampsEarned(stampsEarned)
-                .message("Stamp earned successfully!")
+                .stampCount(newStampCount)
+                .message("Stamp added successfully")
                 .build();
     }
 
-    private StampResponse processShopQrCode(String userId) {
-        // Find latest completed booking without stamp for this user
-        List<Booking> completedBookings = bookingRepository.findCompletedBookingsWithoutStamps(userId);
+    /**
+     * Deducts stamps when a loyalty reward is redeemed on booking confirmation.
+     */
+    @Transactional
+    public void redeemRewardStamps(String userId, String bookingId, int stampCountToDeduct) {
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
 
-        if (completedBookings.isEmpty()) {
-            return StampResponse.builder()
-                    .success(false)
-                    .message("No completed bookings found without stamps")
-                    .build();
+        int current = loyaltyCard.getStampCount() != null ? loyaltyCard.getStampCount() : 0;
+        int newCount = Math.max(0, current - stampCountToDeduct);
+        loyaltyCard.setStampCount(newCount);
+        loyaltyCardRepository.save(loyaltyCard);
+
+        LoyaltyStamp redemptionStamp = LoyaltyStamp.builder()
+                .cardId(loyaltyCard.getId())
+                .bookingId(bookingId)
+                .earnedAt(LocalDateTime.now())
+                .source("REWARD_REDEMPTION")
+                .amount(-stampCountToDeduct)
+                .build();
+        loyaltyStampRepository.save(redemptionStamp);
+    }
+
+    /**
+     * Get all loyalty cards for admin (with pagination and search)
+     */
+    public Page<AdminLoyaltyCardDto> getAllLoyaltyCards(String search, Pageable pageable) {
+        // For simplicity, we'll fetch all and filter in memory for search
+        // In production, you'd want a custom repository query
+        List<LoyaltyCard> allCards = loyaltyCardRepository.findAll();
+
+        List<AdminLoyaltyCardDto> filtered = allCards.stream()
+                .filter(card -> {
+                    if (search == null || search.isBlank()) return true;
+                    User user = userRepository.findById(card.getUserId()).orElse(null);
+                    if (user == null) return false;
+                    String searchLower = search.toLowerCase();
+                    return user.getName().toLowerCase().contains(searchLower) ||
+                           user.getEmail().toLowerCase().contains(searchLower);
+                })
+                .map(this::mapToAdminLoyaltyCardDto)
+                .collect(Collectors.toList());
+
+        // Manual pagination
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), filtered.size());
+        List<AdminLoyaltyCardDto> pageContent = (start <= end) ? filtered.subList(start, end) : List.of();
+
+        return new org.springframework.data.domain.PageImpl<>(pageContent, pageable, filtered.size());
+    }
+
+    /**
+     * Admin loyalty actions (add/remove/reset/extend stamps)
+     */
+    @Transactional
+    public LoyaltyActionResponse adminLoyaltyAction(LoyaltyActionRequest request) {
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", request.getUserId()));
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", request.getUserId()));
+
+        String message;
+        switch (request.getAction()) {
+            case ADD_STAMP -> {
+                int amount = request.getAmount() != null ? request.getAmount() : 1;
+                loyaltyCard.setStampCount(loyaltyCard.getStampCount() + amount);
+                loyaltyCard.setLastStampAt(LocalDateTime.now());
+                loyaltyCard.setExpiresAt(LocalDateTime.now().plusMonths(12));
+                message = amount + " stamp(s) added";
+            }
+            case REMOVE_STAMP -> {
+                int amount = request.getAmount() != null ? request.getAmount() : 1;
+                int newCount = Math.max(0, loyaltyCard.getStampCount() - amount);
+                loyaltyCard.setStampCount(newCount);
+                if (newCount > 0) {
+                    loyaltyCard.setLastStampAt(LocalDateTime.now());
+                    loyaltyCard.setExpiresAt(LocalDateTime.now().plusMonths(12));
+                }
+                message = amount + " stamp(s) removed";
+            }
+            case RESET -> {
+                loyaltyCard.setStampCount(0);
+                loyaltyCard.setLastStampAt(null);
+                loyaltyCard.setExpiresAt(LocalDateTime.now().plusYears(1));
+                message = "Loyalty card reset";
+            }
+            case EXTEND -> {
+                int months = request.getAmount() != null ? request.getAmount() : 12;
+                LocalDateTime base = loyaltyCard.getExpiresAt() != null && loyaltyCard.getExpiresAt().isAfter(LocalDateTime.now())
+                        ? loyaltyCard.getExpiresAt()
+                        : LocalDateTime.now();
+                loyaltyCard.setExpiresAt(base.plusMonths(months));
+                message = "Expiry extended by " + months + " month(s)";
+            }
+            default -> throw new BadRequestException("Unknown action: " + request.getAction());
         }
 
-        // Get the latest completed booking
-        Booking latestBooking = completedBookings.get(0);
+        loyaltyCardRepository.save(loyaltyCard);
 
-        return processBookingQrCode(userId, latestBooking.getId());
+        return LoyaltyActionResponse.builder()
+                .success(true)
+                .loyaltyCard(mapToAdminLoyaltyCardDto(loyaltyCard, user))
+                .message(message)
+                .build();
     }
 
-    private int calculateStampsForBooking(Booking booking) {
-        // Check if booking has nail set services (GEL, EXTENSION, PEDICURE)
-        boolean hasNailSet = hasNailSetService(booking);
-
-        if (hasNailSet) {
-            return 1; // 1 stamp per nail set
-        }
-
-        // Check amount-based stamps
-        int totalPrice = booking.getTotalPrice();
-        if (totalPrice >= STAMP_PER_AMOUNT_DOUBLE_THRESHOLD) {
-            return 2; // 2 stamps for ₱1000+
-        } else if (totalPrice >= STAMP_PER_AMOUNT_THRESHOLD) {
-            return 1; // 1 stamp for ₱500+
-        }
-
-        return 0; // No stamps (e.g., Nail Cleaning alone < ₱500)
-    }
-
-    private boolean hasNailSetService(Booking booking) {
-        if (booking.getServices() == null || booking.getServices().isEmpty()) {
-            return false;
-        }
-
-        return booking.getServices().stream()
-                .map(com.prettynails.entity.BookingService::getService)
-                .filter(java.util.Objects::nonNull)
-                .anyMatch(service -> {
-                    String category = service.getCategory();
-                    return "GEL".equals(category) || "EXTENSION".equals(category) || "PEDICURE".equals(category);
-                });
-    }
-
-    private String determineStampSource(Booking booking) {
-        if (hasNailSetService(booking)) {
-            return "SERVICE";
-        }
-        return "AMOUNT";
-    }
-
-    private Integer calculateStampAmount(Booking booking) {
-        if ("SERVICE".equals(determineStampSource(booking))) {
-            return null; // Not applicable for service-based stamps
-        }
-        return booking.getTotalPrice();
-    }
-
-    private boolean isCardExpired(LoyaltyCard card) {
-        if (card.getExpiresAt() == null) {
-            return false;
-        }
-        return LocalDateTime.now().isAfter(card.getExpiresAt());
-    }
-
-    private int getStampExpiryMonths() {
-        return settingRepository.findByKey("loyalty_stamp_expiry_months")
-                .map(s -> Integer.parseInt(s.getValue()))
-                .orElse(DEFAULT_STAMP_EXPIRY_MONTHS);
-    }
-
-    private int getStampsRequired() {
-        return settingRepository.findByKey("loyalty_stamps_required")
-                .map(s -> Integer.parseInt(s.getValue()))
-                .orElse(DEFAULT_STAMPS_REQUIRED);
-    }
-
-    // --- Mapping methods ---
-
-    private LoyaltyCardDto mapToLoyaltyCardDto(LoyaltyCard card, boolean isAdmin) {
-        List<LoyaltyStampDto> stampDtos = card.getStamps() != null ?
-                card.getStamps().stream()
-                        .sorted((a, b) -> b.getEarnedAt().compareTo(a.getEarnedAt()))
-                        .map(this::mapToLoyaltyStampDto)
-                        .collect(Collectors.toList()) : List.of();
-
-        boolean expired = isCardExpired(card);
-
+    private LoyaltyCardDto mapToLoyaltyCardDto(LoyaltyCard card) {
         return LoyaltyCardDto.builder()
-                .stampCount(card.getStampCount())
-                .lastStampAt(card.getLastStampAt() != null ? card.getLastStampAt().toString() : null)
-                .expiresAt(card.getExpiresAt() != null ? card.getExpiresAt().toString() : null)
-                .isExpired(expired)
-                .stamps(stampDtos)
-                .isAdmin(isAdmin)
-                .build();
-    }
-
-    private AdminLoyaltyCardDto mapToAdminLoyaltyCardDto(LoyaltyCard card) {
-        User user = card.getUser();
-
-        List<LoyaltyStampDto> stampDtos = card.getStamps() != null ?
-                card.getStamps().stream()
-                        .sorted((a, b) -> b.getEarnedAt().compareTo(a.getEarnedAt()))
-                        .map(this::mapToLoyaltyStampDto)
-                        .collect(Collectors.toList()) : List.of();
-
-        return AdminLoyaltyCardDto.builder()
                 .id(card.getId())
                 .userId(card.getUserId())
                 .stampCount(card.getStampCount())
-                .lastStampAt(card.getLastStampAt() != null ? card.getLastStampAt().toString() : null)
-                .expiresAt(card.getExpiresAt() != null ? card.getExpiresAt().toString() : null)
-                .createdAt(card.getCreatedAt() != null ? card.getCreatedAt().toString() : null)
-                .updatedAt(card.getUpdatedAt() != null ? card.getUpdatedAt().toString() : null)
-                .user(user != null ? UserDto.builder()
-                        .id(user.getId())
-                        .email(user.getEmail())
-                        .name(user.getName())
-                        .nickname(user.getNickname())
-                        .role(user.getRole())
-                        .build() : null)
-                .stamps(stampDtos)
+                .lastStampAt(card.getLastStampAt())
+                .expiresAt(card.getExpiresAt())
                 .build();
     }
 
     private LoyaltyStampDto mapToLoyaltyStampDto(LoyaltyStamp stamp) {
         return LoyaltyStampDto.builder()
-                .earnedAt(stamp.getEarnedAt().toString())
+                .id(stamp.getId())
+                .cardId(stamp.getCardId())
+                .bookingId(stamp.getBookingId())
+                .earnedAt(stamp.getEarnedAt())
                 .source(stamp.getSource())
                 .amount(stamp.getAmount())
+                .build();
+    }
+
+    private AdminLoyaltyCardDto mapToAdminLoyaltyCardDto(LoyaltyCard card) {
+        User user = userRepository.findById(card.getUserId()).orElse(null);
+        return mapToAdminLoyaltyCardDto(card, user);
+    }
+
+    private AdminLoyaltyCardDto mapToAdminLoyaltyCardDto(LoyaltyCard card, User user) {
+        return AdminLoyaltyCardDto.builder()
+                .id(card.getId())
+                .userId(card.getUserId())
+                .userName(user != null ? user.getName() : "Unknown")
+                .userEmail(user != null ? user.getEmail() : "Unknown")
+                .stampCount(card.getStampCount())
+                .lastStampAt(card.getLastStampAt())
+                .expiresAt(card.getExpiresAt())
                 .build();
     }
 }

@@ -44,6 +44,41 @@ public class BookingController {
         return ResponseEntity.ok(bookings);
     }
 
+    @GetMapping("/bookings/{id}")
+    public ResponseEntity<BookingDto> getBookingById(@PathVariable String id) {
+        User currentUser = getCurrentUser();
+        BookingDto booking = bookingService.getBookingById(id);
+
+        // Check if user owns the booking or is admin
+        if (!booking.getUserId().equals(currentUser.getId()) && !"ADMIN".equals(currentUser.getRole())) {
+            throw new IllegalStateException("You can only view your own bookings");
+        }
+
+        return ResponseEntity.ok(booking);
+    }
+
+    @PutMapping("/bookings/{id}/cancel")
+    public ResponseEntity<BookingDto> cancelBookingByCustomer(@PathVariable String id) {
+        User currentUser = getCurrentUser();
+        BookingDto cancelledBooking = bookingService.cancelBookingByCustomer(id, currentUser.getId());
+        return ResponseEntity.ok(cancelledBooking);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/bookings/{id}/status")
+    public ResponseEntity<BookingDto> updateBookingStatus(
+            @PathVariable String id,
+            @Valid @RequestBody BookingStatusRequest request) {
+        BookingDto updatedBooking;
+        switch (request.getStatus().toUpperCase()) {
+            case "CONFIRMED" -> updatedBooking = bookingService.confirmBooking(id);
+            case "COMPLETED" -> updatedBooking = bookingService.completeBooking(id);
+            case "CANCELLED" -> updatedBooking = bookingService.cancelBooking(id);
+            default -> throw new IllegalArgumentException("Invalid status: " + request.getStatus());
+        }
+        return ResponseEntity.ok(updatedBooking);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/admin/bookings/{id}/complete")
     public ResponseEntity<BookingDto> completeBooking(@PathVariable String id) {

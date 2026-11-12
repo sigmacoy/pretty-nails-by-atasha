@@ -9,7 +9,7 @@ erDiagram
     %% ============================================================
 
     User {
-        Long id PK
+        UUID id PK
         String email
         Boolean emailVerified
         String name
@@ -23,8 +23,8 @@ erDiagram
     }
 
     Account {
-        Long id PK
-        Long userId FK
+        UUID id PK
+        UUID userId FK
         String type
         String provider
         String providerAccountId
@@ -40,7 +40,7 @@ erDiagram
     }
 
     Service {
-        Long id PK
+        UUID id PK
         String name
         String category
         String description
@@ -52,8 +52,8 @@ erDiagram
     }
 
     ServiceVariant {
-        Long id PK
-        Long serviceId FK
+        UUID id PK
+        UUID serviceId FK
         String name
         BigDecimal price
         DateTime createdAt
@@ -61,8 +61,8 @@ erDiagram
     }
 
     Booking {
-        Long id PK
-        Long userId FK
+        UUID id PK
+        UUID userId FK
         String status
         Date appointmentDate
         Time startTime
@@ -76,10 +76,10 @@ erDiagram
     }
 
     BookingService {
-        Long id PK
-        Long bookingId FK
-        Long serviceId FK
-        Long variantId FK
+        UUID id PK
+        UUID bookingId FK
+        UUID serviceId FK
+        UUID variantId FK
         Integer quantity
         BigDecimal price
         DateTime createdAt
@@ -87,21 +87,21 @@ erDiagram
     }
 
     Payment {
-        Long id PK
-        Long bookingId FK,UK
-        Long userId FK
+        UUID id PK
+        UUID bookingId FK,UK
+        UUID userId FK
         BigDecimal amount
         String status
         String method
         String reference
         DateTime verifiedAt
-        Long verifiedBy
+        UUID verifiedBy FK
         DateTime createdAt
         DateTime updatedAt
     }
 
     Availability {
-        Long id PK
+        UUID id PK
         Date date
         Boolean isAvailable
         Time startTime
@@ -113,8 +113,8 @@ erDiagram
     }
 
     LoyaltyCard {
-        Long id PK
-        Long userId FK,UK
+        UUID id PK
+        UUID userId FK,UK
         Integer stampCount
         DateTime lastStampAt
         DateTime expiresAt
@@ -123,9 +123,9 @@ erDiagram
     }
 
     LoyaltyStamp {
-        Long id PK
-        Long cardId FK
-        Long bookingId FK
+        UUID id PK
+        UUID cardId FK
+        UUID bookingId FK
         DateTime earnedAt
         String source
         Integer amount
@@ -134,9 +134,9 @@ erDiagram
     }
 
     CustomerNote {
-        Long id PK
-        Long userId FK
-        Long adminId FK
+        UUID id PK
+        UUID userId FK
+        UUID adminId FK
         String content
         String nickname
         DateTime createdAt
@@ -144,16 +144,16 @@ erDiagram
     }
 
     Session {
-        Long id PK
+        UUID id PK
         String sessionToken
-        Long userId FK
+        UUID userId FK
         DateTime expires
         DateTime createdAt
         DateTime updatedAt
     }
 
     VerificationToken {
-        Long id PK
+        UUID id PK
         String identifier
         String token
         DateTime expires
@@ -161,7 +161,7 @@ erDiagram
     }
 
     Gallery {
-        Long id PK
+        UUID id PK
         String title
         String description
         String imageUrl
@@ -172,7 +172,7 @@ erDiagram
     }
 
     Setting {
-        Long id PK
+        UUID id PK
         String key
         String value
         String description
@@ -193,8 +193,8 @@ erDiagram
     %% User - Booking (One-to-Many: User 1 --- * Booking)
     User ||--o{ Booking : "bookings"
 
-    %% User - LoyaltyCard (One-to-One: User 1 --- 1 LoyaltyCard) [unique]
-    User ||--|| LoyaltyCard : "loyaltyCard"
+    %% User - LoyaltyCard (One-to-ZeroOrOne: User 1 --- 0..1 LoyaltyCard) [unique]
+    User ||--o| LoyaltyCard : "loyaltyCard"
 
     %% User - CustomerNote as customer (One-to-Many: User 1 --- * CustomerNote)
     User ||--o{ CustomerNote : "notes (customer)"
@@ -205,11 +205,17 @@ erDiagram
     %% User - Payment (One-to-Many: User 1 --- * Payment)
     User ||--o{ Payment : "payments"
 
+    %% User - Payment as admin verifier (One-to-Many: User 1 --- * Payment)
+    User ||--o{ Payment : "verifiedPayments"
+
     %% Service - ServiceVariant (One-to-Many: Service 1 --- * ServiceVariant)
     Service ||--o{ ServiceVariant : "variants"
 
     %% Service - BookingService (One-to-Many: Service 1 --- * BookingService)
     Service ||--o{ BookingService : "bookings"
+
+    %% ServiceVariant - BookingService (One-to-Many: ServiceVariant 1 --- * BookingService)
+    ServiceVariant ||--o{ BookingService : "bookingServices"
 
     %% Booking - BookingService (One-to-Many: Booking 1 --- * BookingService)
     Booking ||--o{ BookingService : "services"
@@ -235,7 +241,7 @@ erDiagram
     %% o{      : Zero-or-Many (Optional 0..*)
     %% |{      : One-or-Many (Mandatory 1..*)
     %% ||      : Exactly One (Mandatory 1..1)
-    %%
+    %% Key Types:
     %% PK = Primary Key
     %% FK = Foreign Key
     %% UK = Unique Constraint

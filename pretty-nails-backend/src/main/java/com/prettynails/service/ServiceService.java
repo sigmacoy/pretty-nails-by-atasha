@@ -102,6 +102,23 @@ public class ServiceService {
         serviceRepository.delete(service);
     }
 
+    public ServiceDto getServiceById(String id) {
+        com.prettynails.entity.Service service = serviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Service", "id", id));
+        return mapToServiceDto(service);
+    }
+
+    public List<ServiceVariantDto> getServiceVariants(String serviceId) {
+        return variantRepository.findByServiceId(serviceId).stream()
+                .map(v -> ServiceVariantDto.builder()
+                        .id(v.getId())
+                        .serviceId(v.getServiceId())
+                        .name(v.getName())
+                        .price(v.getPrice())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     private ServiceDto mapToServiceDto(com.prettynails.entity.Service entity) {
         List<ServiceVariantDto> variantDtos = entity.getVariants().stream()
                 .map(v -> ServiceVariantDto.builder()

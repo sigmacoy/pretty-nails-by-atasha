@@ -266,30 +266,30 @@ class AuthController {
 
 class BookingController {
     +createBooking(bookingRequest: BookingRequest): ResponseEntity~BookingResponse~
-    +getUserBookings(): ResponseEntity~List~BookingResponse~~
-    +getAdminBookings(page: Integer, size: Integer): ResponseEntity~Page~BookingResponse~~
+    +getUserBookings(): List~BookingResponse~
+    +getAdminBookings(page: Integer, size: Integer): Page~BookingResponse~
     +updateBookingStatus(bookingId: String, status: String): ResponseEntity~BookingResponse~
 }
 
 class ServiceController {
-    +getAllServices(): ResponseEntity~List~Service~~
-    +getActiveServices(): ResponseEntity~List~Service~~
-    +getActiveServicesByCategory(category: String): ResponseEntity~List~Service~~
+    +getAllServices(): List~Service~
+    +getActiveServices(): List~Service~
+    +getActiveServicesByCategory(category: String): List~Service~
     +createService(serviceRequest: ServiceRequest): ResponseEntity~Service~
     +updateService(id: String, serviceRequest: ServiceRequest): ResponseEntity~Service~
     +deleteService(id: String): ResponseEntity~Void~
 }
 
 class AvailabilityController {
-    +getAvailableDates(): ResponseEntity~List~Availability~~
-    +getAdminAvailabilities(page: Integer, size: Integer): ResponseEntity~Page~Availability~~
+    +getAvailableDates(): List~Availability~
+    +getAdminAvailabilities(page: Integer, size: Integer): Page~Availability~
     +upsertAvailability(availabilityRequest: AvailabilityRequest): ResponseEntity~Availability~
     +deleteAvailability(id: String): ResponseEntity~Void~
 }
 
 class GalleryController {
-    +getPublicGallery(): ResponseEntity~List~Gallery~~
-    +getAdminGallery(page: Integer, size: Integer): ResponseEntity~Page~Gallery~~
+    +getPublicGallery(): List~Gallery~
+    +getAdminGallery(page: Integer, size: Integer): Page~Gallery~
     +createGallery(galleryRequest: GalleryRequest): ResponseEntity~Gallery~
     +updateGallery(id: String, galleryRequest: GalleryRequest): ResponseEntity~Gallery~
     +deleteGallery(id: String): ResponseEntity~Void~
@@ -298,7 +298,7 @@ class GalleryController {
 class LoyaltyController {
     +getUserLoyaltyCard(): ResponseEntity~LoyaltyCardResponse~
     +addStampViaQrCode(qrCodeRequest: QrCodeRequest): ResponseEntity~LoyaltyStampResponse~
-    +getAllLoyaltyCards(page: Integer, size: Integer): ResponseEntity~Page~LoyaltyCardResponse~~
+    +getAllLoyaltyCards(page: Integer, size: Integer): Page~LoyaltyCardResponse~
     +processLoyaltyAction(actionRequest: LoyaltyActionRequest): ResponseEntity~LoyaltyActionResponse~
 }
 
@@ -307,8 +307,8 @@ class AdminController {
     +getAdminReports(reportRequest: ReportRequest): ResponseEntity~ReportResponse~
     +getLoyaltySettings(): ResponseEntity~LoyaltySettingsResponse~
     +updateLoyaltySettings(settingsRequest: LoyaltySettingsRequest): ResponseEntity~LoyaltySettingsResponse~
-    +getCustomers(page: Integer, size: Integer): ResponseEntity~Page~User~~
-    +getCustomerNotes(userId: String): ResponseEntity~List~CustomerNote~~
+    +getCustomers(page: Integer, size: Integer): Page~User~
+    +getCustomerNotes(userId: String): List~CustomerNote~
     +addCustomerNote(noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
     +updateCustomerNote(noteId: String, noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
     +deleteCustomerNote(noteId: String): ResponseEntity~Void~
@@ -597,7 +597,7 @@ class ReportRequest {
 
 class ReportResponse {
     -type: String
-    -data: Map~String, Object~
+    -data: Map~String,Object~
 }
 
 class LoyaltySettingsResponse {
@@ -627,34 +627,15 @@ User "1" *-- "0..*" CustomerNote : notes
 User "1" *-- "0..*" CustomerNote : adminNotes
 User "1" *-- "0..*" Payment : payments
 
-Account "0..*" -- "1" User : user
-
 Service "1" *-- "0..*" ServiceVariant : variants
 Service "1" *-- "0..*" BookingService : bookings
+ServiceVariant "1" -- "0..*" BookingService : bookingServices
 
-ServiceVariant "0..*" -- "1" Service : service
-
-Booking "0..*" -- "1" User : user
 Booking "1" *-- "0..*" BookingService : services
 Booking "1" -- "0..1" Payment : payment
 Booking "1" *-- "0..*" LoyaltyStamp : loyaltyStamps
 
-BookingService "0..*" -- "1" Booking : booking
-BookingService "0..*" -- "1" Service : service
-
-Payment "0..*" -- "1" Booking : booking
-Payment "0..*" -- "1" User : user
-
-LoyaltyCard "0..1" -- "1" User : user
 LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
-
-LoyaltyStamp "0..*" -- "1" LoyaltyCard : card
-LoyaltyStamp "0..*" -- "1" Booking : booking
-
-CustomerNote "0..*" -- "1" User : user
-CustomerNote "0..*" -- "1" User : admin
-
-Session "0..*" -- "1" User : user
 
 %% Service/Controller Relationships
 AuthController --> AuthService : uses

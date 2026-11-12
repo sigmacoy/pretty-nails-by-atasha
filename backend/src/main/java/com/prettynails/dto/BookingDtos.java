@@ -1,13 +1,25 @@
 package com.prettynails.dto;
 
-import com.prettynails.dto.AuthDtos.UserDto;
-import com.prettynails.dto.LoyaltyDtos.LoyaltyStampDto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.util.List;
 
 public class BookingDtos {
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookingServiceRequest {
+        @NotBlank
+        private String serviceId;
+
+        private String variantId;
+
+        @Min(1)
+        private Integer quantity = 1;
+    }
 
     @Data
     @Builder
@@ -35,37 +47,11 @@ public class BookingDtos {
 
         private String paymentReference;
 
+        private Boolean redeemLoyaltyReward;
+
         @NotNull
         @Size(min = 1)
         private List<BookingServiceRequest> services;
-
-        private List<AddOnRequest> addOns;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BookingServiceRequest {
-        @NotBlank
-        private String serviceId;
-
-        private String variantId;
-
-        @Min(1)
-        private Integer quantity = 1;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class AddOnRequest {
-        @NotBlank
-        private String addOnId;
-
-        @Min(0)
-        private Integer quantity = 0;
     }
 
     @Data
@@ -75,29 +61,6 @@ public class BookingDtos {
     public static class BookingResponse {
         private String bookingId;
         private String message;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class BookingDto {
-        private String id;
-        private String userId;
-        private String status;
-        private String appointmentDate;
-        private String startTime;
-        private String endTime;
-        private Integer totalPrice;
-        private Integer downpayment;
-        private String notes;
-        private String inspirationImg;
-        private String createdAt;
-        private String updatedAt;
-        private List<BookingServiceDto> services;
-        private PaymentDto payment;
-        private List<LoyaltyStampDto> loyaltyStamps;
-        private UserDto user;
     }
 
     @Data
@@ -154,5 +117,47 @@ public class BookingDtos {
         private String reference;
         private String verifiedAt;
         private String verifiedBy;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoyaltyStampDto {
+        private String earnedAt;
+        private String source;
+        private Integer amount;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookingDto {
+        private String id;
+        private String userId;
+        private String status;
+        private String appointmentDate;
+        private String startTime;
+        private String endTime;
+        private Integer totalPrice;
+        private Integer downpayment;
+        private String notes;
+        private String inspirationImg;
+        private String createdAt;
+        private String updatedAt;
+        private List<BookingServiceDto> services;
+        private PaymentDto payment;
+        private List<LoyaltyStampDto> loyaltyStamps;
+        private Boolean redeemLoyaltyReward;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookingStatusRequest {
+        @NotBlank
+        private String status;
     }
 }

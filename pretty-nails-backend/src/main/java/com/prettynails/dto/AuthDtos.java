@@ -63,4 +63,43 @@ public class AuthDtos {
         private String image;
         private java.time.LocalDateTime createdAt;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class UpdateProfileRequest {
+        @Size(max = 100, message = "Name must not exceed 100 characters")
+        private String name;
+
+        @Size(max = 20, message = "Phone must not exceed 20 characters")
+        private String phone;
+
+        @Size(max = 100, message = "Nickname must not exceed 100 characters")
+        private String nickname;
+
+        @Size(max = 500, message = "Image URL must not exceed 500 characters")
+        private String image;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ChangePasswordRequest {
+        @NotBlank(message = "Current password is required")
+        private String currentPassword;
+
+        @NotBlank(message = "New password is required")
+        @Size(min = 6, message = "New password must be at least 6 characters")
+        private String newPassword;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MessageResponse {
+        private String message;
+    }
 }

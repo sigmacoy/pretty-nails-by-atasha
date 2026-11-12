@@ -33,3 +33,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Claude ###
+.claude/worktrees/
+node_modules/

@@ -70,9 +70,27 @@ public class LoyaltyDtos {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class LoyaltyActionRequest {
+        private String userId;
         private String cardId;
-        private String action;
+        private LoyaltyAction action;
         private Integer amount;
+
+        public enum LoyaltyAction {
+            ADD_STAMP,
+            REMOVE_STAMP,
+            RESET_STAMPS,
+            EXTEND_VALIDITY
+        }
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoyaltyActionResponse {
+        private Boolean success;
+        private AdminLoyaltyCardDto loyaltyCard;
+        private String message;
     }
 
     @Data

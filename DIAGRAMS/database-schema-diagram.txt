@@ -1,19 +1,18 @@
-
 erDiagram
     %% ============================
     %% USERS TABLE
     %% ============================
     users {
         UUID id PK
-        VARCHAR(255) email UK, NN
+        VARCHAR(255) email UK "NN"
         TIMESTAMP email_verified
         VARCHAR(100) name
         VARCHAR(100) nickname
         VARCHAR(255) password
         VARCHAR(500) image
-        VARCHAR(20) role NN, DEFAULT 'CUSTOMER'
+        VARCHAR(20) role "NN, DEFAULT 'CUSTOMER'"
         VARCHAR(20) phone
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -22,10 +21,10 @@ erDiagram
     %% ============================
     accounts {
         UUID id PK
-        UUID user_id FK, NN
-        VARCHAR(50) type NN
-        VARCHAR(50) provider NN
-        VARCHAR(255) provider_account_id NN
+        UUID user_id FK "NN"
+        VARCHAR(50) type "NN"
+        VARCHAR(50) provider "NN"
+        VARCHAR(255) provider_account_id "NN"
         TEXT refresh_token
         TEXT access_token
         INTEGER expires_at
@@ -33,9 +32,9 @@ erDiagram
         VARCHAR(255) scope
         TEXT id_token
         VARCHAR(255) session_state
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
-        UK(provider, provider_account_id)
+        %% UK(provider, provider_account_id)
     }
 
     %% ============================
@@ -43,13 +42,13 @@ erDiagram
     %% ============================
     services {
         UUID id PK
-        VARCHAR(100) name UK, NN
-        VARCHAR(20) category NN
+        VARCHAR(100) name UK "NN"
+        VARCHAR(20) category "NN"
         TEXT description
-        INTEGER base_price NN
-        INTEGER duration NN
-        BOOLEAN is_active NN, DEFAULT true
-        TIMESTAMP created_at NN
+        INTEGER base_price "NN"
+        INTEGER duration "NN"
+        BOOLEAN is_active "NN, DEFAULT true"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -58,10 +57,10 @@ erDiagram
     %% ============================
     service_variants {
         UUID id PK
-        UUID service_id FK, NN
-        VARCHAR(50) name NN
-        INTEGER price NN
-        TIMESTAMP created_at NN
+        UUID service_id FK "NN"
+        VARCHAR(50) name "NN"
+        INTEGER price "NN"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -70,16 +69,16 @@ erDiagram
     %% ============================
     bookings {
         UUID id PK
-        UUID user_id FK, NN
-        VARCHAR(20) status NN, DEFAULT 'PENDING'
-        TIMESTAMP appointment_date NN
-        VARCHAR(5) start_time NN
-        VARCHAR(5) end_time NN
-        INTEGER total_price NN
-        INTEGER downpayment NN, DEFAULT 10000
+        UUID user_id FK "NN"
+        VARCHAR(20) status "NN, DEFAULT 'PENDING'"
+        TIMESTAMP appointment_date "NN"
+        VARCHAR(5) start_time "NN"
+        VARCHAR(5) end_time "NN"
+        INTEGER total_price "NN"
+        INTEGER downpayment "NN, DEFAULT 10000"
         TEXT notes
         VARCHAR(500) inspiration_img
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -88,12 +87,12 @@ erDiagram
     %% ============================
     booking_services {
         UUID id PK
-        UUID booking_id FK, NN
-        UUID service_id FK, NN
+        UUID booking_id FK "NN"
+        UUID service_id FK "NN"
         UUID variant_id FK
-        INTEGER quantity NN, DEFAULT 1
-        INTEGER price NN
-        TIMESTAMP created_at NN
+        INTEGER quantity "NN, DEFAULT 1"
+        INTEGER price "NN"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -102,15 +101,15 @@ erDiagram
     %% ============================
     payments {
         UUID id PK
-        UUID booking_id UK, FK, NN
-        UUID user_id FK, NN
-        INTEGER amount NN
-        VARCHAR(20) status NN, DEFAULT 'PENDING'
-        VARCHAR(20) method NN
+        UUID booking_id UK, FK "NN"
+        UUID user_id FK "NN"
+        INTEGER amount "NN"
+        VARCHAR(20) status "NN, DEFAULT 'PENDING'"
+        VARCHAR(20) method "NN"
         VARCHAR(100) reference
         TIMESTAMP verified_at
         VARCHAR(255) verified_by
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -119,13 +118,13 @@ erDiagram
     %% ============================
     availabilities {
         UUID id PK
-        TIMESTAMP date UK, NN
-        BOOLEAN is_available NN, DEFAULT true
-        VARCHAR(5) start_time NN, DEFAULT '08:00'
-        VARCHAR(5) end_time NN, DEFAULT '22:00'
-        INTEGER max_slots NN, DEFAULT 4
+        TIMESTAMP date UK "NN"
+        BOOLEAN is_available "NN, DEFAULT true"
+        VARCHAR(5) start_time "NN, DEFAULT '08:00'"
+        VARCHAR(5) end_time "NN, DEFAULT '22:00'"
+        INTEGER max_slots "NN, DEFAULT 4"
         TEXT note
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -134,11 +133,11 @@ erDiagram
     %% ============================
     loyalty_cards {
         UUID id PK
-        UUID user_id UK, FK, NN
-        INTEGER stamp_count NN, DEFAULT 0
+        UUID user_id UK, FK "NN"
+        INTEGER stamp_count "NN, DEFAULT 0"
         TIMESTAMP last_stamp_at
-        TIMESTAMP expires_at NN
-        TIMESTAMP created_at NN
+        TIMESTAMP expires_at "NN"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -147,12 +146,12 @@ erDiagram
     %% ============================
     loyalty_stamps {
         UUID id PK
-        UUID card_id FK, NN
+        UUID card_id FK "NN"
         UUID booking_id FK
-        TIMESTAMP earned_at NN
-        VARCHAR(20) source NN
+        TIMESTAMP earned_at "NN"
+        VARCHAR(20) source "NN"
         INTEGER amount
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -161,11 +160,11 @@ erDiagram
     %% ============================
     customer_notes {
         UUID id PK
-        UUID user_id FK, NN
-        UUID admin_id FK, NN
-        TEXT content NN
+        UUID user_id FK "NN"
+        UUID admin_id FK "NN"
+        TEXT content "NN"
         VARCHAR(100) nickname
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -174,10 +173,10 @@ erDiagram
     %% ============================
     sessions {
         UUID id PK
-        VARCHAR(255) session_token UK, NN
-        UUID user_id FK, NN
-        TIMESTAMP expires NN
-        TIMESTAMP created_at NN
+        VARCHAR(255) session_token UK "NN"
+        UUID user_id FK "NN"
+        TIMESTAMP expires "NN"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -186,11 +185,11 @@ erDiagram
     %% ============================
     verification_tokens {
         UUID id PK
-        VARCHAR(255) identifier NN
-        VARCHAR(255) token UK, NN
-        TIMESTAMP expires NN
-        TIMESTAMP created_at NN
-        UK(identifier, token)
+        VARCHAR(255) identifier "NN"
+        VARCHAR(255) token UK "NN"
+        TIMESTAMP expires "NN"
+        TIMESTAMP created_at "NN"
+        %% UK(identifier, token)
     }
 
     %% ============================
@@ -198,12 +197,12 @@ erDiagram
     %% ============================
     gallery {
         UUID id PK
-        VARCHAR(200) title NN
+        VARCHAR(200) title "NN"
         TEXT description
-        VARCHAR(500) image_url NN
+        VARCHAR(500) image_url "NN"
         VARCHAR(20) category
-        BOOLEAN is_active NN, DEFAULT true
-        TIMESTAMP created_at NN
+        BOOLEAN is_active "NN, DEFAULT true"
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -212,10 +211,10 @@ erDiagram
     %% ============================
     settings {
         UUID id PK
-        VARCHAR(100) key UK, NN
-        TEXT value NN
+        VARCHAR(100) key UK "NN"
+        TEXT value "NN"
         TEXT description
-        TIMESTAMP created_at NN
+        TIMESTAMP created_at "NN"
         TIMESTAMP updated_at
     }
 
@@ -239,7 +238,7 @@ erDiagram
     services ||--o{ booking_services : "service_id"
 
     %% booking_services -> service_variants (Many-to-Many via junction)
-    service_variants }o--o{ booking_services : "variant_id"
+    service_variants ||--o{ booking_services : "variant_id"
 
     %% payments -> bookings (One-to-One)
     bookings ||--|| payments : "booking_id"
@@ -254,7 +253,7 @@ erDiagram
     loyalty_cards ||--o{ loyalty_stamps : "card_id"
 
     %% loyalty_stamps -> bookings (Many-to-Many via junction)
-    bookings }o--o{ loyalty_stamps : "booking_id"
+    bookings ||--o{ loyalty_stamps : "booking_id"
 
     %% customer_notes -> users (customer) (One-to-Many)
     users ||--o{ customer_notes : "user_id (customer)"
@@ -266,11 +265,11 @@ erDiagram
     users ||--o{ sessions : "user_id"
 
 
-**Legend:**
-- `PK` = Primary Key
-- `FK` = Foreign Key
-- `UK` = Unique Key
-- `NN` = Not Null
-- `||--o{` = One-to-Many
-- `||--||` = One-to-One
-- `}o--o{` = Many-to-Many (via junction table)
+    %% **Legend:**
+    %% - `PK` = Primary Key
+    %% - `FK` = Foreign Key
+    %% - `UK` = Unique Key
+    %% - `NN` = Not Null
+    %% - `||--o{` = One-to-Many
+    %% - `||--||` = One-to-One
+    %% - `}o--o{` = Many-to-Many (via junction table)

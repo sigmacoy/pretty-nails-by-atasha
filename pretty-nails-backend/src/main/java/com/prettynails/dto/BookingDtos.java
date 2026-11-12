@@ -47,6 +47,8 @@ public class BookingDtos {
 
         private String paymentReference;
 
+        private Boolean redeemLoyaltyReward;
+
         @NotNull
         @Size(min = 1)
         private List<BookingServiceRequest> services;
@@ -147,5 +149,15 @@ public class BookingDtos {
         private List<BookingServiceDto> services;
         private PaymentDto payment;
         private List<LoyaltyStampDto> loyaltyStamps;
+        private Boolean redeemLoyaltyReward;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BookingStatusRequest {
+        @NotBlank
+        private String status;
     }
 }

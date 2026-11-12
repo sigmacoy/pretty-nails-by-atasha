@@ -26,6 +26,11 @@ public class GalleryController {
         return ResponseEntity.ok(gallery);
     }
 
+    @GetMapping("/gallery/{id}")
+    public ResponseEntity<GalleryDto> getPublicGalleryById(@PathVariable String id) {
+        return ResponseEntity.ok(galleryService.getGalleryById(id));
+    }
+
     @GetMapping("/admin/gallery")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<GalleryDto>> getAdminGallery(
@@ -34,6 +39,12 @@ public class GalleryController {
     ) {
         List<GalleryDto> gallery = galleryService.getAdminGallery(search, category);
         return ResponseEntity.ok(gallery);
+    }
+
+    @GetMapping("/admin/gallery/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<GalleryDto> getAdminGalleryById(@PathVariable String id) {
+        return ResponseEntity.ok(galleryService.getGalleryById(id));
     }
 
     @PostMapping("/admin/gallery")

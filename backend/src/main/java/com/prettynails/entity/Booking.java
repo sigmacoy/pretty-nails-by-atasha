@@ -49,6 +49,10 @@ public class Booking {
     @Column(name = "inspiration_img", length = 500)
     private String inspirationImg; // URL to uploaded image
 
+    @Column(name = "redeem_loyalty_reward")
+    @Builder.Default
+    private Boolean redeemLoyaltyReward = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

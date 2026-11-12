@@ -41,9 +41,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
                         .requestMatchers("/api/availability").permitAll()
                         .requestMatchers("/api/gallery").permitAll()
+                        .requestMatchers("/uploads/**", "/api/uploads/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

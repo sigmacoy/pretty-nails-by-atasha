@@ -2,6 +2,7 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.ServiceDtos.ServiceDto;
 import com.prettynails.dto.ServiceDtos.ServiceRequest;
+import com.prettynails.dto.ServiceDtos.ServiceVariantDto;
 import com.prettynails.service.ServiceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,16 @@ public class ServiceController {
     @GetMapping("/services/category/{category}")
     public ResponseEntity<List<ServiceDto>> getActiveServicesByCategory(@PathVariable String category) {
         return ResponseEntity.ok(serviceService.getActiveServicesByCategory(category));
+    }
+
+    @GetMapping("/services/{id}")
+    public ResponseEntity<ServiceDto> getServiceById(@PathVariable String id) {
+        return ResponseEntity.ok(serviceService.getServiceById(id));
+    }
+
+    @GetMapping("/services/{id}/variants")
+    public ResponseEntity<List<ServiceVariantDto>> getServiceVariants(@PathVariable String id) {
+        return ResponseEntity.ok(serviceService.getServiceVariants(id));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

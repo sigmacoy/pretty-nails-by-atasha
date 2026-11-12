@@ -2,6 +2,8 @@ package com.prettynails.repository;
 
 import com.prettynails.entity.Availability;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -15,5 +17,6 @@ public interface AvailabilityRepository extends JpaRepository<Availability, Stri
 
     List<Availability> findByDateBetweenOrderByDateAsc(LocalDateTime start, LocalDateTime end);
 
-    List<Availability> findAvailableDatesFrom(LocalDateTime from);
+    @Query("SELECT a FROM Availability a WHERE a.date >= :from AND a.isAvailable = true")
+    List<Availability> findAvailableDatesFrom(@Param("from") LocalDateTime from);
 }

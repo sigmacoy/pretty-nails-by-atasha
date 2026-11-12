@@ -46,4 +46,14 @@ public class AvailabilityDtos {
 
         private String note;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AvailabilitySlotDto {
+        private String startTime;
+        private String endTime;
+        private Boolean available;
+    }
 }

@@ -122,7 +122,17 @@ public class BookingService {
             endTime = calculateEndTime(request.getStartTime(), 180); // default 3 hours
         }
 
-        // 8. Create Booking (status=PENDING, downpayment default 10000 centavos = ₱100)
+        // 8. Handle loyalty reward redemption validation
+        boolean isRedeemingLoyalty = Boolean.TRUE.equals(request.getRedeemLoyaltyReward());
+        if (isRedeemingLoyalty) {
+            LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new BadRequestException("Customer does not have an active loyalty card to redeem rewards."));
+            if (loyaltyCard.getStampCount() == null || loyaltyCard.getStampCount() < 10) {
+                throw new BadRequestException("Insufficient loyalty stamps. 10 stamps are required to redeem a free service discount.");
+            }
+        }
+
+        // 9. Create Booking (status=PENDING, downpayment default 10000 centavos = ₱100)
         Booking booking = Booking.builder()
                 .userId(user.getId())
                 .appointmentDate(appointmentDateTime)
@@ -132,12 +142,13 @@ public class BookingService {
                 .downpayment(request.getDownpayment() != null ? request.getDownpayment() : DEFAULT_DOWNPAYMENT)
                 .notes(request.getNotes())
                 .inspirationImg(request.getInspirationImage())
+                .redeemLoyaltyReward(isRedeemingLoyalty)
                 .status("PENDING")
                 .build();
 
         booking = bookingRepository.save(booking);
 
-        // 9. Create BookingService entries
+        // 10. Create BookingService entries
         for (ResolvedService rs : resolvedServices) {
             com.prettynails.entity.BookingService bs = com.prettynails.entity.BookingService.builder()
                     .bookingId(booking.getId())
@@ -149,15 +160,17 @@ public class BookingService {
             bookingServiceRepository.save(bs);
         }
 
-        // 10. Create Payment record (status=PAID if paymentReference provided, else PENDING)
+        // 11. Create Payment record (status=PAID if waived by loyalty reward or paymentReference provided, else PENDING)
+        int effectiveDownpayment = request.getDownpayment() != null ? request.getDownpayment() : DEFAULT_DOWNPAYMENT;
+        boolean isDownpaymentWaived = isRedeemingLoyalty && effectiveDownpayment == 0;
         Payment payment = Payment.builder()
                 .bookingId(booking.getId())
                 .userId(user.getId())
-                .amount(request.getDownpayment() != null ? request.getDownpayment() : DEFAULT_DOWNPAYMENT)
-                .status(request.getPaymentReference() != null && !request.getPaymentReference().isEmpty() ? "PAID" : "PENDING")
-                .method("GCASH")
-                .reference(request.getPaymentReference())
-                .verifiedAt(request.getPaymentReference() != null && !request.getPaymentReference().isEmpty() ? LocalDateTime.now() : null)
+                .amount(effectiveDownpayment)
+                .status(isDownpaymentWaived || (request.getPaymentReference() != null && !request.getPaymentReference().isEmpty()) ? "PAID" : "PENDING")
+                .method(isDownpaymentWaived ? "LOYALTY_REWARD" : "GCASH")
+                .reference(isDownpaymentWaived ? "LOYALTY_REWARD" : request.getPaymentReference())
+                .verifiedAt(isDownpaymentWaived || (request.getPaymentReference() != null && !request.getPaymentReference().isEmpty()) ? LocalDateTime.now() : null)
                 .build();
         paymentRepository.save(payment);
 
@@ -180,9 +193,6 @@ public class BookingService {
         // Update status to COMPLETED
         booking.setStatus("COMPLETED");
         booking = bookingRepository.save(booking);
-
-        // Add loyalty stamp for the completed booking
-        loyaltyService.addStampOnBookingCompletion(bookingId, booking.getUserId());
 
         return mapToBookingDto(booking);
     }
@@ -217,6 +227,11 @@ public class BookingService {
 
         booking.setStatus("CONFIRMED");
         booking = bookingRepository.save(booking);
+
+        // If loyalty reward redemption was requested, deduct 10 stamps on confirmation
+        if (Boolean.TRUE.equals(booking.getRedeemLoyaltyReward())) {
+            loyaltyService.redeemRewardStamps(booking.getUserId(), booking.getId(), 10);
+        }
 
         return mapToBookingDto(booking);
     }
@@ -257,7 +272,8 @@ public class BookingService {
     }
 
     private BookingDto mapToBookingDto(Booking booking) {
-        List<BookingServiceDto> serviceDtos = booking.getServices().stream()
+        List<BookingServiceDto> serviceDtos = booking.getServices() != null ?
+                booking.getServices().stream()
                 .map(bs -> BookingServiceDto.builder()
                         .id(bs.getId())
                         .bookingId(bs.getBookingId())
@@ -267,7 +283,7 @@ public class BookingService {
                         .price(bs.getPrice())
                         .service(mapToServiceDto(bs.getService()))
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : List.of();
 
         PaymentDto paymentDto = null;
         if (booking.getPayment() != null) {
@@ -305,24 +321,59 @@ public class BookingService {
                 .downpayment(booking.getDownpayment())
                 .notes(booking.getNotes())
                 .inspirationImg(booking.getInspirationImg())
-                .createdAt(booking.getCreatedAt().toString())
+                .createdAt(booking.getCreatedAt() != null ? booking.getCreatedAt().toString() : LocalDateTime.now().toString())
                 .updatedAt(booking.getUpdatedAt() != null ? booking.getUpdatedAt().toString() : null)
                 .services(serviceDtos)
                 .payment(paymentDto)
                 .loyaltyStamps(stampDtos)
+                .redeemLoyaltyReward(booking.getRedeemLoyaltyReward())
                 .build();
+    }
+
+    /**
+     * Get booking by ID (for both customer and admin)
+     */
+    public BookingDto getBookingById(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+        return mapToBookingDto(booking);
+    }
+
+    /**
+     * Customer cancels their own booking
+     */
+    @Transactional
+    public BookingDto cancelBookingByCustomer(String bookingId, String userId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+
+        // Verify ownership
+        if (!booking.getUserId().equals(userId)) {
+            throw new BadRequestException("You can only cancel your own bookings");
+        }
+
+        String currentStatus = booking.getStatus();
+        if (!"PENDING".equals(currentStatus) && !"CONFIRMED".equals(currentStatus)) {
+            throw new BadRequestException("Only PENDING or CONFIRMED bookings can be cancelled. Current status: " + currentStatus);
+        }
+
+        booking.setStatus("CANCELLED");
+        booking = bookingRepository.save(booking);
+
+        return mapToBookingDto(booking);
     }
 
     private ServiceDto mapToServiceDto(com.prettynails.entity.Service service) {
         if (service == null) return null;
-        List<ServiceVariantDto> variantDtos = service.getVariants().stream()
+        List<ServiceVariantDto> variantDtos = service.getVariants() != null ?
+                service.getVariants().stream()
                 .map(v -> ServiceVariantDto.builder()
                         .id(v.getId())
                         .serviceId(v.getServiceId())
                         .name(v.getName())
                         .price(v.getPrice())
                         .build())
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()) : List.of();
 
         return ServiceDto.builder()
                 .id(service.getId())

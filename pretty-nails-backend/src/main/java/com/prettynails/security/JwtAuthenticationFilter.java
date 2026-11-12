@@ -23,9 +23,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomUserDetailsService customUserDetailsService;
 
     private static final List<String> PUBLIC_PATHS = List.of(
-            "/api/auth/",
+            "/api/auth/login",
+            "/api/auth/register",
             "/api/availability",
-            "/api/gallery"
+            "/api/gallery",
+            "/uploads/",
+            "/api/uploads/"
     );
 
     @Override
