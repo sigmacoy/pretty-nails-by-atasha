@@ -1,6 +1,13 @@
 'use client';
 
-import { ShoppingBag, Heart, Sparkles, Truck, Star, CheckCircle, ArrowRight } from 'lucide-react';
+import {
+  ShieldCheck,
+  Heart,
+  Clock,
+  Award,
+  ArrowRight,
+  Sparkle,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -11,16 +18,67 @@ import { ServiceDto, GalleryDto } from '@/types';
 import { formatPrice } from '@/lib/utils';
 
 const features = [
-  { icon: Sparkles, title: 'Premium Quality', description: 'Using only the best products for lasting results' },
-  { icon: Heart, title: 'Expert Technicians', description: 'Certified nail artists with years of experience' },
-  { icon: Truck, title: 'Relaxing Atmosphere', description: 'Enjoy a peaceful environment during your visit' },
-  { icon: Star, title: 'Loyalty Rewards', description: 'Earn stamps and get free services' },
+  {
+    icon: ShieldCheck,
+    title: 'Medical-grade sanitization',
+    description: 'Hospital-grade autoclave sterilization with single-use disposable files for every client',
+  },
+  {
+    icon: Heart,
+    title: 'Expert nail artistry',
+    description: 'Certified technicians specializing in BIAB overlays, soft gel extensions, and custom hand-painted art',
+  },
+  {
+    icon: Clock,
+    title: 'Private studio care',
+    description: 'A calm, unhurried appointment dedicated solely to your hands in a quiet, hygienic setting',
+  },
+  {
+    icon: Award,
+    title: 'Digital stamp rewards',
+    description: 'Automated digital loyalty card with rewards on your 5th visit and complimentary gel refills',
+  },
 ];
 
 const steps = [
-  { number: '01', title: 'Choose Services', description: 'Browse our services and select your favorites' },
-  { number: '02', title: 'Pick Date & Time', description: 'Select an available slot that works for you' },
-  { number: '03', title: 'Confirm & Relax', description: 'Book and we\'ll take care of the rest' },
+  {
+    number: '01',
+    title: 'Choose services',
+    description: 'Select your preferred treatments, nail length tier, and custom art add-ons from our menu',
+  },
+  {
+    number: '02',
+    title: 'Pick date and time',
+    description: 'View real-time salon calendar availability and select an open slot that fits your schedule',
+  },
+  {
+    number: '03',
+    title: 'Confirm appointment',
+    description: 'Submit your contact information and reservation deposit for immediate booking confirmation',
+  },
+];
+
+const guarantees = [
+  {
+    icon: ShieldCheck,
+    title: 'Medical-grade sanitization',
+    detail: 'Hospital-grade autoclave sterilization and single-use disposable files',
+  },
+  {
+    icon: Sparkle,
+    title: 'Custom nail art inspiration',
+    detail: 'Bring your reference photo or choose from curated studio palettes',
+  },
+  {
+    icon: Award,
+    title: 'Digital stamp rewards',
+    detail: 'Automated loyalty tracking with rewards on your 5th and 10th appointments',
+  },
+  {
+    icon: Clock,
+    title: 'Flexible scheduling',
+    detail: 'Real-time slot reservation with 24-hour advance reschedule requests',
+  },
 ];
 
 export default function HomePage() {
@@ -38,66 +96,157 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background py-20 lg:py-32">
+      {/* Hero Section: Asymmetric Editorial Split */}
+      <section className="relative overflow-hidden bg-background py-12 lg:py-16 border-b border-border/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-              <Sparkles className="h-4 w-4" />
-              New: Gel Extensions now available!
-            </span>
-            <h1 className="mt-6 text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-5xl lg:text-6xl">
-              Beautiful Nails, <span className="text-primary">Expertly Crafted</span>
-            </h1>
-            <p className="mt-6 text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-              Experience premium nail care at Pretty Nails by Atasha. From classic gel manicures
-              to stunning nail art, our expert technicians deliver beautiful, long-lasting results.
-            </p>
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/booking">
-                <Button size="xl" className="w-full sm:w-auto gap-2">
-                  Book Appointment
-                  <ArrowRight className="h-5 w-5" />
-                </Button>
-              </Link>
-              <Link href="/services">
-                <Button variant="outline" size="xl" className="w-full sm:w-auto">
-                  View Services
-                </Button>
-              </Link>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
+            {/* Left Column: Editorial Value Proposition & Actions */}
+            <div className="lg:col-span-7 flex flex-col items-start text-left">
+              <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3.5 py-1 text-xs font-medium text-muted-foreground">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+                <span>Gel extensions now available</span>
+              </div>
+
+              <h1 className="mt-5 text-3xl font-semibold tracking-tight text-foreground sm:text-4xl lg:text-5xl leading-[1.12]">
+                Beautiful nails, <span className="text-primary font-semibold">expertly crafted</span>
+              </h1>
+
+              <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-xl font-normal leading-relaxed">
+                Experience considered nail care at Pretty Nails by Atasha. From structured gel overlays
+                to bespoke hand-painted nail art, our studio delivers lasting finishes in a calm, dedicated space.
+              </p>
+
+              <div className="mt-8 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+                <Link href="/booking">
+                  <Button size="lg" className="w-full sm:w-auto gap-2">
+                    Book appointment
+                    <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+                  </Button>
+                </Link>
+                <Link href="/services">
+                  <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                    View services
+                  </Button>
+                </Link>
+              </div>
+
+              {/* Quiet studio guarantees row */}
+              <div className="mt-8 pt-6 border-t border-border/60 grid grid-cols-3 gap-4 w-full text-left">
+                <div>
+                  <div className="text-xs text-muted-foreground">Hygiene</div>
+                  <div className="text-sm font-medium text-foreground mt-0.5">Autoclave sterile</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Technique</div>
+                  <div className="text-sm font-medium text-foreground mt-0.5">BIAB & soft gel</div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Location</div>
+                  <div className="text-sm font-medium text-foreground mt-0.5">Talisay City studio</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Appointment Booking Preview Card (Product Moment) */}
+            <div className="lg:col-span-5 w-full">
+              <div className="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-sm">
+                <div className="flex items-center justify-between pb-4 border-b border-border/60">
+                  <div className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="text-xs font-medium text-muted-foreground">Studio booking preview</span>
+                  </div>
+                  <span className="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded">
+                    Open for booking
+                  </span>
+                </div>
+
+                <div className="mt-4 space-y-3">
+                  <div className="rounded-xl border border-border/80 bg-muted/40 p-3.5">
+                    <div className="text-xs text-muted-foreground">Featured service</div>
+                    <div className="mt-1 flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">BIAB Gel Overlay</span>
+                      <span className="text-sm font-medium text-primary tabular-nums">₱650</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1">
+                        <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
+                        <span className="tabular-nums">90 min</span>
+                      </span>
+                      <span>·</span>
+                      <span>Medium length tier</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5">
+                      <div className="text-[11px] text-muted-foreground">Artist</div>
+                      <div className="text-xs font-medium text-foreground mt-0.5">Atasha</div>
+                    </div>
+                    <div className="rounded-lg border border-border/80 bg-muted/20 p-2.5">
+                      <div className="text-[11px] text-muted-foreground">Reservation</div>
+                      <div className="text-xs font-medium text-foreground mt-0.5">GCash / Maya</div>
+                    </div>
+                  </div>
+
+                  {/* Digital Stamp Loyalty Card Snippet */}
+                  <div className="rounded-xl border border-border/80 bg-muted/40 p-3.5">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-medium text-foreground">Loyalty rewards</div>
+                      <span className="text-[11px] text-muted-foreground tabular-nums">4 of 5 stamps</span>
+                    </div>
+                    <div className="mt-2.5 flex items-center justify-between gap-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="flex-1 h-8 rounded-md bg-primary/10 border border-primary/20 flex items-center justify-center text-primary"
+                        >
+                          <span className="h-2 w-2 rounded-full bg-primary" />
+                        </div>
+                      ))}
+                      <div className="flex-1 h-8 rounded-md border border-dashed border-border flex items-center justify-center text-muted-foreground">
+                        <Sparkle className="h-3 w-3 opacity-40" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                    <p className="mt-2 text-[11px] text-muted-foreground">
+                      1 more stamp earns 20% off your next gel refill
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-border/60 flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Quick schedule</span>
+                  <Link href="/availability" className="text-xs font-medium text-primary hover:underline">
+                    Check upcoming calendar
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Decorative elements */}
-        <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-          <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-          <div className="absolute bottom-0 left-0 h-96 w-96 rounded-full bg-rose/10 blur-3xl" />
         </div>
       </section>
 
       {/* Features Section */}
-      <section className="py-20 lg:py-28 bg-white dark:bg-gray-900">
+      <section className="py-12 lg:py-16 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
-              Why Choose Pretty Nails?
+          <div className="text-center max-w-2xl mx-auto mb-10 lg:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Why choose Pretty Nails
             </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              We're committed to providing the best nail care experience in town.
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              Thoughtful salon standards focused on hygiene, precision, and client care
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature) => (
-              <Card key={feature.title} className="h-full">
-                <CardContent className="p-6">
-                  <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4">
-                    <feature.icon className="h-6 w-6 text-primary" />
+              <Card key={feature.title} className="h-full border border-border bg-card">
+                <CardContent className="p-5 flex flex-col items-start">
+                  <div className="h-9 w-9 rounded-lg bg-muted flex items-center justify-center text-primary mb-3">
+                    <feature.icon className="h-4 w-4" strokeWidth={1.5} />
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="text-sm font-medium text-foreground">
                     {feature.title}
                   </h3>
-                  <p className="mt-2 text-gray-600 dark:text-gray-400">
+                  <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </CardContent>
@@ -108,21 +257,21 @@ export default function HomePage() {
       </section>
 
       {/* Services Preview */}
-      <section className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-950">
+      <section className="py-12 lg:py-16 bg-muted/30 border-y border-border/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
-                Our Services
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                Our services
               </h2>
-              <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
-                Discover our range of professional nail services
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+                Handcrafted nail enhancements, structured overlays, and essential nail care
               </p>
             </div>
             <Link href="/services">
-              <Button variant="outline" className="gap-2">
-                View All Services
-                <ArrowRight className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="gap-2">
+                View all services
+                <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             </Link>
           </div>
@@ -130,11 +279,14 @@ export default function HomePage() {
           {servicesLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <Skeleton variant="circular" width={64} height={64} className="mx-auto mb-4" />
-                    <Skeleton variant="text" width="60%" className="mx-auto mb-2" />
-                    <Skeleton variant="text" width="80%" className="mx-auto" />
+                <Card key={i} className="border border-border bg-card">
+                  <CardContent className="p-5">
+                    <Skeleton className="h-3 w-20 mb-2" />
+                    <Skeleton className="h-5 w-3/4 mb-6" />
+                    <div className="pt-3 border-t border-border/60 flex justify-between items-center">
+                      <Skeleton className="h-5 w-16" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
                   </CardContent>
                 </Card>
               ))}
@@ -142,32 +294,33 @@ export default function HomePage() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {services.map((service: ServiceDto) => (
-                <Link key={service.id} href={`/services#${service.id}`} className="block">
-                  <Card className="h-full hover:shadow-lg transition-shadow group">
-                    <CardContent className="p-6">
-                      <div className="text-center">
-                        <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
-                          <ShoppingBag className="h-8 w-8 text-primary" />
+                <Link key={service.id} href={`/services#${service.id}`} className="block group">
+                  <Card className="h-full border border-border bg-card hover:border-stone-400 dark:hover:border-stone-600 transition-colors duration-150">
+                    <CardContent className="p-5 flex flex-col justify-between h-full">
+                      <div>
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                            {service.category.toLowerCase()}
+                          </span>
+                          {service.variants.length > 1 && (
+                            <span className="text-[11px] text-muted-foreground tabular-nums">
+                              {service.variants.length} length tiers
+                            </span>
+                          )}
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        <h3 className="text-base font-medium text-foreground group-hover:text-primary transition-colors duration-150">
                           {service.name}
                         </h3>
-                        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 capitalize">
-                          {service.category.toLowerCase()}
-                        </p>
-                        <div className="mt-3 flex items-center justify-center gap-2">
-                          <span className="text-2xl font-bold text-primary">
-                            {formatPrice(service.basePrice)}
-                          </span>
-                          <span className="text-sm text-gray-500 dark:text-gray-400">
-                            {service.duration} min
-                          </span>
-                        </div>
-                        {service.variants.length > 1 && (
-                          <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">
-                            {service.variants.length} variants available
-                          </p>
-                        )}
+                      </div>
+
+                      <div className="mt-5 pt-3 border-t border-border/60 flex items-baseline justify-between">
+                        <span className="text-base font-semibold text-foreground tabular-nums">
+                          {formatPrice(service.basePrice)}
+                        </span>
+                        <span className="text-xs text-muted-foreground tabular-nums flex items-center gap-1">
+                          <Clock className="h-3 w-3" strokeWidth={1.5} />
+                          {service.duration} min
+                        </span>
                       </div>
                     </CardContent>
                   </Card>
@@ -179,34 +332,36 @@ export default function HomePage() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 lg:py-28 bg-white dark:bg-gray-900">
+      <section className="py-12 lg:py-16 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
-              Book in 3 Easy Steps
+          <div className="text-center max-w-2xl mx-auto mb-10 lg:mb-12">
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Book in three steps
             </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              Our simple booking process gets you in and out with beautiful nails.
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
+              A straightforward appointment flow designed for clarity and convenience
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             {steps.map((step) => (
-              <div key={step.number} className="text-center relative">
-                <div className="relative">
-                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-                    <span className="text-2xl font-bold text-primary">{step.number}</span>
+              <div
+                key={step.number}
+                className="rounded-xl border border-border bg-card p-5 sm:p-6 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="font-mono text-xs font-semibold tabular-nums text-primary bg-primary/10 px-2.5 py-1 rounded-md">
+                      {step.number}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">Step {parseInt(step.number, 10)}</span>
                   </div>
-                  {/* Connecting line */}
-                  {step.number !== '03' && (
-                    <div className="hidden md:block absolute top-8 left-1/2 w-full h-0.5 bg-gray-200 dark:bg-gray-700 -z-10" />
-                  )}
+                  <h3 className="text-base font-medium text-foreground">
+                    {step.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    {step.description}
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                  {step.title}
-                </h3>
-                <p className="mt-2 text-gray-600 dark:text-gray-400">
-                  {step.description}
-                </p>
               </div>
             ))}
           </div>
@@ -214,112 +369,108 @@ export default function HomePage() {
       </section>
 
       {/* Gallery Preview */}
-      <section className="py-20 lg:py-28 bg-gray-50 dark:bg-gray-950">
+      <section className="py-12 lg:py-16 bg-muted/30 border-y border-border/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
-              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
-                Our Work
+              <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+                Recent studio work
               </h2>
-              <p className="mt-2 text-lg text-gray-600 dark:text-gray-300">
-                See some of our recent nail art creations
+              <p className="mt-2 text-sm sm:text-base text-muted-foreground">
+                Handcrafted nail art, structured overlays, and custom designs created in studio
               </p>
             </div>
             <Link href="/gallery">
-              <Button variant="outline" className="gap-2">
-                View Gallery
-                <ArrowRight className="h-4 w-4" />
+              <Button variant="outline" size="sm" className="gap-2">
+                View full gallery
+                <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
               </Button>
             </Link>
           </div>
 
           {galleryLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden bg-gray-200 dark:bg-gray-800">
-                  <Skeleton variant="rectangular" className="h-full w-full" />
+                <div key={i} className="aspect-square rounded-xl overflow-hidden border border-border bg-card">
+                  <Skeleton className="h-full w-full" />
                 </div>
               ))}
             </div>
           ) : gallery.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
               {gallery.map((item: GalleryDto) => (
-                <div key={item.id} className="group relative aspect-square rounded-xl overflow-hidden">
+                <div key={item.id} className="group relative aspect-square rounded-xl overflow-hidden border border-border bg-card">
                   <img
                     src={item.imageUrl}
                     alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="h-full w-full object-cover transition-opacity duration-200"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="absolute bottom-4 left-4 right-4 text-white">
-                      <h3 className="font-semibold">{item.title}</h3>
-                      {item.category && (
-                        <p className="text-sm opacity-80 capitalize">{item.category.toLowerCase()}</p>
-                      )}
-                    </div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3.5">
+                    <h4 className="text-xs sm:text-sm font-medium text-white leading-snug">{item.title}</h4>
+                    {item.category && (
+                      <p className="text-[11px] text-stone-300 capitalize mt-0.5">{item.category.toLowerCase()}</p>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <div className="text-center py-12">
-              <p className="text-gray-500 dark:text-gray-400">No gallery images yet</p>
+              <p className="text-sm text-muted-foreground">No gallery images available yet</p>
             </div>
           )}
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 lg:py-28">
+      {/* Quiet Call to Action */}
+      <section className="py-12 lg:py-16 bg-background">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Card className="bg-primary text-primary-foreground">
-            <CardContent className="p-8 lg:p-16 text-center">
-              <h2 className="text-3xl font-bold sm:text-4xl lg:text-5xl">
-                Ready for Beautiful Nails?
-              </h2>
-              <p className="mt-4 text-lg text-primary-foreground/80 max-w-2xl mx-auto">
-                Book your appointment today and experience the Pretty Nails difference.
-                Your perfect nails are just a click away.
-              </p>
-              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <Link href="/booking">
-                  <Button size="xl" variant="secondary" className="w-full sm:w-auto gap-2">
-                    Book Now
-                    <ArrowRight className="h-5 w-5" />
-                  </Button>
-                </Link>
-                <Link href="/availability">
-                  <Button size="xl" variant="outline" className="w-full sm:w-auto border-primary-foreground/20 hover:bg-primary-foreground/10">
-                    Check Availability
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-border bg-card p-8 sm:p-12 text-center max-w-3xl mx-auto shadow-sm">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/60 px-3 py-1 text-xs font-medium text-muted-foreground mb-4">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              <span>Appointments open</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground">
+              Ready for your next set?
+            </h2>
+            <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
+              Reserve your appointment online in minutes, or explore our services menu to find your ideal design and length tier.
+            </p>
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <Link href="/booking">
+                <Button size="lg" className="w-full sm:w-auto gap-2">
+                  Book appointment
+                  <ArrowRight className="h-4 w-4" strokeWidth={1.5} />
+                </Button>
+              </Link>
+              <Link href="/availability">
+                <Button variant="outline" size="lg" className="w-full sm:w-auto">
+                  Check availability
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Trust Indicators */}
-      <section className="py-16 border-t bg-gray-50 dark:bg-gray-950">
+      {/* Verifiable Salon Service Guarantees (Replacing Fake Vanity Stats) */}
+      <section className="py-12 lg:py-16 border-t border-border/60 bg-muted/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div>
-              <div className="text-3xl font-bold text-primary">500+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Happy Customers</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">50+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Services Offered</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">5★</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Average Rating</div>
-            </div>
-            <div>
-              <div className="text-3xl font-bold text-primary">100%</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Satisfaction Guarantee</div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {guarantees.map((item) => (
+              <div key={item.title} className="flex flex-col items-start p-4 rounded-xl border border-border/60 bg-card">
+                <div className="h-8 w-8 rounded-lg bg-muted flex items-center justify-center text-primary mb-2.5">
+                  <item.icon className="h-4 w-4" strokeWidth={1.5} />
+                </div>
+                <div className="text-xs font-semibold text-foreground">
+                  {item.title}
+                </div>
+                <div className="mt-1 text-xs text-muted-foreground leading-normal">
+                  {item.detail}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </section>

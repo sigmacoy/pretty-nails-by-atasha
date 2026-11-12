@@ -1,27 +1,35 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Plus, Search, FilterX, Image as ImageIcon, Loader2 } from 'lucide-react';
+import {
+  Upload,
+  Plus,
+  Search,
+  FilterX,
+  Image as ImageIcon,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+  Sparkles,
+  RotateCcw,
+} from 'lucide-react';
 import { galleryApi } from '@/lib/api';
-import { GalleryDto, GalleryRequest, GalleryCategory, GALLERY_CATEGORIES } from '@/types';
+import { GalleryDto, GalleryRequest, GALLERY_CATEGORIES } from '@/types';
 import { useQuery, useMutation } from '@/hooks/useApi';
 import { toast } from 'sonner';
 import { GalleryGrid, GalleryForm } from '@/components/admin/gallery';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { cn } from '@/lib/utils';
 
 const DEFAULT_PAGE_SIZE = 12;
 
 const categoryOptions: SelectOption[] = [
-  { value: '', label: 'All Categories' },
+  { value: '', label: 'All style tags' },
   ...GALLERY_CATEGORIES.map((cat) => ({
     value: cat,
-    label: cat.charAt(0) + cat.slice(1).toLowerCase().replace('_', ' '),
+    label: cat.charAt(0) + cat.slice(1).toLowerCase().replace(/_/g, ' '),
   })),
 ];
 
@@ -44,7 +52,7 @@ export default function AdminGalleryPage() {
   );
 
   // Handle pagination - API returns array directly
-  const galleryItems = data?.data as GalleryDto[] | undefined ?? [];
+  const galleryItems = (data?.data as GalleryDto[] | undefined) ?? [];
   const totalItems = galleryItems.length;
   const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
   const paginatedItems = galleryItems.slice(
@@ -54,27 +62,28 @@ export default function AdminGalleryPage() {
 
   // Mutations
   const createMutation = useMutation(
-    (data: GalleryRequest) => galleryApi.create(data),
+    (formData: GalleryRequest) => galleryApi.create(formData),
     {
       onSuccess: () => {
-        toast.success('Gallery item created successfully');
+        toast.success('Gallery design uploaded successfully');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to create gallery item');
+        toast.error(err.message || 'Failed to upload gallery design');
       },
     }
   );
 
   const updateMutation = useMutation(
-    ({ id, data }: { id: string; data: GalleryRequest }) => galleryApi.update(id, data),
+    ({ id, data: updateData }: { id: string; data: GalleryRequest }) =>
+      galleryApi.update(id, updateData),
     {
       onSuccess: () => {
-        toast.success('Gallery item updated successfully');
+        toast.success('Gallery design updated successfully');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to update gallery item');
+        toast.error(err.message || 'Failed to update gallery design');
       },
     }
   );
@@ -83,11 +92,11 @@ export default function AdminGalleryPage() {
     (id: string) => galleryApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Gallery item deleted successfully');
+        toast.success('Gallery design deleted successfully');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to delete gallery item');
+        toast.error(err.message || 'Failed to delete gallery design');
       },
     }
   );
@@ -136,16 +145,14 @@ export default function AdminGalleryPage() {
 
   // Handle delete
   const handleDelete = (id: string) => {
-    if (confirm('Are you sure you want to delete this gallery item? This action cannot be undone.')) {
+    if (confirm('Are you sure you want to delete this gallery design? This action cannot be undone.')) {
       deleteMutation.mutate(id);
     }
   };
 
   // Handle view
   const handleView = (item: GalleryDto) => {
-    // The GalleryGrid component handles the preview modal internally
-    // This is just a placeholder for potential future use
-    console.log('View item:', item);
+    // Handled by GalleryGrid preview modal
   };
 
   // Open create modal
@@ -154,36 +161,43 @@ export default function AdminGalleryPage() {
     setIsFormOpen(true);
   };
 
-  // Loading skeleton for the grid
-  const gridSkeleton = (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <SkeletonCard key={i} />
-      ))}
-    </div>
-  );
-
   if (isError) {
     return (
-      <div className="space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="space-y-6 sm:space-y-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gallery Management</h1>
-            <p className="text-gray-500 dark:text-gray-400">Manage gallery images and categories</p>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-stone-100 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 text-stone-600 dark:text-stone-400 text-xs font-normal mb-2.5">
+              <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" strokeWidth={1.5} />
+              <span>Studio portfolio</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+              Nail design gallery
+            </h1>
+            <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
+              Manage, categorize, and upload portfolio designs showcased to studio clients
+            </p>
           </div>
-          <Button onClick={handleCreate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Add Item
+          <Button onClick={handleCreate} className="gap-2 shrink-0">
+            <Upload className="h-4 w-4" strokeWidth={1.5} />
+            <span>Upload design</span>
           </Button>
         </div>
+
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="text-destructive">
-              <p className="font-medium">Failed to load gallery</p>
-              <p className="text-sm text-muted-foreground mt-1">{error?.message}</p>
-              <Button onClick={() => refetch()} variant="outline" className="mt-4">
-                <Loader2 className="h-4 w-4 mr-2" />
-                Retry
+            <div className="max-w-md mx-auto space-y-3">
+              <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 text-destructive mx-auto flex items-center justify-center">
+                <RotateCcw className="h-5 w-5" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-base font-medium text-stone-900 dark:text-stone-100">
+                Failed to load gallery designs
+              </h3>
+              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
+                {error?.message || 'A network error occurred while loading portfolio items.'}
+              </p>
+              <Button onClick={() => refetch()} variant="outline" size="sm" className="mt-2 gap-1.5">
+                <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
+                <span>Retry</span>
               </Button>
             </div>
           </CardContent>
@@ -201,154 +215,158 @@ export default function AdminGalleryPage() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="space-y-6 sm:space-y-8">
+      {/* Page Header (Pass 4 & 5: sentence case, font-medium title, quiet porcelain tokens) */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Gallery Management</h1>
-          <p className="text-gray-500 dark:text-gray-400">Manage gallery images and categories</p>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-stone-100 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 text-stone-600 dark:text-stone-400 text-xs font-normal mb-2.5">
+            <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" strokeWidth={1.5} />
+            <span>Studio portfolio</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+            Nail design gallery
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
+            Manage, categorize, and upload portfolio designs showcased to studio clients
+          </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Item
+        <Button onClick={handleCreate} className="gap-2 shrink-0">
+          <Upload className="h-4 w-4" strokeWidth={1.5} />
+          <span>Upload design</span>
         </Button>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Filters</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <div className="flex flex-col gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
-            <div className="grid gap-4 md:grid-cols-3">
-              <div className="relative md:col-span-2">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-                <Input
-                  type="search"
-                  placeholder="Search by title or description..."
-                  value={search}
-                  onChange={(e) => handleSearchChange(e.target.value)}
-                  className="pl-10"
-                  aria-label="Search gallery items"
-                />
-              </div>
-              <div>
-                <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                  Category
-                </label>
-                <Select
-                  id="category-filter"
-                  value={category}
-                  onChange={(e) => handleCategoryChange(e.target.value)}
-                  options={categoryOptions}
-                  placeholder="All Categories"
-                  aria-label="Filter by category"
-                />
-              </div>
-            </div>
-
-            {/* Clear Filters Button */}
-            {hasActiveFilters && (
-              <div className="flex justify-end pt-2 border-t">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="gap-2"
-                >
-                  <FilterX className="h-4 w-4" aria-hidden="true" />
-                  Clear Filters
-                </Button>
-              </div>
-            )}
+      {/* Filters Toolbar (Pass 1 & 2: 4px grid, porcelain surface, warm 8% hairlines) */}
+      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-4 sm:p-5 shadow-card space-y-4">
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="relative md:col-span-2">
+            <Search
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            />
+            <Input
+              type="search"
+              placeholder="Search designs by title or style..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10"
+              aria-label="Search gallery items"
+            />
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <Select
+              id="category-filter"
+              value={category}
+              onChange={(e) => handleCategoryChange(e.target.value)}
+              options={categoryOptions}
+              placeholder="All style tags"
+              aria-label="Filter by style tag"
+            />
+          </div>
+        </div>
 
-      {/* Gallery Grid */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <ImageIcon className="h-5 w-5" aria-hidden="true" />
-            All Gallery Items
+        {/* Clear Filters Row */}
+        {hasActiveFilters && (
+          <div className="flex items-center justify-between pt-3 border-t border-stone-100 dark:border-stone-800/60 text-xs text-stone-500 dark:text-stone-400">
+            <span>Filtering active designs</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFilters}
+              className="gap-1.5 h-7 px-2.5 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+            >
+              <FilterX className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
+              <span>Clear filters</span>
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Gallery Section */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="h-4 w-4 text-stone-500 dark:text-stone-400" strokeWidth={1.5} aria-hidden="true" />
+            <h2 className="text-sm sm:text-base font-medium text-stone-900 dark:text-stone-100">
+              All designs
+            </h2>
             {data && (
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                ({totalItems} total)
+              <span className="font-mono text-[11px] text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-[6px] border border-stone-200/60 dark:border-stone-700/60">
+                {totalItems} {totalItems === 1 ? 'design' : 'designs'}
               </span>
             )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <GalleryGrid
-            items={paginatedItems}
-            isLoading={isLoading}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onView={handleView}
-            emptyMessage="No gallery items found. Click 'Add Item' to create your first gallery item."
-          />
+          </div>
+        </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-6 flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                Page {currentPage + 1} of {totalPages}
-              </div>
-              <nav className="flex items-center gap-2" aria-label="Pagination">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 0}
-                  aria-label="Previous page"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                  </svg>
-                </Button>
-                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
-                  let pageNum = i;
-                  if (totalPages > 5) {
-                    if (currentPage <= 2) {
-                      pageNum = i;
-                    } else if (currentPage >= totalPages - 3) {
-                      pageNum = totalPages - 5 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                  }
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant={currentPage === pageNum ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => setCurrentPage(pageNum)}
-                      aria-current={currentPage === pageNum ? 'page' : undefined}
-                      aria-label={`Page ${pageNum + 1}`}
-                    >
-                      {pageNum + 1}
-                    </Button>
-                  );
-                })}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages - 1}
-                  aria-label="Next page"
-                >
-                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Button>
-              </nav>
+        <GalleryGrid
+          items={paginatedItems}
+          isLoading={isLoading}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onView={handleView}
+          onAdd={handleCreate}
+          emptyMessage="No designs match your search or filter criteria"
+        />
+
+        {/* Pagination Bar */}
+        {totalPages > 1 && (
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100 dark:border-stone-800/60">
+            <div className="text-xs text-stone-500 dark:text-stone-400 font-normal">
+              Page {currentPage + 1} of {totalPages}
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <nav className="flex items-center gap-1.5" aria-label="Pagination">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={currentPage === 0}
+                aria-label="Previous page"
+                className="h-8 w-8 p-0"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let pageNum = i;
+                if (totalPages > 5) {
+                  if (currentPage <= 2) {
+                    pageNum = i;
+                  } else if (currentPage >= totalPages - 3) {
+                    pageNum = totalPages - 5 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                }
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNum)}
+                    aria-current={currentPage === pageNum ? 'page' : undefined}
+                    aria-label={`Page ${pageNum + 1}`}
+                    className="h-8 w-8 p-0 text-xs font-normal"
+                  >
+                    {pageNum + 1}
+                  </Button>
+                );
+              })}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={currentPage === totalPages - 1}
+                aria-label="Next page"
+                className="h-8 w-8 p-0"
+              >
+                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            </nav>
+          </div>
+        )}
+      </div>
 
-      {/* Create/Edit Modal */}
+      {/* Create / Edit Modal */}
       <GalleryForm
         isOpen={isFormOpen}
         onClose={() => {
@@ -359,22 +377,6 @@ export default function AdminGalleryPage() {
         initialData={editingItem}
         isPending={createMutation.isPending || updateMutation.isPending}
       />
-    </div>
-  );
-}
-
-function SkeletonCard() {
-  return (
-    <div className="rounded-xl border overflow-hidden bg-card animate-pulse">
-      <div className="aspect-video bg-muted" />
-      <div className="p-4 space-y-3">
-        <div className="h-4 w-3/4 bg-muted rounded" />
-        <div className="h-3 w-1/2 bg-muted rounded" />
-        <div className="h-3 w-full bg-muted rounded" />
-        <div className="flex justify-end pt-3 border-t">
-          <div className="h-8 w-24 bg-muted rounded flex gap-2 items-center justify-end px-2" />
-        </div>
-      </div>
     </div>
   );
 }

@@ -2,52 +2,62 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ShoppingBag, Scissors, Image, Heart, Calendar, Settings, Users, BarChart2 } from 'lucide-react';
+import { LayoutDashboard, Scissors, Image, Calendar, Settings, Users, BarChart2, Award, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { StudioMark } from './Header';
 
 const navigation = [
-  { name: 'Dashboard', href: '/admin/admin', icon: LayoutDashboard },
-  { name: 'Bookings', href: '/admin/admin/bookings', icon: ShoppingBag },
-  { name: 'Services', href: '/admin/admin/services', icon: Scissors },
-  { name: 'Gallery', href: '/admin/admin/gallery', icon: Image },
-  { name: 'Loyalty', href: '/admin/admin/loyalty', icon: Heart },
-  { name: 'Availability', href: '/admin/admin/availability', icon: Calendar },
-  { name: 'Settings', href: '/admin/admin/settings', icon: Settings },
-  { name: 'Customers', href: '/admin/admin/customers', icon: Users },
-  { name: 'Reports', href: '/admin/admin/reports', icon: BarChart2 },
+  { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+  { name: 'Bookings', href: '/admin/bookings', icon: Clock },
+  { name: 'Services', href: '/admin/services', icon: Scissors },
+  { name: 'Gallery', href: '/admin/gallery', icon: Image },
+  { name: 'Loyalty', href: '/admin/loyalty', icon: Award },
+  { name: 'Availability', href: '/admin/availability', icon: Calendar },
+  { name: 'Settings', href: '/admin/settings', icon: Settings },
+  { name: 'Customers', href: '/admin/customers', icon: Users },
+  { name: 'Reports', href: '/admin/reports', icon: BarChart2 },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
-      <div className="flex h-16 items-center justify-center border-b px-4">
-        <Link href="/admin/admin" className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-            <ShoppingBag className="h-5 w-5 text-primary-foreground" />
+    <aside className="fixed inset-y-0 left-0 z-40 w-60 bg-stone-50 dark:bg-[#0F0F10] border-r border-stone-200/80 dark:border-stone-800/80 flex flex-col">
+      <div className="flex h-16 items-center px-5 border-b border-stone-200/80 dark:border-stone-800/80">
+        <Link href="/admin" className="flex items-center gap-2.5 group" onClick={onClose}>
+          <StudioMark size="sm" />
+          <div className="flex flex-col">
+            <span className="font-medium text-sm tracking-tight text-stone-900 dark:text-stone-100 leading-tight group-hover:text-primary transition-colors">
+              Pretty Nails
+            </span>
+            <span className="text-[10px] text-stone-500 dark:text-stone-400 leading-tight">
+              Studio admin
+            </span>
           </div>
-          <span className="font-bold text-xl text-gray-900 dark:text-gray-100">Admin</span>
         </Link>
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1" aria-label="Admin navigation">
         {navigation.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+          const isActive = item.href === '/admin'
+            ? pathname === '/admin'
+            : pathname === item.href || pathname.startsWith(item.href + '/');
+
           return (
             <Link
               key={item.name}
               href={item.href}
+              onClick={onClose}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                'flex items-center gap-3 rounded-lg px-3 h-9 text-xs font-medium transition-colors',
                 isActive
-                  ? 'bg-primary/10 text-primary dark:bg-primary/20'
-                  : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                  ? 'bg-stone-200/70 dark:bg-stone-800/80 text-stone-900 dark:text-stone-100 shadow-sm'
+                  : 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800/50 hover:text-stone-900 dark:hover:text-stone-200'
               )}
               aria-current={isActive ? 'page' : undefined}
             >
-              <item.icon className="h-5 w-5 shrink-0" aria-hidden="true" />
-              {item.name}
+              <item.icon className={cn('h-4 w-4 stroke-[1.5] shrink-0', isActive ? 'text-primary' : 'text-stone-500 dark:text-stone-400')} aria-hidden="true" />
+              <span>{item.name}</span>
             </Link>
           );
         })}

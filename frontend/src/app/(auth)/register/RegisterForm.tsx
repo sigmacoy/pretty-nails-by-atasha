@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Loader2, Mail, Lock, User, Phone, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterInput } from '@/lib/validations';
 import { Button } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { StudioMark } from '@/components/layout/Header';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -27,7 +28,6 @@ export function RegisterForm() {
     register,
     handleSubmit,
     formState: { errors },
-    watch,
     setError,
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
@@ -40,8 +40,6 @@ export function RegisterForm() {
     },
   });
 
-  const password = watch('password');
-
   const onSubmit = async (data: RegisterInput) => {
     setIsSubmitting(true);
     try {
@@ -53,7 +51,7 @@ export function RegisterForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Account created successfully!');
+      toast.success('Account created successfully');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -71,94 +69,123 @@ export function RegisterForm() {
   };
 
   return (
-    <div className="w-full">
-      <div className="text-center mb-8">
-        <Link href="/" className="inline-flex items-center gap-2 mb-6">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-            <User className="h-6 w-6 text-primary-foreground" />
-          </div>
+    <div className="w-full max-w-[440px] mx-auto">
+      <div className="flex justify-center mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-150"
+          aria-label="Pretty Nails Home"
+        >
+          <StudioMark size="lg" />
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Create Account</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Join Pretty Nails and start booking your appointments
-        </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Register</CardTitle>
-          <CardDescription>Fill in your details to create an account</CardDescription>
+      <Card className="border border-stone-200/80 dark:border-stone-800/80 bg-card shadow-card rounded-xl">
+        <CardHeader className="p-6 sm:p-8 pb-0 space-y-1 text-center">
+          <CardTitle className="text-xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+            Create your account
+          </CardTitle>
+          <CardDescription className="text-sm text-stone-500 dark:text-stone-400 font-normal">
+            Join Pretty Nails to manage your appointments and loyalty rewards
+          </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-6 sm:p-8 pt-6">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Full Name"
+              label="Full name"
               placeholder="Maria Santos"
+              autoComplete="name"
               {...register('name')}
               error={errors.name?.message}
               disabled={isSubmitting}
             />
+
             <Input
-              label="Email"
+              label="Email address"
               type="email"
               placeholder="maria@example.com"
+              autoComplete="email"
               {...register('email')}
               error={errors.email?.message}
               disabled={isSubmitting}
             />
+
             <Input
-              label="Phone Number (Optional)"
+              label="Phone number"
               type="tel"
               placeholder="+63 9XX XXX XXXX"
+              autoComplete="tel"
+              helperText="Optional"
               {...register('phone')}
               error={errors.phone?.message}
               disabled={isSubmitting}
             />
+
             <div className="relative">
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••"
+                autoComplete="new-password"
+                className="pr-10"
                 {...register('password')}
                 error={errors.password?.message}
                 disabled={isSubmitting}
               />
               <button
                 type="button"
-                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                ) : (
+                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                )}
               </button>
             </div>
+
             <div className="relative">
               <Input
-                label="Confirm Password"
+                label="Confirm password"
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="••••••••"
+                autoComplete="new-password"
+                className="pr-10"
                 {...register('confirmPassword')}
                 error={errors.confirmPassword?.message}
                 disabled={isSubmitting}
               />
               <button
                 type="button"
-                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               >
-                {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showConfirmPassword ? (
+                  <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                ) : (
+                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                )}
               </button>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-              {isSubmitting ? <Loader2 className="h-5 w-5 mr-2" /> : null}
-              Create Account
+            <Button
+              type="submit"
+              className="w-full mt-2"
+              size="lg"
+              isLoading={isSubmitting}
+            >
+              Create account
             </Button>
 
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-center text-sm text-stone-500 dark:text-stone-400 font-normal pt-2">
               Already have an account?{' '}
-              <Link href={`/login?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary hover:underline font-medium">
+              <Link
+                href={`/login?redirect=${encodeURIComponent(redirectTo)}`}
+                className="text-primary hover:text-primary/90 underline-offset-4 hover:underline font-medium transition-colors duration-150"
+              >
                 Sign in
               </Link>
             </p>
@@ -166,11 +193,21 @@ export function RegisterForm() {
         </CardContent>
       </Card>
 
-      <p className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+      <p className="mt-6 text-center text-xs text-stone-400 dark:text-stone-500 font-normal leading-relaxed">
         By creating an account, you agree to our{' '}
-        <Link href="#" className="text-primary hover:underline">Terms of Service</Link>{' '}
+        <Link
+          href="#"
+          className="underline underline-offset-4 hover:text-stone-600 dark:hover:text-stone-300 transition-colors duration-150"
+        >
+          Terms of Service
+        </Link>{' '}
         and{' '}
-        <Link href="#" className="text-primary hover:underline">Privacy Policy</Link>
+        <Link
+          href="#"
+          className="underline underline-offset-4 hover:text-stone-600 dark:hover:text-stone-300 transition-colors duration-150"
+        >
+          Privacy Policy
+        </Link>
       </p>
     </div>
   );

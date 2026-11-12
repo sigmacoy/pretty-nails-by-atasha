@@ -6,6 +6,7 @@ const config: Config = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -13,14 +14,14 @@ const config: Config = {
           50: '#fdf2f8',
           100: '#fce7f3',
           200: '#fbcfe8',
-          300: '#f9a8d4',
-          400: '#f472b6',
-          500: '#ec4899',
-          600: '#db2777',
-          700: '#be185d',
-          800: '#9d174d',
-          900: '#831843',
-          950: '#500724',
+          300: '#f472b6',
+          400: '#e0528b',
+          500: '#d9467a',
+          600: '#be185d',
+          700: '#9d174d',
+          800: '#831843',
+          900: '#500724',
+          950: '#340416',
           DEFAULT: 'hsl(var(--primary))',
           foreground: 'hsl(var(--primary-foreground))',
         },
@@ -37,6 +38,7 @@ const config: Config = {
           900: '#881337',
           950: '#4c0519',
         },
+        sidebar: '#0f0f10',
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -73,15 +75,22 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
-        'xl': '1rem',
-        '2xl': '1.5rem',
+        sm: '0.375rem', // 6px for tags/pills
+        md: '0.5rem',   // 8px for controls/inputs/buttons
+        lg: '0.625rem', // 10px
+        xl: '0.75rem',  // 12px for cards
+        '2xl': '1rem',  // 16px
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'card': '0 1px 3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03)',
+        card: '0 1px 2px 0 rgba(28, 25, 23, 0.04)',
+        float: '0 8px 24px -4px rgba(28, 25, 23, 0.08)',
+        soft: '0 2px 8px -2px rgba(28, 25, 23, 0.06)',
+      },
+      transitionTimingFunction: {
+        studio: 'cubic-bezier(0.22, 1, 0.36, 1)',
       },
     },
   },

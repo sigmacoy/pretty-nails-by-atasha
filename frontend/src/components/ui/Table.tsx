@@ -1,6 +1,7 @@
 'use client';
 
-import { HTMLAttributes, forwardRef, ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Skeleton } from './Skeleton';
 
@@ -29,42 +30,42 @@ export function Table<T>({
   data,
   keyExtractor,
   isLoading,
-  emptyMessage = 'No data available',
+  emptyMessage = 'No records available',
   renderRowActions,
   className,
-  striped = true,
+  striped = false,
   hoverable = true,
 }: TableProps<T>) {
   if (isLoading) {
     return (
-      <div className={cn('rounded-lg border', className)}>
+      <div className={cn('rounded-xl border border-stone-200/80 dark:border-stone-800/80 overflow-hidden bg-card', className)}>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full text-left">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b border-stone-200/80 dark:border-stone-800/80 bg-stone-50/80 dark:bg-stone-900/60">
                 {columns.map((col) => (
-                  <th key={col.key} className={cn('px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider', col.headerClassName)}>
+                  <th key={col.key} className={cn('px-4 py-2.5 text-xs font-medium text-stone-600 dark:text-stone-400', col.headerClassName)}>
                     <Skeleton variant="text" width={col.header.length * 8} />
                   </th>
                 ))}
                 {renderRowActions && (
-                  <th className="px-4 py-3 text-right">
-                    <Skeleton variant="text" width={60} />
+                  <th className="px-4 py-2.5 text-right text-xs font-medium text-stone-600 dark:text-stone-400">
+                    <Skeleton variant="text" width={48} />
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
               {Array.from({ length: 5 }).map((_, i) => (
-                <tr key={i} className={cn('border-b', striped && i % 2 === 0 && 'bg-muted/50')}>
+                <tr key={i} className={cn(striped && i % 2 === 0 && 'bg-stone-50/40 dark:bg-stone-900/20')}>
                   {columns.map((col) => (
-                    <td key={col.key} className={cn('px-4 py-4', col.className)}>
+                    <td key={col.key} className={cn('px-4 py-3', col.className)}>
                       <Skeleton variant="text" width={80} />
                     </td>
                   ))}
                   {renderRowActions && (
-                    <td className="px-4 py-4 text-right">
-                      <Skeleton variant="text" width={60} />
+                    <td className="px-4 py-3 text-right">
+                      <Skeleton variant="text" width={48} />
                     </td>
                   )}
                 </tr>
@@ -78,50 +79,53 @@ export function Table<T>({
 
   if (data.length === 0) {
     return (
-      <div className={cn('rounded-lg border p-8 text-center', className)}>
-        <p className="text-muted-foreground">{emptyMessage}</p>
+      <div className={cn('rounded-xl border border-stone-200/80 dark:border-stone-800/80 p-8 text-center bg-card', className)}>
+        <p className="text-sm text-stone-500 dark:text-stone-400 font-normal">{emptyMessage}</p>
       </div>
     );
   }
 
   return (
-    <div className={cn('rounded-lg border', className)}>
+    <div className={cn('rounded-xl border border-stone-200/80 dark:border-stone-800/80 overflow-hidden bg-card', className)}>
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table className="w-full text-left">
           <thead>
-            <tr className="border-b bg-muted/50">
+            <tr className="border-b border-stone-200/80 dark:border-stone-800/80 bg-stone-50/80 dark:bg-stone-900/60">
               {columns.map((col) => (
                 <th
                   key={col.key}
-                  className={cn('px-4 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider', col.headerClassName)}
+                  className={cn(
+                    'px-4 py-2.5 text-xs font-medium text-stone-600 dark:text-stone-400',
+                    col.headerClassName
+                  )}
                 >
                   {col.header}
                 </th>
               ))}
               {renderRowActions && (
-                <th className="px-4 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <th className="px-4 py-2.5 text-right text-xs font-medium text-stone-600 dark:text-stone-400">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
             {data.map((row, rowIndex) => (
               <tr
                 key={keyExtractor(row)}
                 className={cn(
-                  'border-b transition-colors',
-                  striped && rowIndex % 2 === 0 && 'bg-muted/30',
-                  hoverable && 'hover:bg-muted/50'
+                  'transition-colors',
+                  striped && rowIndex % 2 === 0 && 'bg-stone-50/40 dark:bg-stone-900/20',
+                  hoverable && 'hover:bg-stone-50/80 dark:hover:bg-stone-850/60'
                 )}
               >
                 {columns.map((col) => (
-                  <td key={col.key} className={cn('px-4 py-4', col.className)}>
+                  <td key={col.key} className={cn('px-4 py-3 text-sm text-stone-800 dark:text-stone-200 tabular-nums', col.className)}>
                     {col.render ? col.render(row, rowIndex) : String((row as Record<string, unknown>)[col.key] ?? '')}
                   </td>
                 ))}
                 {renderRowActions && (
-                  <td className="px-4 py-4 text-right">
+                  <td className="px-4 py-3 text-right text-sm">
                     {renderRowActions(row)}
                   </td>
                 )}
@@ -180,32 +184,30 @@ export function Pagination({
   }
 
   return (
-    <nav className={cn('flex items-center justify-center gap-2', className)} aria-label="Pagination">
+    <nav className={cn('flex items-center justify-center gap-1.5 tabular-nums', className)} aria-label="Pagination">
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 0}
-        className="btn-ghost h-10 w-10 p-0 disabled:opacity-50"
+        className="h-8 w-8 rounded-md flex items-center justify-center text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
         aria-label="Previous page"
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
+        <ChevronLeft className="h-4 w-4 stroke-[1.5]" />
       </button>
 
       {pages.map((page, index) =>
         page === 'ellipsis' ? (
-          <span key={`ellipsis-${index}`} className="px-2 text-muted-foreground">
-            ...
+          <span key={`ellipsis-${index}`} className="px-1.5 text-xs text-stone-400">
+            &hellip;
           </span>
         ) : (
           <button
             key={page}
             onClick={() => onPageChange(page)}
             className={cn(
-              'h-10 min-w-10 px-3 text-sm font-medium rounded-md transition-colors',
+              'h-8 min-w-8 px-2.5 text-xs font-medium rounded-md transition-colors',
               page === currentPage
-                ? 'bg-primary text-primary-foreground'
-                : 'hover:bg-muted'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
             )}
             aria-current={page === currentPage ? 'page' : undefined}
             aria-label={`Page ${page + 1}`}
@@ -218,12 +220,10 @@ export function Pagination({
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages - 1}
-        className="btn-ghost h-10 w-10 p-0 disabled:opacity-50"
+        className="h-8 w-8 rounded-md flex items-center justify-center text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 disabled:pointer-events-none transition-colors"
         aria-label="Next page"
       >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+        <ChevronRight className="h-4 w-4 stroke-[1.5]" />
       </button>
     </nav>
   );

@@ -1,7 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Search, Calendar, FilterX } from 'lucide-react';
+import { Search, FilterX } from 'lucide-react';
 import { Input } from '@/components/ui/Input';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
@@ -23,18 +22,18 @@ interface BookingFiltersProps {
   onClearFilters: () => void;
 }
 
-const statusOptions: SelectOption[] = BOOKING_STATUSES.map((status) => ({
+const statusOptions: { value: string; label: string }[] = BOOKING_STATUSES.map((status) => ({
   value: status,
-  label: status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' '),
+  label: status === 'NO_SHOW' ? 'No show' : status.charAt(0) + status.slice(1).toLowerCase(),
 }));
 
 const sortOptions: SelectOption[] = [
-  { value: 'appointmentDate,desc', label: 'Date (Newest)' },
-  { value: 'appointmentDate,asc', label: 'Date (Oldest)' },
-  { value: 'createdAt,desc', label: 'Created (Newest)' },
-  { value: 'createdAt,asc', label: 'Created (Oldest)' },
-  { value: 'totalPrice,desc', label: 'Price (High to Low)' },
-  { value: 'totalPrice,asc', label: 'Price (Low to High)' },
+  { value: 'appointmentDate,desc', label: 'Appointment date (newest first)' },
+  { value: 'appointmentDate,asc', label: 'Appointment date (oldest first)' },
+  { value: 'createdAt,desc', label: 'Created date (newest first)' },
+  { value: 'createdAt,asc', label: 'Created date (oldest first)' },
+  { value: 'totalPrice,desc', label: 'Total price (high to low)' },
+  { value: 'totalPrice,asc', label: 'Total price (low to high)' },
 ];
 
 export function BookingFilters({
@@ -51,113 +50,128 @@ export function BookingFilters({
   hasActiveFilters,
   onClearFilters,
 }: BookingFiltersProps) {
-  const [statusSearch, setStatusSearch] = useState('');
-
-  // We need to handle multi-select manually since native select doesn't support it well
-  // For simplicity, we'll use a multi-select approach with checkboxes in a dropdown
-  // But here we'll use a simpler approach with multiple select
+  const toggleStatus = (statusValue: string) => {
+    if (statuses.includes(statusValue)) {
+      onStatusesChange(statuses.filter((s) => s !== statusValue));
+    } else {
+      onStatusesChange([...statuses, statusValue]);
+    }
+  };
 
   return (
-    <div className="flex flex-col gap-4 p-4 border rounded-lg bg-white dark:bg-gray-800">
+    <div className="flex flex-col gap-3">
       {/* Search and Date Range Row */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="relative md:col-span-2">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="relative sm:col-span-2">
+          <Search
+            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground stroke-[1.5]"
+            aria-hidden="true"
+          />
           <Input
             type="search"
-            placeholder="Search by customer name or email..."
+            placeholder="Search by client name, email, or booking ID..."
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
+            className="h-9 pl-9 text-xs rounded-md border-border bg-background"
             aria-label="Search bookings"
           />
         </div>
-        <div>
-          <label htmlFor="start-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Start Date
-          </label>
-          <Input
-            id="start-date"
-            type="date"
-            value={startDate}
-            onChange={(e) => onStartDateChange(e.target.value)}
-            className="w-full"
-            aria-label="Filter by start date"
-          />
-        </div>
-        <div>
-          <label htmlFor="end-date" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            End Date
-          </label>
-          <Input
-            id="end-date"
-            type="date"
-            value={endDate}
-            onChange={(e) => onEndDateChange(e.target.value)}
-            className="w-full"
-            aria-label="Filter by end date"
-          />
-        </div>
-      </div>
 
-      {/* Status and Sort Row */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="md:col-span-2">
-          <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Status
+        <div>
+          <label htmlFor="start-date" className="sr-only">
+            Start date
           </label>
           <div className="relative">
-            <select
-              id="status-filter"
-              multiple
-              value={statuses}
-              onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-                onStatusesChange(selected);
-              }}
-              className={cn(
-                'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-                'min-h-[100px]'
-              )}
-              aria-label="Filter by status"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            <Input
+              id="start-date"
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              className="h-9 text-xs rounded-md border-border bg-background tabular-nums w-full"
+              aria-label="Filter by start date"
+              placeholder="Start date"
+            />
           </div>
         </div>
+
         <div>
-          <label htmlFor="sort-by" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-            Sort By
+          <label htmlFor="end-date" className="sr-only">
+            End date
           </label>
-          <Select
-            id="sort-by"
-            value={sortBy}
-            onChange={(e) => onSortByChange(e.target.value)}
-            options={sortOptions}
-            placeholder="Sort by..."
-            aria-label="Sort bookings"
-          />
+          <div className="relative">
+            <Input
+              id="end-date"
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              className="h-9 text-xs rounded-md border-border bg-background tabular-nums w-full"
+              aria-label="Filter by end date"
+              placeholder="End date"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Clear Filters Button */}
-      {hasActiveFilters && (
-        <div className="flex justify-end pt-2 border-t">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClearFilters}
-            className="gap-2"
-          >
-            <FilterX className="h-4 w-4" aria-hidden="true" />
-            Clear Filters
-          </Button>
+      {/* Status Chips and Sort Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
+        {/* Status Multi-Select Toggle Chips */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-xs font-medium text-muted-foreground mr-1">Status:</span>
+          {statusOptions.map((option) => {
+            const isSelected = statuses.includes(option.value);
+            return (
+              <button
+                key={option.value}
+                type="button"
+                onClick={() => toggleStatus(option.value)}
+                className={cn(
+                  'h-7 px-2.5 text-[11px] font-medium rounded-sm border transition-colors select-none',
+                  isSelected
+                    ? 'bg-foreground text-background border-foreground dark:bg-stone-100 dark:text-stone-900 dark:border-stone-100'
+                    : 'bg-background border-border text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+          {statuses.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onStatusesChange([])}
+              className="h-7 px-2 text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+            >
+              Reset status
+            </button>
+          )}
         </div>
-      )}
+
+        {/* Sort and Clear Row */}
+        <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+          <div className="w-48 sm:w-56">
+            <Select
+              id="sort-by"
+              value={sortBy}
+              onChange={(e) => onSortByChange(e.target.value)}
+              options={sortOptions}
+              aria-label="Sort bookings"
+            />
+          </div>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearFilters}
+              className="h-9 px-2.5 text-xs text-muted-foreground hover:text-foreground gap-1.5 rounded-md"
+              title="Reset all active filters"
+            >
+              <FilterX className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
+              <span>Clear</span>
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

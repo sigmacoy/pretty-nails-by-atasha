@@ -13,12 +13,8 @@ import { toast } from 'sonner';
 import {
   Download,
   RefreshCw,
-  Calendar,
-  Clock,
-  CheckCircle2,
   AlertCircle,
   Filter,
-  Check,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -282,20 +278,20 @@ export default function AdminBookingsPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Bookings</h1>
-            <p className="text-gray-500 dark:text-gray-400">Manage and view all salon appointments</p>
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">Bookings queue</h1>
+            <p className="text-sm text-muted-foreground mt-0.5">Manage and view all salon appointments.</p>
           </div>
         </div>
-        <Card>
+        <Card className="rounded-xl border border-border bg-card">
           <CardContent className="py-12 text-center">
             <div className="text-destructive max-w-md mx-auto">
-              <AlertCircle className="h-10 w-10 mx-auto mb-2 text-destructive" />
-              <p className="font-semibold text-lg">Failed to load bookings</p>
-              <p className="text-sm text-muted-foreground mt-1 mb-4">
+              <AlertCircle className="h-9 w-9 mx-auto mb-2 text-destructive stroke-[1.5]" />
+              <p className="font-semibold text-base text-foreground">Failed to load bookings</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-4">
                 {error?.message || 'Unable to retrieve booking records from server.'}
               </p>
-              <Button onClick={() => refetch()} variant="outline" className="gap-2">
-                <RefreshCw className="h-4 w-4" />
+              <Button onClick={() => refetch()} variant="outline" size="sm" className="h-9 rounded-md gap-2 text-xs">
+                <RefreshCw className="h-4 w-4 stroke-[1.5]" />
                 Retry
               </Button>
             </div>
@@ -308,11 +304,11 @@ export default function AdminBookingsPage() {
   return (
     <div className="space-y-6 pb-12">
       {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">Bookings</h1>
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">Bookings queue</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
-            Monitor appointments, confirm bookings, and manage downpayment statuses.
+            Monitor appointments, verify deposits, and manage salon queue order.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -320,30 +316,30 @@ export default function AdminBookingsPage() {
             variant="outline"
             size="sm"
             onClick={() => refetch()}
-            className="gap-1.5 text-xs"
+            className="h-9 rounded-md gap-1.5 text-xs font-medium"
             title="Refresh bookings data"
           >
-            <RefreshCw className={cn('h-3.5 w-3.5', isLoading && 'animate-spin')} />
+            <RefreshCw className={cn('h-4 w-4 stroke-[1.5]', isLoading && 'animate-spin')} />
             Refresh
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="gap-1.5 text-xs"
+            className="h-9 rounded-md gap-1.5 text-xs font-medium"
           >
-            <Download className="h-3.5 w-3.5" />
+            <Download className="h-4 w-4 stroke-[1.5]" />
             Export CSV
           </Button>
         </div>
       </div>
 
       {/* Quick Filter Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-border">
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 border-b border-border">
         {[
-          { id: 'ALL' as QuickFilterTab, label: 'All Bookings', count: tabCounts.ALL },
+          { id: 'ALL' as QuickFilterTab, label: 'All bookings', count: tabCounts.ALL },
           { id: 'TODAY' as QuickFilterTab, label: 'Today', count: tabCounts.TODAY },
-          { id: 'PENDING' as QuickFilterTab, label: 'Pending Confirmation', count: tabCounts.PENDING },
+          { id: 'PENDING' as QuickFilterTab, label: 'Pending confirmation', count: tabCounts.PENDING },
           { id: 'CONFIRMED' as QuickFilterTab, label: 'Confirmed', count: tabCounts.CONFIRMED },
           { id: 'COMPLETED' as QuickFilterTab, label: 'Completed', count: tabCounts.COMPLETED },
         ].map((tab) => {
@@ -353,18 +349,18 @@ export default function AdminBookingsPage() {
               key={tab.id}
               onClick={() => handleTabChange(tab.id)}
               className={cn(
-                'flex items-center gap-2 px-3.5 py-2 text-xs font-medium rounded-lg transition-all shrink-0 select-none',
+                'flex items-center gap-2 h-9 px-3.5 text-xs font-medium rounded-md transition-colors shrink-0 select-none border',
                 isActive
-                  ? 'bg-primary text-primary-foreground shadow-sm'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  ? 'bg-foreground text-background border-foreground dark:bg-stone-100 dark:text-stone-900 dark:border-stone-100 shadow-sm'
+                  : 'bg-card border-border text-muted-foreground hover:bg-muted/60 hover:text-foreground'
               )}
             >
               <span>{tab.label}</span>
               <span
                 className={cn(
-                  'px-1.5 py-0.2 rounded-full text-[10px] font-semibold',
+                  'px-1.5 py-0.5 rounded-sm text-[10px] font-medium tabular-nums',
                   isActive
-                    ? 'bg-primary-foreground/20 text-primary-foreground'
+                    ? 'bg-background/20 text-background dark:bg-stone-900/20 dark:text-stone-900'
                     : 'bg-muted text-muted-foreground'
                 )}
               >
@@ -375,20 +371,20 @@ export default function AdminBookingsPage() {
         })}
       </div>
 
-      {/* Detailed Filters Component */}
-      <Card>
-        <CardHeader className="pb-2">
+      {/* Detailed Filters Card */}
+      <Card className="rounded-xl border border-border bg-card shadow-sm">
+        <CardHeader className="pb-3 pt-4 px-4 sm:px-6">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Filter className="h-4 w-4 text-primary" />
-              Advanced Filters & Search
+            <CardTitle className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+              <Filter className="h-4 w-4 text-primary stroke-[1.5]" />
+              Advanced filters and search
             </CardTitle>
             {hasActiveFilters && (
               <span className="text-xs text-primary font-medium">Filters active</span>
             )}
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 px-4 sm:px-6 pb-4">
           <BookingFilters
             search={search}
             onSearchChange={(v) => {
@@ -421,22 +417,22 @@ export default function AdminBookingsPage() {
         </CardContent>
       </Card>
 
-      {/* Bookings Table Card */}
-      <Card>
-        <CardHeader className="pb-2">
+      {/* Bookings Queue Table Card */}
+      <Card className="rounded-xl border border-border bg-card shadow-sm">
+        <CardHeader className="pb-3 pt-4 px-4 sm:px-6 border-b border-border/60">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold">
-              Appointments
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
+            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
+              <span>Appointments queue</span>
+              <span className="text-xs font-normal text-muted-foreground tabular-nums">
                 ({totalCount} {totalCount === 1 ? 'record' : 'records'})
               </span>
             </CardTitle>
-            <div className="text-xs text-muted-foreground">
+            <div className="text-xs text-muted-foreground tabular-nums">
               Page {currentPage + 1} of {Math.max(1, totalPages)}
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="p-0">
           <BookingsTable
             bookings={bookings}
             isLoading={isLoading}
@@ -451,7 +447,7 @@ export default function AdminBookingsPage() {
         </CardContent>
       </Card>
 
-      {/* Comprehensive Booking Details Drawer */}
+      {/* Booking Details Drawer */}
       <BookingDetailsDrawer
         booking={selectedBooking}
         isOpen={isDrawerOpen}

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo } from 'react';
 import { Table, Pagination, Column } from '@/components/ui/Table';
 import { StatusAction } from './StatusAction';
 import { Button } from '@/components/ui/Button';
@@ -10,13 +9,11 @@ import {
   formatDateShort,
   formatTime,
   getInitials,
-  getStatusColor,
-  getStatusLabel,
   cn,
 } from '@/lib/utils';
 import { BookingDto, BookingStatus, CustomerListDto } from '@/types';
 import { BookingDetailsData } from './types';
-import { Eye, Image as ImageIcon, Sparkles, CreditCard, Clock, QrCode } from 'lucide-react';
+import { Eye, Sparkles, Clock, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface BookingsTableProps {
   bookings: BookingDto[];
@@ -30,6 +27,41 @@ interface BookingsTableProps {
   customerMap?: Record<string, CustomerListDto>;
 }
 
+// Restrained status badge styles adhering to design tokens
+function getRestrainedStatusBadge(status: BookingStatus) {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
+    case 'PENDING':
+      return 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60';
+    case 'COMPLETED':
+      return 'bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-850 dark:text-stone-300 dark:border-stone-700/60';
+    case 'CANCELLED':
+      return 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
+    case 'NO_SHOW':
+      return 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-stone-850 dark:text-stone-400 dark:border-stone-800';
+    default:
+      return 'bg-stone-100 text-stone-700 border-stone-200';
+  }
+}
+
+function getSentenceStatusLabel(status: BookingStatus): string {
+  switch (status) {
+    case 'PENDING':
+      return 'Pending';
+    case 'CONFIRMED':
+      return 'Confirmed';
+    case 'COMPLETED':
+      return 'Completed';
+    case 'CANCELLED':
+      return 'Cancelled';
+    case 'NO_SHOW':
+      return 'No show';
+    default:
+      return status;
+  }
+}
+
 export function BookingsTable({
   bookings,
   isLoading,
@@ -41,7 +73,19 @@ export function BookingsTable({
   onShowCompletionQR,
   customerMap = {},
 }: BookingsTableProps) {
-  // Render customer column
+  // 1. Render Queue Order column
+  const renderQueueOrder = (_row: BookingDto, index: number) => {
+    const queueNum = currentPage * 10 + index + 1;
+    return (
+      <div className="flex items-center gap-1.5 py-0.5">
+        <span className="font-mono text-xs font-medium text-muted-foreground tabular-nums">
+          #{queueNum.toString().padStart(2, '0')}
+        </span>
+      </div>
+    );
+  };
+
+  // 2. Render Client Name column
   const renderCustomer = (row: BookingDto) => {
     const extRow = row as BookingDetailsData;
     const customer = customerMap[row.userId];
@@ -58,17 +102,17 @@ export function BookingsTable({
 
     return (
       <div
-        className="flex items-center gap-3 cursor-pointer group"
+        className="flex items-center gap-2.5 cursor-pointer group py-0.5"
         onClick={() => onViewDetails?.(row)}
       >
-        <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-xs shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
+        <div className="h-8 w-8 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 flex items-center justify-center font-medium text-xs shrink-0 group-hover:bg-primary group-hover:text-white transition-colors">
           {getInitials(customerName)}
         </div>
         <div className="min-w-0">
-          <p className="font-medium text-foreground group-hover:text-primary transition-colors truncate">
+          <p className="font-medium text-xs text-foreground group-hover:text-primary transition-colors truncate">
             {customerName}
           </p>
-          <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+          <p className="text-[11px] text-muted-foreground truncate max-w-[170px] tabular-nums">
             {customerEmail}
           </p>
         </div>
@@ -76,18 +120,20 @@ export function BookingsTable({
     );
   };
 
-  // Render Date & Time column
-  const renderDate = (row: BookingDto) => (
-    <div className="cursor-pointer" onClick={() => onViewDetails?.(row)}>
-      <p className="font-medium text-foreground">{formatDateShort(row.appointmentDate)}</p>
-      <p className="text-xs text-muted-foreground flex items-center gap-1">
-        <Clock className="h-3 w-3 inline text-muted-foreground/70" />
-        {formatTime(row.startTime)} - {formatTime(row.endTime)}
+  // 3. Render Appointment Time column
+  const renderDateTime = (row: BookingDto) => (
+    <div className="cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+      <p className="text-xs font-medium text-foreground tabular-nums">
+        {formatDateShort(row.appointmentDate)}
+      </p>
+      <p className="text-[11px] text-muted-foreground flex items-center gap-1 tabular-nums mt-0.5">
+        <Clock className="h-3 w-3 stroke-[1.5] text-muted-foreground/70" />
+        {formatTime(row.startTime)} – {formatTime(row.endTime)}
       </p>
     </div>
   );
 
-  // Render Services column with variant and inspiration indicator
+  // 4. Render Service column
   const renderServices = (row: BookingDto) => {
     const extRow = row as BookingDetailsData;
     const hasInspiration = Boolean(extRow.inspirationImg || extRow.inspirationImage);
@@ -97,13 +143,13 @@ export function BookingsTable({
     }
 
     return (
-      <div className="space-y-1">
+      <div className="space-y-1 py-0.5">
         <div className="flex flex-wrap gap-1 items-center">
           {row.services.map((service, index) => (
             <Badge
               key={service.id || index}
               variant="outline"
-              className="text-[11px] py-0 px-1.5 font-normal bg-card"
+              className="text-[11px] py-0 px-1.5 font-normal rounded-sm bg-card border-border text-foreground"
             >
               {service.service?.name || service.serviceId}
               {service.variantId && ` (${service.variantId})`}
@@ -112,12 +158,12 @@ export function BookingsTable({
           ))}
           {hasInspiration && (
             <Badge
-              variant="secondary"
-              className="text-[10px] py-0 px-1.5 gap-1 bg-pink-50 dark:bg-pink-950/60 text-pink-700 dark:text-pink-300 border-pink-200"
+              variant="outline"
+              className="text-[10px] py-0 px-1.5 gap-1 rounded-sm bg-rose-50/60 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300 border-rose-200/80 dark:border-rose-800/40"
               title="Customer attached an inspiration photo"
             >
-              <Sparkles className="h-3 w-3" />
-              Photo
+              <Sparkles className="h-3 w-3 stroke-[1.5]" />
+              Inspo
             </Badge>
           )}
         </div>
@@ -125,45 +171,74 @@ export function BookingsTable({
     );
   };
 
-  // Render Price column
-  const renderPrice = (row: BookingDto) => {
+  // 5. Render Deposit Proof column
+  const renderDepositProof = (row: BookingDto) => {
     const extRow = row as BookingDetailsData;
     const payment = extRow.payment;
-    const paymentStatus = payment?.status || (extRow.paymentReference ? 'PENDING' : null);
+    const paymentStatus = payment?.status || (extRow.paymentReference ? 'PENDING' : 'UNPAID');
+    const depositAmount = row.downpayment || payment?.amount || 10000;
 
     return (
-      <div className="text-right cursor-pointer" onClick={() => onViewDetails?.(row)}>
-        <p className="font-semibold text-foreground">{formatPrice(row.totalPrice)}</p>
-        <p className="text-[11px] text-muted-foreground">
-          DP: {formatPrice(row.downpayment || 10000)}
+      <div className="cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+        {paymentStatus === 'PAID' ? (
+          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 tabular-nums">
+            <CheckCircle2 className="h-3 w-3 stroke-[1.5] text-emerald-600 dark:text-emerald-400" />
+            <span>Verified {formatPrice(depositAmount)}</span>
+          </div>
+        ) : paymentStatus === 'PENDING' || extRow.paymentReference ? (
+          <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[11px] font-medium bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60 tabular-nums">
+            <Clock className="h-3 w-3 stroke-[1.5] text-amber-600 dark:text-amber-400" />
+            <span>Verify {formatPrice(depositAmount)}</span>
+          </div>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-sm text-[11px] font-medium bg-stone-100 text-stone-600 border border-stone-200 dark:bg-stone-850 dark:text-stone-400 dark:border-stone-800 tabular-nums">
+            <AlertCircle className="h-3 w-3 stroke-[1.5] text-stone-500" />
+            <span>Unpaid ({formatPrice(depositAmount)})</span>
+          </span>
+        )}
+      </div>
+    );
+  };
+
+  // 6. Render Total Price column
+  const renderPrice = (row: BookingDto) => {
+    return (
+      <div className="text-right cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+        <p className="text-xs font-semibold text-foreground tabular-nums">
+          {formatPrice(row.totalPrice)}
         </p>
       </div>
     );
   };
 
-  // Render Status Badge column
+  // 7. Render Status column
   const renderStatus = (row: BookingDto) => (
-    <Badge
-      variant="outline"
-      className={cn('text-xs font-medium py-0.5 px-2 select-none', getStatusColor(row.status))}
-    >
-      {getStatusLabel(row.status)}
-    </Badge>
+    <div className="py-0.5">
+      <Badge
+        variant="outline"
+        className={cn(
+          'text-[11px] font-medium py-0.5 px-2 rounded-sm select-none border',
+          getRestrainedStatusBadge(row.status)
+        )}
+      >
+        {getSentenceStatusLabel(row.status)}
+      </Badge>
+    </div>
   );
 
-  // Render Actions column
+  // 8. Render Actions column
   const renderActions = (row: BookingDto) => (
-    <div className="flex items-center justify-end gap-1.5">
+    <div className="flex items-center justify-end gap-1.5 py-0.5">
       {row.status === 'COMPLETED' && onShowCompletionQR && (
         <Button
           variant="outline"
           size="sm"
           onClick={() => onShowCompletionQR(row.id)}
-          className="h-8 px-2 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10"
-          title="Show customer completion QR code for loyalty stamp"
+          className="h-8 px-2 text-xs gap-1 rounded-md border-border text-foreground hover:bg-muted"
+          title="Show completion QR code for loyalty stamp"
         >
-          <QrCode className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline">QR Stamp</span>
+          <QrCode className="h-3.5 w-3.5 stroke-[1.5]" />
+          <span className="hidden sm:inline">QR stamp</span>
         </Button>
       )}
 
@@ -171,10 +246,10 @@ export function BookingsTable({
         variant="ghost"
         size="sm"
         onClick={() => onViewDetails?.(row)}
-        className="h-8 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground"
-        title="View complete booking details"
+        className="h-8 px-2 text-xs gap-1 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted"
+        title="View booking details"
       >
-        <Eye className="h-3.5 w-3.5" />
+        <Eye className="h-3.5 w-3.5 stroke-[1.5]" />
         <span className="hidden sm:inline">Details</span>
       </Button>
 
@@ -188,35 +263,47 @@ export function BookingsTable({
 
   const columns: Column<BookingDto>[] = [
     {
-      key: 'customer',
-      header: 'Customer',
-      render: renderCustomer,
-      className: 'min-w-[190px]',
+      key: 'queue',
+      header: 'Queue order',
+      render: renderQueueOrder,
+      className: 'w-16 min-w-[64px]',
     },
     {
-      key: 'date',
-      header: 'Date & Time',
-      render: renderDate,
-      className: 'min-w-[160px]',
+      key: 'customer',
+      header: 'Client name',
+      render: renderCustomer,
+      className: 'min-w-[180px]',
+    },
+    {
+      key: 'datetime',
+      header: 'Appointment time',
+      render: renderDateTime,
+      className: 'min-w-[150px]',
     },
     {
       key: 'services',
-      header: 'Services',
+      header: 'Service',
       render: renderServices,
       className: 'min-w-[200px]',
     },
     {
+      key: 'deposit',
+      header: 'Deposit proof',
+      render: renderDepositProof,
+      className: 'min-w-[140px]',
+    },
+    {
       key: 'price',
-      header: 'Total Price',
+      header: 'Total price',
       render: renderPrice,
-      className: 'min-w-[110px] text-right',
+      className: 'min-w-[90px] text-right',
       headerClassName: 'text-right',
     },
     {
       key: 'status',
       header: 'Status',
       render: renderStatus,
-      className: 'min-w-[120px]',
+      className: 'min-w-[110px]',
     },
   ];
 
@@ -227,19 +314,22 @@ export function BookingsTable({
         data={bookings}
         keyExtractor={(row) => row.id}
         isLoading={isLoading}
-        emptyMessage="No bookings found matching current filters"
+        emptyMessage="No bookings in queue matching current filters"
         renderRowActions={renderActions}
         striped
         hoverable
       />
       {totalPages > 1 && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={onPageChange}
-        />
+        <div className="px-4 pb-4">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={onPageChange}
+          />
+        </div>
       )}
     </div>
   );
 }
+
 export default BookingsTable;

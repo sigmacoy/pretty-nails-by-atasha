@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Edit2 } from 'lucide-react';
+import { User } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
@@ -30,6 +30,16 @@ export function ProfileForm() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      reset({
+        name: user.name || '',
+        phone: user.phone || '',
+        nickname: user.nickname || '',
+      });
+    }
+  }, [user, reset]);
+
   const onSubmit = async (data: ProfileInput) => {
     setIsSubmitting(true);
     try {
@@ -38,7 +48,7 @@ export function ProfileForm() {
         phone: data.phone,
         nickname: data.nickname,
       });
-      toast.success('Profile updated successfully!');
+      toast.success('Profile updated successfully');
       await refreshUser();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -53,30 +63,31 @@ export function ProfileForm() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Edit2 className="h-5 w-5" />
-          Profile Information
+          <User className="h-4 w-4 text-stone-500 dark:text-stone-400 shrink-0" strokeWidth={1.5} />
+          <span>Profile details</span>
         </CardTitle>
-        <CardDescription>Update your personal information</CardDescription>
+        <CardDescription>Update your personal information and contact details</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <Input
-            label="Full Name"
+            label="Full name"
             placeholder="Maria Santos"
             {...register('name')}
             error={errors.name?.message}
             disabled={isSubmitting}
           />
           <Input
-            label="Phone Number (Optional)"
+            label="Phone number (optional)"
             type="tel"
             placeholder="+63 9XX XXX XXXX"
+            className="tabular-nums"
             {...register('phone')}
             error={errors.phone?.message}
             disabled={isSubmitting}
           />
           <Input
-            label="Nickname (Optional)"
+            label="Nickname (optional)"
             placeholder="Mia"
             {...register('nickname')}
             error={errors.nickname?.message}
@@ -84,8 +95,7 @@ export function ProfileForm() {
           />
 
           <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-            {isSubmitting ? <Loader2 className="h-5 w-5 mr-2" /> : null}
-            Save Changes
+            Save changes
           </Button>
         </form>
       </CardContent>

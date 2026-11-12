@@ -2,23 +2,34 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { format, parseISO, addDays, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isToday, isSameDay, isBefore } from 'date-fns';
-import { Calendar, Clock, CheckCircle, XCircle, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import {
+  format,
+  addMonths,
+  subMonths,
+  startOfMonth,
+  endOfMonth,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  isSameMonth,
+  isToday,
+  isSameDay,
+} from 'date-fns';
+import { Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@/hooks/useApi';
 import { availabilityApi } from '@/lib/api';
 import { AvailabilityDto } from '@/types';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui';
 import { Badge } from '@/components/ui/Badge';
-import { Skeleton } from '@/components/ui/Skeleton';
-import { formatDate, formatTime, isPast } from '@/lib/utils';
+import { formatTime, isPast, cn } from '@/lib/utils';
 
 export default function AvailabilityPage() {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [timeSlots, setTimeSlots] = useState<{ startTime: string; endTime: string; available: boolean }[]>([]);
 
-  const { data: availabilityData, isLoading, refetch } = useQuery(
+  const { data: availabilityData, isLoading } = useQuery(
     () => availabilityApi.getAvailable(),
     { enabled: true }
   );
@@ -34,7 +45,7 @@ export default function AvailabilityPage() {
 
   const getAvailabilityForDate = (date: Date): AvailabilityDto | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return availabilities.find(a => a.date === dateStr);
+    return availabilities.find((a) => a.date === dateStr);
   };
 
   const isDateAvailable = (date: Date): boolean => {
@@ -44,7 +55,7 @@ export default function AvailabilityPage() {
 
   const hasAvailabilityData = (date: Date): boolean => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return availabilities.some(a => a.date === dateStr);
+    return availabilities.some((a) => a.date === dateStr);
   };
 
   const handleDateClick = (date: Date) => {
@@ -89,184 +100,225 @@ export default function AvailabilityPage() {
     setTimeSlots(slots);
   };
 
-  const prevMonth = () => setCurrentMonth(addDays(currentMonth, -1));
-  const nextMonth = () => setCurrentMonth(addDays(currentMonth, 1));
+  const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1));
+  const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   return (
-    <div className="container-padding section-padding">
+    <div className="container-padding section-padding max-w-6xl mx-auto">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
+        <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
           Availability
         </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
+        <p className="mt-2 text-sm sm:text-base text-stone-600 dark:text-stone-400 max-w-2xl">
           Check available dates and time slots for your appointment.
         </p>
       </div>
 
-      {/* Calendar */}
-      <Card className="mb-8">
-        <CardContent className="p-6">
-          {/* Month Navigation */}
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="outline" size="sm" onClick={prevMonth} aria-label="Previous month">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              {format(currentMonth, 'MMMM yyyy')}
-            </h2>
-            <Button variant="outline" size="sm" onClick={nextMonth} aria-label="Next month">
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+      {/* Notice Banner */}
+      <div className="mb-6 rounded-lg border border-stone-200/80 dark:border-stone-800/80 bg-stone-50/70 dark:bg-stone-900/40 p-4 flex items-center gap-3">
+        <div className="h-8 w-8 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0 text-primary">
+          <Calendar className="h-4 w-4" strokeWidth={1.5} />
+        </div>
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300">
+          Bookings available from tomorrow up to 1 month ahead.
+        </p>
+      </div>
 
-          {/* Weekday Headers */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-gray-500 dark:text-gray-400 py-2">
-                {day}
-              </div>
-            ))}
-          </div>
+      {/* Side-by-Side View: Calendar on left, Available slots on right */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+        {/* Left Column: Month Calendar */}
+        <Card className="lg:col-span-7">
+          <CardContent className="p-5 sm:p-6">
+            {/* Month Stepper */}
+            <div className="flex items-center justify-between mb-6">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={prevMonth}
+                aria-label="Previous month"
+                className="h-9 w-9 rounded-md border-stone-200/80 dark:border-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800"
+              >
+                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+              <h2 className="text-base sm:text-lg font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                {format(currentMonth, 'MMMM yyyy')}
+              </h2>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={nextMonth}
+                aria-label="Next month"
+                className="h-9 w-9 rounded-md border-stone-200/80 dark:border-stone-800/80 hover:bg-stone-100 dark:hover:bg-stone-800"
+              >
+                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            </div>
 
-          {/* Calendar Days */}
-          <div className="grid grid-cols-7 gap-1">
-            {days.map((day) => {
-              const isCurrentMonthDay = isSameMonth(day, currentMonth);
-              const isSelected = !!(selectedDate && isSameDay(day, selectedDate));
-              const today = isToday(day);
-              const dateStr = format(day, 'yyyy-MM-dd');
-              const past = isPast(dateStr);
-              const available = isDateAvailable(day);
-              const hasData = hasAvailabilityData(day);
-
-              return (
-                <button
-                  key={day.toISOString()}
-                  onClick={() => !past && handleDateClick(day)}
-                  disabled={past}
-                  className={`
-                    aspect-square rounded-lg flex flex-col items-center justify-center text-sm font-medium transition-all
-                    ${!isCurrentMonthDay ? 'text-gray-300 dark:text-gray-600' : ''}
-                    ${past ? 'opacity-40 cursor-not-allowed' : ''}
-                    ${today && !isSelected ? 'ring-2 ring-primary' : ''}
-                    ${isSelected ? 'bg-primary text-primary-foreground' : ''}
-                    ${available && !isSelected && !past ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 hover:bg-green-200 dark:hover:bg-green-800' : ''}
-                    ${!available && hasData && !isSelected && !past ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' : ''}
-                    ${!hasData && !past && !isSelected ? 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400' : ''}
-                    ${!hasData && !past ? 'cursor-pointer' : ''}
-                  `}
-                  aria-label={format(day, 'EEEE, MMMM d, yyyy')}
-                  aria-selected={isSelected}
-                  aria-disabled={past}
+            {/* Weekday Headers */}
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+                <div
+                  key={day}
+                  className="text-center text-xs font-medium text-stone-500 dark:text-stone-400 py-1.5"
                 >
-                  <span className="relative z-10">{format(day, 'd')}</span>
-                  {hasData && !past && !isSelected && (
-                    <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-0.5">
-                      {available ? (
-                        <CheckCircle className="h-3 w-3 text-green-500" />
-                      ) : (
-                        <XCircle className="h-3 w-3 text-red-500" />
-                      )}
-                    </div>
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7 gap-1 min-h-[270px]">
+              {days.map((day) => {
+                const isCurrentMonthDay = isSameMonth(day, currentMonth);
+                const isSelected = !!(selectedDate && isSameDay(day, selectedDate));
+                const today = isToday(day);
+                const dateStr = format(day, 'yyyy-MM-dd');
+                const past = isPast(dateStr);
+                const available = isDateAvailable(day);
+                const hasData = hasAvailabilityData(day);
+
+                return (
+                  <button
+                    key={day.toISOString()}
+                    onClick={() => !past && handleDateClick(day)}
+                    disabled={past || !isCurrentMonthDay}
+                    className={cn(
+                      'h-10 sm:h-11 w-full rounded-md flex flex-col items-center justify-center text-xs sm:text-sm relative transition-colors duration-150',
+                      !isCurrentMonthDay && 'text-stone-300/40 dark:text-stone-700/40 pointer-events-none',
+                      isCurrentMonthDay && past && 'text-stone-300 dark:text-stone-700 opacity-40 cursor-not-allowed pointer-events-none',
+                      isCurrentMonthDay && !past && !isSelected && available && 'text-stone-900 dark:text-stone-100 hover:bg-stone-100 dark:hover:bg-stone-800/80 cursor-pointer font-medium',
+                      isCurrentMonthDay && !past && !isSelected && !available && hasData && 'text-stone-400 dark:text-stone-500 bg-stone-50/50 dark:bg-stone-900/20 cursor-not-allowed',
+                      isCurrentMonthDay && !past && !isSelected && !hasData && 'text-stone-600 dark:text-stone-400 hover:bg-stone-100 dark:hover:bg-stone-800/80 cursor-pointer',
+                      today && !isSelected && 'ring-1 ring-primary/50 font-semibold',
+                      isSelected && 'bg-primary text-primary-foreground font-semibold shadow-sm'
+                    )}
+                    aria-label={format(day, 'EEEE, MMMM d, yyyy')}
+                    aria-selected={isSelected}
+                    aria-disabled={past}
+                  >
+                    <span className="tabular-nums relative z-10">{format(day, 'd')}</span>
+                    {isCurrentMonthDay && hasData && !past && (
+                      <span
+                        className={cn(
+                          'absolute bottom-1.5 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full',
+                          isSelected ? 'bg-primary-foreground' : available ? 'bg-primary' : 'bg-stone-300 dark:bg-stone-700'
+                        )}
+                      />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Legend */}
+            <div className="mt-6 pt-4 border-t border-stone-200/60 dark:border-stone-800/60 flex flex-wrap items-center justify-center gap-6 text-xs text-stone-500 dark:text-stone-400">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-primary" />
+                <span>Available</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-stone-300 dark:bg-stone-700" />
+                <span>Unavailable</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-md border border-primary/50" />
+                <span>Today</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Right Column: Available Time Slots */}
+        <Card className="lg:col-span-5">
+          <CardContent className="p-5 sm:p-6">
+            {selectedDate ? (
+              <div>
+                <div className="flex items-start justify-between gap-3 pb-4 border-b border-stone-200/60 dark:border-stone-800/60">
+                  <div>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 font-normal">
+                      Selected date
+                    </p>
+                    <h3 className="text-sm sm:text-base font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                      {format(selectedDate, 'EEEE, MMMM d, yyyy')}
+                    </h3>
+                  </div>
+                  {isPast(format(selectedDate, 'yyyy-MM-dd')) && (
+                    <Badge variant="destructive" className="shrink-0">Past date</Badge>
                   )}
-                </button>
-              );
-            })}
-          </div>
+                </div>
 
-          {/* Legend */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700" />
-              <span>Available</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700" />
-              <span>Unavailable</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-700" />
-              <span>No data</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded border-2 border-primary" />
-              <span>Today</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Time Slots */}
-      <Card>
-        <CardContent className="p-6">
-          {selectedDate ? (
-            <>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {isPast(format(selectedDate!, 'yyyy-MM-dd'))
-                    ? 'Past Date - No Slots Available'
-                    : `Available Slots for ${format(selectedDate!, 'EEEE, MMMM d, yyyy')}`}
-                </h3>
-                {isPast(format(selectedDate!, 'yyyy-MM-dd')) && (
-                  <Badge variant="destructive">Past Date</Badge>
+                {timeSlots.length === 0 ? (
+                  <div className="text-center py-12 px-4">
+                    <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-3 text-stone-400 dark:text-stone-500">
+                      <Clock className="h-4 w-4" strokeWidth={1.5} />
+                    </div>
+                    <h4 className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">
+                      No slots available
+                    </h4>
+                    <p className="text-xs text-stone-500 dark:text-stone-400 max-w-xs mx-auto leading-relaxed">
+                      {isPast(format(selectedDate, 'yyyy-MM-dd'))
+                        ? 'This date has passed. Please select a future date.'
+                        : 'No time slots available for this date. Please choose another day from the calendar.'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-4">
+                    <div className="text-xs text-stone-500 dark:text-stone-400 mb-3 flex items-center justify-between">
+                      <span>Available time slots</span>
+                      <span className="tabular-nums font-mono text-stone-600 dark:text-stone-400">
+                        {timeSlots.length} {timeSlots.length === 1 ? 'slot' : 'slots'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[360px] overflow-y-auto pr-1">
+                      {timeSlots.map((slot) => (
+                        <Link
+                          key={`${slot.startTime}-${slot.endTime}`}
+                          href={`/booking?date=${format(selectedDate, 'yyyy-MM-dd')}&time=${slot.startTime}`}
+                          className="block group"
+                        >
+                          <Button
+                            variant={slot.available ? 'outline' : 'secondary'}
+                            disabled={!slot.available}
+                            className="w-full justify-between h-9 px-3 rounded-md border-stone-200/80 dark:border-stone-800/80 group-hover:border-primary/60 group-hover:bg-primary/5 dark:group-hover:bg-primary/10 transition-colors duration-150 font-normal"
+                          >
+                            <span className="tabular-nums text-xs sm:text-sm font-medium text-stone-800 dark:text-stone-200 group-hover:text-primary dark:group-hover:text-primary transition-colors">
+                              {formatTime(slot.startTime)} – {formatTime(slot.endTime)}
+                            </span>
+                            <ChevronRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-primary transition-colors shrink-0" strokeWidth={1.5} />
+                          </Button>
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
-
-              {timeSlots.length === 0 ? (
-                <div className="text-center py-8">
-                  <Clock className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400">
-                    {isPast(format(selectedDate!, 'yyyy-MM-dd'))
-                      ? 'This date has passed. Please select a future date.'
-                      : 'No time slots available for this date.'}
-                  </p>
+            ) : (
+              <div className="text-center py-16 px-4">
+                <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center mx-auto mb-3 text-stone-400 dark:text-stone-500">
+                  <Calendar className="h-4 w-4 text-stone-500 dark:text-stone-400" strokeWidth={1.5} />
                 </div>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-                  {timeSlots.map((slot) => (
-                    <Link
-                      key={`${slot.startTime}-${slot.endTime}`}
-                      href={`/booking?date=${format(selectedDate!, 'yyyy-MM-dd')}&time=${slot.startTime}`}
-                      className="block"
-                    >
-                      <Button
-                        variant={slot.available ? 'outline' : 'secondary'}
-                        disabled={!slot.available}
-                        className="w-full justify-between"
-                      >
-                        <span>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</span>
-                        {slot.available ? (
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                        ) : (
-                          <XCircle className="h-4 w-4 text-red-500" />
-                        )}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="text-center py-12">
-              <Calendar className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
-                Select a date from the calendar to see available time slots.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                <h4 className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">
+                  Select a date
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400 max-w-xs mx-auto leading-relaxed">
+                  Select a date from the calendar to see available 30-minute appointment slots.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       {/* CTA */}
-      <div className="mt-8 text-center">
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
+      <div className="mt-8 text-center p-6 rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card shadow-card">
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 mb-3">
           Ready to book your appointment?
         </p>
         <Link href="/booking">
-          <Button size="lg" className="gap-2">
-            Book Appointment
-            <Calendar className="h-4 w-4" />
+          <Button size="md" className="gap-2">
+            <span>Book appointment</span>
+            <Calendar className="h-4 w-4" strokeWidth={1.5} />
           </Button>
         </Link>
       </div>

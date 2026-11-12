@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Calendar,
   Clock,
-  User as UserIcon,
   Mail,
   Phone,
   FileText,
@@ -19,26 +18,22 @@ import {
   Check,
   Sparkles,
   Maximize2,
-  ChevronRight,
-  DollarSign,
   Tag,
   ShieldCheck,
   AlertCircle,
+  QrCode,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Textarea } from '@/components/ui/Textarea';
-import { BookingDto, BookingStatus, CustomerListDto } from '@/types';
+import { BookingStatus, CustomerListDto } from '@/types';
 import { BookingDetailsData, transitionBookingStatus } from './bookings/types';
 import {
   formatPrice,
   formatDate,
   formatTime,
   getInitials,
-  getStatusColor,
-  getStatusLabel,
-  getCategoryColor,
   cn,
 } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -50,6 +45,40 @@ interface BookingDetailsDrawerProps {
   onStatusUpdated?: (bookingId: string, newStatus: BookingStatus) => void;
   customer?: CustomerListDto | null;
   onTriggerCompletionQR?: (bookingId: string) => void;
+}
+
+function getRestrainedStatusBadge(status: BookingStatus) {
+  switch (status) {
+    case 'CONFIRMED':
+      return 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60';
+    case 'PENDING':
+      return 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60';
+    case 'COMPLETED':
+      return 'bg-stone-100 text-stone-700 border-stone-200 dark:bg-stone-850 dark:text-stone-300 dark:border-stone-700/60';
+    case 'CANCELLED':
+      return 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60';
+    case 'NO_SHOW':
+      return 'bg-stone-100 text-stone-600 border-stone-200 dark:bg-stone-850 dark:text-stone-400 dark:border-stone-800';
+    default:
+      return 'bg-stone-100 text-stone-700 border-stone-200';
+  }
+}
+
+function getSentenceStatusLabel(status: BookingStatus): string {
+  switch (status) {
+    case 'PENDING':
+      return 'Pending';
+    case 'CONFIRMED':
+      return 'Confirmed';
+    case 'COMPLETED':
+      return 'Completed';
+    case 'CANCELLED':
+      return 'Cancelled';
+    case 'NO_SHOW':
+      return 'No show';
+    default:
+      return status;
+  }
 }
 
 export function BookingDetailsDrawer({
@@ -141,7 +170,7 @@ export function BookingDetailsDrawer({
     setIsUpdating(true);
     try {
       await transitionBookingStatus(booking.id, newStatus, reason);
-      toast.success(`Booking successfully marked as ${getStatusLabel(newStatus)}`);
+      toast.success(`Booking status updated to ${getSentenceStatusLabel(newStatus)}`);
       onStatusUpdated?.(booking.id, newStatus);
 
       // If marked COMPLETED and completion QR callback is provided, trigger it
@@ -177,7 +206,7 @@ export function BookingDetailsDrawer({
       ? selectedReason
         ? `${selectedReason}: ${customReason.trim()}`
         : customReason.trim()
-      : selectedReason || `${getStatusLabel(pendingAction)} by Admin`;
+      : selectedReason || `${getSentenceStatusLabel(pendingAction)} by admin`;
 
     handleTransition(pendingAction, finalReason);
   };
@@ -187,7 +216,7 @@ export function BookingDetailsDrawer({
     'Scheduling conflict / Stylist unavailable',
     'Downpayment not received / Invalid reference',
     'Customer unresponsive',
-    'Salon closure / Emergency',
+    'Salon emergency closure',
     'Other reason',
   ];
 
@@ -203,7 +232,7 @@ export function BookingDetailsDrawer({
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity"
+        className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
@@ -212,7 +241,7 @@ export function BookingDetailsDrawer({
       <aside
         className={cn(
           'fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-background shadow-2xl flex flex-col',
-          'transform transition-transform duration-300 ease-in-out',
+          'transform transition-transform duration-200 ease-out',
           'border-l border-border'
         )}
         role="dialog"
@@ -224,63 +253,69 @@ export function BookingDetailsDrawer({
           <div className="flex items-center gap-3">
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="drawer-title" className="text-lg font-semibold text-foreground">
-                  Booking Details
+                <h2 id="drawer-title" className="text-base font-semibold text-foreground">
+                  Booking details
                 </h2>
-                <span className="text-xs font-mono px-2 py-0.5 rounded bg-muted text-muted-foreground">
+                <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded-sm bg-muted text-muted-foreground border border-border">
                   #{booking.id.slice(-8)}
                 </span>
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground tabular-nums mt-0.5">
                 Created {formatDate(booking.createdAt)}
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className={cn('text-xs font-medium', getStatusColor(booking.status))}>
-              {getStatusLabel(booking.status)}
+            <Badge
+              variant="outline"
+              className={cn('text-[11px] font-medium py-0.5 px-2 rounded-sm border', getRestrainedStatusBadge(booking.status))}
+            >
+              {getSentenceStatusLabel(booking.status)}
             </Badge>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-md text-muted-foreground hover:text-foreground"
               aria-label="Close details"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4 stroke-[1.5]" />
             </Button>
           </div>
         </div>
 
         {/* Drawer Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-6">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {/* Section 1: Customer Profile */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl border border-border bg-card space-y-3">
             <div className="flex items-center justify-between border-b border-border/60 pb-3">
               <div className="flex items-center gap-3">
-                <div className="h-11 w-11 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold text-base">
+                <div className="h-10 w-10 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-200 flex items-center justify-center font-medium text-sm">
                   {getInitials(customerName)}
                 </div>
                 <div>
-                  <h3 className="font-semibold text-foreground text-base">{customerName}</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Customer ID: {booking.userId.slice(0, 12)}...
+                  <h3 className="font-semibold text-foreground text-sm">{customerName}</h3>
+                  <p className="text-xs text-muted-foreground font-mono tabular-nums">
+                    Client ID: {booking.userId.slice(0, 10)}...
                   </p>
                 </div>
               </div>
               {customer && customer.loyaltyStamps !== undefined && (
                 <div className="text-right">
-                  <Badge variant="secondary" className="gap-1 text-xs bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300 border-amber-200">
-                    <Sparkles className="h-3 w-3" />
-                    {customer.loyaltyStamps} Stamps
+                  <Badge
+                    variant="outline"
+                    className="gap-1 text-[11px] rounded-sm bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800/60 tabular-nums"
+                  >
+                    <Sparkles className="h-3 w-3 stroke-[1.5]" />
+                    {customer.loyaltyStamps} stamps
                   </Badge>
                 </div>
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Mail className="h-4 w-4 shrink-0 text-primary/70" />
+                <Mail className="h-4 w-4 shrink-0 text-muted-foreground/80 stroke-[1.5]" />
                 {customerEmail !== 'No email provided' ? (
                   <a
                     href={`mailto:${customerEmail}`}
@@ -293,16 +328,16 @@ export function BookingDetailsDrawer({
                 )}
               </div>
               <div className="flex items-center gap-2 text-muted-foreground">
-                <Phone className="h-4 w-4 shrink-0 text-primary/70" />
+                <Phone className="h-4 w-4 shrink-0 text-muted-foreground/80 stroke-[1.5]" />
                 {customerPhone !== 'No phone number' ? (
                   <a
                     href={`tel:${customerPhone}`}
-                    className="text-foreground hover:text-primary transition-colors"
+                    className="text-foreground hover:text-primary transition-colors tabular-nums"
                   >
                     {customerPhone}
                   </a>
                 ) : (
-                  <span className="text-muted-foreground">{customerPhone}</span>
+                  <span className="text-muted-foreground tabular-nums">{customerPhone}</span>
                 )}
               </div>
             </div>
@@ -310,9 +345,9 @@ export function BookingDetailsDrawer({
             {customerNotes && (
               <div className="mt-2 pt-2 border-t border-border/50 text-xs">
                 <p className="font-medium text-foreground flex items-center gap-1.5 mb-1">
-                  <FileText className="h-3.5 w-3.5 text-primary" /> Customer Notes:
+                  <FileText className="h-3.5 w-3.5 text-primary stroke-[1.5]" /> Customer notes:
                 </p>
-                <p className="text-muted-foreground bg-muted/40 p-2.5 rounded-lg border border-border/40 whitespace-pre-line italic">
+                <p className="text-muted-foreground bg-muted/40 p-2.5 rounded-md border border-border/40 whitespace-pre-line italic">
                   "{customerNotes}"
                 </p>
               </div>
@@ -320,39 +355,39 @@ export function BookingDetailsDrawer({
           </div>
 
           {/* Section 2: Appointment Schedule */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl border border-border bg-card space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Calendar className="h-3.5 w-3.5 text-primary" /> Appointment Schedule
+              <Calendar className="h-4 w-4 text-primary stroke-[1.5]" /> Appointment schedule
             </h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="bg-muted/30 p-3 rounded-lg border border-border/40">
-                <span className="text-xs text-muted-foreground block">Date</span>
-                <span className="font-medium text-foreground">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="bg-muted/30 p-3 rounded-md border border-border/40">
+                <span className="text-[11px] text-muted-foreground block mb-0.5">Date</span>
+                <span className="font-medium text-foreground tabular-nums">
                   {formatDate(booking.appointmentDate)}
                 </span>
               </div>
-              <div className="bg-muted/30 p-3 rounded-lg border border-border/40">
-                <span className="text-xs text-muted-foreground block">Time Window</span>
-                <span className="font-medium text-foreground flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-primary" />
-                  {formatTime(booking.startTime)} - {formatTime(booking.endTime)}
+              <div className="bg-muted/30 p-3 rounded-md border border-border/40">
+                <span className="text-[11px] text-muted-foreground block mb-0.5">Time window</span>
+                <span className="font-medium text-foreground flex items-center gap-1.5 tabular-nums">
+                  <Clock className="h-3.5 w-3.5 text-muted-foreground stroke-[1.5]" />
+                  {formatTime(booking.startTime)} – {formatTime(booking.endTime)}
                 </span>
               </div>
             </div>
           </div>
 
           {/* Section 3: Services & Price Breakdown */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl border border-border bg-card space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Tag className="h-3.5 w-3.5 text-primary" /> Selected Services ({booking.services?.length || 0})
+                <Tag className="h-4 w-4 text-primary stroke-[1.5]" /> Selected services ({booking.services?.length || 0})
               </h4>
             </div>
 
             <div className="divide-y divide-border/60">
               {booking.services && booking.services.length > 0 ? (
                 booking.services.map((svc, index) => (
-                  <div key={svc.id || index} className="py-2.5 flex items-start justify-between gap-3 text-sm">
+                  <div key={svc.id || index} className="py-2.5 flex items-start justify-between gap-3 text-xs">
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-foreground">
@@ -360,24 +395,20 @@ export function BookingDetailsDrawer({
                         </span>
                         {svc.service?.category && (
                           <Badge
-                            variant="secondary"
-                            className={cn('text-[10px] px-1.5 py-0', getCategoryColor(svc.service.category))}
+                            variant="outline"
+                            className="text-[10px] px-1.5 py-0 rounded-sm font-normal text-muted-foreground border-border"
                           >
                             {svc.service.category}
                           </Badge>
                         )}
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {svc.variantId && (
-                          <span>Variant: {svc.variantId}</span>
-                        )}
+                      <div className="flex items-center gap-2 text-[11px] text-muted-foreground tabular-nums">
+                        {svc.variantId && <span>Variant: {svc.variantId}</span>}
                         <span>Qty: {svc.quantity || 1}</span>
-                        {svc.service?.duration && (
-                          <span>• {svc.service.duration} mins</span>
-                        )}
+                        {svc.service?.duration && <span>• {svc.service.duration} mins</span>}
                       </div>
                     </div>
-                    <span className="font-semibold text-foreground shrink-0">
+                    <span className="font-medium text-foreground shrink-0 tabular-nums">
                       {formatPrice(svc.price * (svc.quantity || 1))}
                     </span>
                   </div>
@@ -388,87 +419,87 @@ export function BookingDetailsDrawer({
             </div>
 
             {/* Price Summary Breakdown */}
-            <div className="pt-3 border-t border-border/80 space-y-1.5 text-sm">
-              <div className="flex justify-between text-muted-foreground text-xs">
-                <span>Services Subtotal:</span>
-                <span>{formatPrice(booking.totalPrice)}</span>
+            <div className="pt-3 border-t border-border/80 space-y-1.5 text-xs">
+              <div className="flex justify-between text-muted-foreground">
+                <span>Services subtotal:</span>
+                <span className="tabular-nums">{formatPrice(booking.totalPrice)}</span>
               </div>
-              <div className="flex justify-between text-xs text-amber-700 dark:text-amber-400">
-                <span>Downpayment Required:</span>
-                <span>{formatPrice(downpaymentAmount)}</span>
+              <div className="flex justify-between text-amber-800 dark:text-amber-300">
+                <span>Downpayment required:</span>
+                <span className="tabular-nums font-medium">{formatPrice(downpaymentAmount)}</span>
               </div>
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Remaining Balance at Counter:</span>
-                <span className="font-medium text-foreground">{formatPrice(remainingBalance)}</span>
+              <div className="flex justify-between text-muted-foreground">
+                <span>Remaining balance at counter:</span>
+                <span className="font-medium text-foreground tabular-nums">{formatPrice(remainingBalance)}</span>
               </div>
-              <div className="flex justify-between font-semibold text-base pt-2 border-t border-border/60 text-foreground">
-                <span>Total Amount:</span>
-                <span className="text-primary">{formatPrice(booking.totalPrice)}</span>
+              <div className="flex justify-between font-semibold text-sm pt-2 border-t border-border/60 text-foreground">
+                <span>Total amount:</span>
+                <span className="tabular-nums text-foreground">{formatPrice(booking.totalPrice)}</span>
               </div>
             </div>
           </div>
 
           {/* Section 4: Payment & Downpayment Verification */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl border border-border bg-card space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <CreditCard className="h-3.5 w-3.5 text-primary" /> Payment & Downpayment Info
+              <CreditCard className="h-4 w-4 text-primary stroke-[1.5]" /> Deposit and payment verification
             </h4>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div className="bg-muted/30 p-3 rounded-lg border border-border/40 space-y-1">
-                <span className="text-xs text-muted-foreground block">Payment Method</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="bg-muted/30 p-3 rounded-md border border-border/40 space-y-1">
+                <span className="text-[11px] text-muted-foreground block">Payment method</span>
                 <div className="flex items-center gap-1.5">
-                  <Badge variant="outline" className="font-medium uppercase text-xs">
+                  <Badge variant="outline" className="font-medium uppercase text-[11px] rounded-sm">
                     {String(paymentMethod)}
                   </Badge>
                 </div>
               </div>
 
-              <div className="bg-muted/30 p-3 rounded-lg border border-border/40 space-y-1">
-                <span className="text-xs text-muted-foreground block">Downpayment Status</span>
+              <div className="bg-muted/30 p-3 rounded-md border border-border/40 space-y-1">
+                <span className="text-[11px] text-muted-foreground block">Deposit verification tag</span>
                 <Badge
                   variant="outline"
                   className={cn(
-                    'text-xs font-semibold',
+                    'text-[11px] font-medium rounded-sm border tabular-nums',
                     paymentStatus === 'PAID'
-                      ? 'bg-green-100 text-green-800 dark:bg-green-950 dark:text-green-300 border-green-300'
+                      ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60'
                       : paymentStatus === 'PENDING_VERIFICATION'
-                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border-amber-300'
-                      : 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300 border-red-300'
+                      ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/60'
+                      : 'bg-rose-50 text-rose-800 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800/60'
                   )}
                 >
-                  {paymentStatus === 'PAID' && <CheckCircle2 className="h-3 w-3 mr-1 inline" />}
-                  {paymentStatus === 'PENDING_VERIFICATION' && <Clock className="h-3 w-3 mr-1 inline" />}
-                  {paymentStatus === 'UNPAID' && <AlertCircle className="h-3 w-3 mr-1 inline" />}
-                  {paymentStatus.replace('_', ' ')}
+                  {paymentStatus === 'PAID' && <CheckCircle2 className="h-3 w-3 mr-1 inline stroke-[1.5]" />}
+                  {paymentStatus === 'PENDING_VERIFICATION' && <Clock className="h-3 w-3 mr-1 inline stroke-[1.5]" />}
+                  {paymentStatus === 'UNPAID' && <AlertCircle className="h-3 w-3 mr-1 inline stroke-[1.5]" />}
+                  {paymentStatus === 'PAID' ? 'Verified paid' : paymentStatus === 'PENDING_VERIFICATION' ? 'Pending verification' : 'Unpaid'}
                 </Badge>
               </div>
             </div>
 
             {/* Reference Number */}
-            <div className="bg-muted/40 p-3 rounded-lg border border-border/60">
-              <span className="text-xs text-muted-foreground block mb-1">
-                GCash / Maya Payment Reference Number
+            <div className="bg-muted/40 p-3 rounded-md border border-border/60">
+              <span className="text-[11px] text-muted-foreground block mb-1">
+                GCash / Maya deposit reference number
               </span>
               {paymentRef ? (
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono font-semibold text-foreground text-sm tracking-wide">
+                  <span className="font-mono font-semibold text-foreground text-xs tracking-wide tabular-nums">
                     {paymentRef}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleCopyRef}
-                    className="h-7 px-2.5 gap-1 text-xs"
+                    className="h-7 px-2.5 gap-1 text-[11px] rounded-md"
                   >
                     {copiedRef ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-green-600" />
-                        <span className="text-green-600">Copied</span>
+                        <Check className="h-3.5 w-3.5 text-emerald-600 stroke-[1.5]" />
+                        <span className="text-emerald-600">Copied</span>
                       </>
                     ) : (
                       <>
-                        <Copy className="h-3.5 w-3.5" />
+                        <Copy className="h-3.5 w-3.5 stroke-[1.5]" />
                         <span>Copy</span>
                       </>
                     )}
@@ -482,17 +513,17 @@ export function BookingDetailsDrawer({
             </div>
 
             {payment?.verifiedAt && (
-              <div className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
+              <div className="text-xs text-muted-foreground flex items-center gap-1.5 pt-1 tabular-nums">
+                <ShieldCheck className="h-4 w-4 text-emerald-600 stroke-[1.5]" />
                 <span>Verified on {formatDate(payment.verifiedAt)}</span>
               </div>
             )}
           </div>
 
           {/* Section 5: Inspiration Photo Preview */}
-          <div className="p-4 rounded-xl border border-border bg-card/60 shadow-sm space-y-3">
+          <div className="p-4 rounded-xl border border-border bg-card space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-              <Sparkles className="h-3.5 w-3.5 text-primary" /> Inspiration Photo
+              <Sparkles className="h-4 w-4 text-primary stroke-[1.5]" /> Inspiration photo
             </h4>
 
             {inspirationUrl ? (
@@ -504,10 +535,10 @@ export function BookingDetailsDrawer({
                   <img
                     src={inspirationUrl}
                     alt="Customer inspiration design"
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-102"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white">
-                    <Maximize2 className="h-5 w-5" />
+                    <Maximize2 className="h-4 w-4 stroke-[1.5]" />
                     <span className="text-xs font-medium">Click to view full photo</span>
                   </div>
                 </div>
@@ -516,15 +547,15 @@ export function BookingDetailsDrawer({
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsPhotoModalOpen(true)}
-                    className="text-xs h-7 gap-1"
+                    className="text-xs h-7 gap-1 rounded-md text-muted-foreground hover:text-foreground"
                   >
-                    <Maximize2 className="h-3.5 w-3.5" /> Full Screen Preview
+                    <Maximize2 className="h-3.5 w-3.5 stroke-[1.5]" /> Full-screen preview
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="p-6 rounded-xl border border-dashed border-border text-center text-muted-foreground">
-                <Sparkles className="h-6 w-6 mx-auto mb-1 text-muted-foreground/50" />
+                <Sparkles className="h-5 w-5 mx-auto mb-1 text-muted-foreground/50 stroke-[1.5]" />
                 <p className="text-xs">No inspiration photo was uploaded for this booking.</p>
               </div>
             )}
@@ -534,8 +565,8 @@ export function BookingDetailsDrawer({
         {/* Drawer Sticky Footer with Status Transition Actions */}
         <div className="p-4 border-t border-border bg-card space-y-3">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Actions for {getStatusLabel(booking.status)} booking:</span>
-            <span>ID: #{booking.id.slice(-6)}</span>
+            <span>Actions for {getSentenceStatusLabel(booking.status).toLowerCase()} booking</span>
+            <span className="font-mono tabular-nums">ID: #{booking.id.slice(-6)}</span>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -545,18 +576,18 @@ export function BookingDetailsDrawer({
                 <Button
                   onClick={() => handleTransition('CONFIRMED')}
                   isLoading={isUpdating}
-                  className="flex-1 gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white"
+                  className="flex-1 h-9 rounded-md gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium"
                 >
-                  <CheckCircle2 className="h-4 w-4" />
-                  Confirm Booking
+                  <CheckCircle2 className="h-4 w-4 stroke-[1.5]" />
+                  Confirm booking
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => openReasonModal('CANCELLED')}
                   disabled={isUpdating}
-                  className="gap-1.5 text-destructive hover:bg-destructive/10 border-destructive/30"
+                  className="h-9 rounded-md gap-1.5 text-xs text-destructive hover:bg-destructive/10 border-destructive/30"
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-4 w-4 stroke-[1.5]" />
                   Cancel
                 </Button>
               </>
@@ -568,27 +599,27 @@ export function BookingDetailsDrawer({
                 <Button
                   onClick={() => handleTransition('COMPLETED')}
                   isLoading={isUpdating}
-                  className="flex-1 gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                  className="flex-1 h-9 rounded-md gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-medium shadow-sm"
                 >
-                  <Check className="h-4 w-4" />
-                  Complete Appointment
+                  <Check className="h-4 w-4 stroke-[1.5]" />
+                  Complete appointment
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => openReasonModal('NO_SHOW')}
                   disabled={isUpdating}
-                  className="gap-1 text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950 border-amber-300"
+                  className="h-9 rounded-md gap-1 text-xs border-border text-muted-foreground hover:text-foreground"
                 >
-                  <UserX className="h-4 w-4" />
-                  No-Show
+                  <UserX className="h-4 w-4 stroke-[1.5]" />
+                  No-show
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => openReasonModal('CANCELLED')}
                   disabled={isUpdating}
-                  className="gap-1 text-destructive hover:bg-destructive/10 border-destructive/30"
+                  className="h-9 rounded-md gap-1 text-xs text-destructive hover:bg-destructive/10 border-destructive/30"
                 >
-                  <XCircle className="h-4 w-4" />
+                  <XCircle className="h-4 w-4 stroke-[1.5]" />
                   Cancel
                 </Button>
               </>
@@ -596,19 +627,20 @@ export function BookingDetailsDrawer({
 
             {/* When COMPLETED */}
             {booking.status === 'COMPLETED' && (
-              <div className="w-full flex items-center justify-between p-2 rounded-lg bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-800">
-                <span className="text-xs font-medium text-green-800 dark:text-green-300 flex items-center gap-1.5">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  Appointment successfully completed
+              <div className="w-full flex items-center justify-between p-2.5 rounded-md bg-stone-50 dark:bg-stone-850 border border-border">
+                <span className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 stroke-[1.5]" />
+                  Appointment completed
                 </span>
                 {onTriggerCompletionQR && (
                   <Button
                     size="sm"
                     variant="outline"
                     onClick={() => onTriggerCompletionQR(booking.id)}
-                    className="h-7 text-xs border-green-300 text-green-800 dark:text-green-300"
+                    className="h-8 text-xs gap-1.5 rounded-md border-border"
                   >
-                    View Completion QR
+                    <QrCode className="h-3.5 w-3.5 stroke-[1.5]" />
+                    Completion QR
                   </Button>
                 )}
               </div>
@@ -616,11 +648,10 @@ export function BookingDetailsDrawer({
 
             {/* When CANCELLED or NO_SHOW */}
             {(booking.status === 'CANCELLED' || booking.status === 'NO_SHOW') && (
-              <div className="w-full p-2.5 rounded-lg bg-muted text-xs text-muted-foreground flex items-center gap-2">
-                <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="w-full p-2.5 rounded-md bg-muted text-xs text-muted-foreground flex items-center gap-2">
+                <AlertTriangle className="h-4 w-4 text-muted-foreground shrink-0 stroke-[1.5]" />
                 <span>
-                  This booking is {booking.status.toLowerCase().replace('_', ' ')}. No further
-                  transitions can be made.
+                  This booking is {getSentenceStatusLabel(booking.status).toLowerCase()}. No further transitions can be made.
                 </span>
               </div>
             )}
@@ -633,16 +664,16 @@ export function BookingDetailsDrawer({
         <Modal
           isOpen={isPhotoModalOpen}
           onClose={() => setIsPhotoModalOpen(false)}
-          title="Inspiration Design Photo"
+          title="Inspiration design photo"
           description={`Uploaded by ${customerName}`}
           size="full"
         >
           <div className="space-y-4">
-            <div className="relative max-h-[75vh] flex items-center justify-center bg-black/90 rounded-lg overflow-hidden p-2">
+            <div className="relative max-h-[75vh] flex items-center justify-center bg-black/90 rounded-xl overflow-hidden p-2">
               <img
                 src={inspirationUrl}
                 alt="Full resolution inspiration photo"
-                className="max-h-[70vh] w-auto max-w-full object-contain rounded"
+                className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg"
               />
             </div>
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
@@ -653,7 +684,7 @@ export function BookingDetailsDrawer({
                 rel="noreferrer"
                 className="flex items-center gap-1 text-primary hover:underline"
               >
-                Open original in new tab <ExternalLink className="h-3.5 w-3.5" />
+                Open original in new tab <ExternalLink className="h-3.5 w-3.5 stroke-[1.5]" />
               </a>
             </div>
           </div>
@@ -668,9 +699,9 @@ export function BookingDetailsDrawer({
             setReasonModalOpen(false);
             setPendingAction(null);
           }}
-          title={pendingAction === 'NO_SHOW' ? 'Record Customer No-Show' : 'Cancel Booking'}
+          title={pendingAction === 'NO_SHOW' ? 'Record customer no-show' : 'Cancel booking'}
           description={`Please provide a reason for updating #${booking.id.slice(-6)} to ${
-            pendingAction ? getStatusLabel(pendingAction) : ''
+            pendingAction ? getSentenceStatusLabel(pendingAction).toLowerCase() : ''
           }.`}
           size="md"
         >
@@ -686,7 +717,7 @@ export function BookingDetailsDrawer({
                     type="button"
                     onClick={() => setSelectedReason(reason)}
                     className={cn(
-                      'w-full text-left px-3 py-2 text-xs rounded-lg border transition-colors',
+                      'w-full text-left px-3 py-2 text-xs rounded-md border transition-colors',
                       selectedReason === reason
                         ? 'border-primary bg-primary/10 text-primary font-medium'
                         : 'border-border hover:bg-muted/50 text-foreground'
@@ -700,15 +731,15 @@ export function BookingDetailsDrawer({
 
             <div>
               <label htmlFor="custom-reason" className="block text-xs font-semibold text-foreground mb-1.5">
-                Additional Notes / Explanation (optional):
+                Additional notes (optional):
               </label>
               <Textarea
                 id="custom-reason"
                 rows={3}
-                placeholder="Enter any additional context or customer remarks..."
+                placeholder="Enter any additional context or remarks..."
                 value={customReason}
                 onChange={(e) => setCustomReason(e.target.value)}
-                className="text-xs"
+                className="text-xs rounded-md border-border"
               />
             </div>
 
@@ -721,17 +752,19 @@ export function BookingDetailsDrawer({
                   setPendingAction(null);
                 }}
                 disabled={isUpdating}
+                className="h-9 rounded-md text-xs"
               >
-                Keep Booking
+                Keep booking
               </Button>
               <Button
                 size="sm"
-                variant={pendingAction === 'NO_SHOW' ? 'primary' : 'destructive'}
+                variant={pendingAction === 'NO_SHOW' ? 'secondary' : 'destructive'}
                 onClick={handleConfirmReason}
                 isLoading={isUpdating}
                 disabled={!selectedReason && !customReason.trim()}
+                className="h-9 rounded-md text-xs"
               >
-                {pendingAction === 'NO_SHOW' ? 'Confirm No-Show' : 'Confirm Cancellation'}
+                {pendingAction === 'NO_SHOW' ? 'Confirm no-show' : 'Confirm cancellation'}
               </Button>
             </div>
           </div>
@@ -740,4 +773,5 @@ export function BookingDetailsDrawer({
     </>
   );
 }
+
 export default BookingDetailsDrawer;

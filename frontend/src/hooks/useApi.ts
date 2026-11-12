@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
 
 interface UseQueryOptions<T> {
@@ -27,28 +27,37 @@ export function useQuery<T>(
   const [isError, setIsError] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
+  const queryFnRef = useRef(queryFn);
+  queryFnRef.current = queryFn;
+  const onSuccessRef = useRef(onSuccess);
+  onSuccessRef.current = onSuccess;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   const execute = useCallback(async () => {
     if (!enabled) return;
     setIsLoading(true);
     setIsError(false);
     setError(null);
     try {
-      const result = await queryFn();
+      const result = await queryFnRef.current();
       setData(result);
-      onSuccess?.(result);
+      onSuccessRef.current?.(result);
     } catch (err) {
       const error = err instanceof Error ? err : new Error('Unknown error');
       setIsError(true);
       setError(error);
-      onError?.(error);
+      onErrorRef.current?.(error);
     } finally {
       setIsLoading(false);
     }
-  }, [queryFn, enabled, onSuccess, onError]);
+  }, [enabled]);
 
   useEffect(() => {
-    execute();
-  }, [execute]);
+    if (enabled) {
+      execute();
+    }
+  }, [enabled, execute]);
 
   return { data, isLoading, isError, error, refetch: execute };
 }

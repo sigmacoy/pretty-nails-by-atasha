@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff, Loader2, Mail, Lock, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/lib/validations';
 import { Button } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
+import { StudioMark } from '@/components/layout/Header';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
@@ -44,7 +45,7 @@ export function LoginForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Welcome back!');
+      toast.success('Welcome back');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -63,74 +64,94 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full">
-      <div className="text-center mb-8">
-        <Link href="/" className="inline-flex items-center gap-2 mb-6">
-          <div className="h-10 w-10 rounded-lg bg-primary flex items-center justify-center">
-            <Mail className="h-6 w-6 text-primary-foreground" />
-          </div>
+    <div className="w-full max-w-[400px] mx-auto">
+      {/* Studio Brand Header */}
+      <div className="flex flex-col items-center text-center mb-6">
+        <Link
+          href="/"
+          className="inline-flex items-center justify-center mb-4 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-opacity duration-150 hover:opacity-85"
+          aria-label="Pretty Nails home"
+        >
+          <StudioMark size="lg" />
         </Link>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Welcome Back</h1>
-        <p className="mt-2 text-gray-600 dark:text-gray-400">
+        <h1 className="text-xl sm:text-2xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+          Welcome back
+        </h1>
+        <p className="mt-1.5 text-xs sm:text-sm text-stone-500 dark:text-stone-400">
           Sign in to your Pretty Nails account
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Sign In</CardTitle>
-          <CardDescription>Enter your credentials to access your account</CardDescription>
-        </CardHeader>
-        <CardContent>
+      {/* Porcelain Card Form */}
+      <Card className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card shadow-sm">
+        <CardContent className="p-6 sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
-              label="Email"
+              label="Email address"
               type="email"
+              autoComplete="email"
               placeholder="maria@example.com"
               {...register('email')}
               error={errors.email?.message}
               disabled={isSubmitting}
             />
+
             <div className="relative">
               <Input
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
                 placeholder="••••••••"
+                className="pr-9"
                 {...register('password')}
                 error={errors.password?.message}
                 disabled={isSubmitting}
               />
               <button
                 type="button"
-                className="absolute right-3 top-[38px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                className="absolute right-2.5 top-[28px] p-1 rounded text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary/40"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" strokeWidth={1.5} />
+                ) : (
+                  <Eye className="h-4 w-4" strokeWidth={1.5} />
+                )}
               </button>
             </div>
 
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer">
+            <div className="flex items-center justify-between pt-0.5">
+              <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="h-4 w-4 rounded border-stone-300 dark:border-stone-700 text-primary accent-primary focus:ring-1.5 focus:ring-primary/30 transition-colors"
                 />
-                <span className="text-sm text-gray-600 dark:text-gray-400">Remember me</span>
+                <span className="text-xs text-stone-600 dark:text-stone-400">Remember me</span>
               </label>
-              <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+              <Link
+                href="/forgot-password"
+                className="text-xs text-stone-500 hover:text-stone-900 dark:text-stone-400 dark:hover:text-stone-200 transition-colors duration-150"
+              >
                 Forgot password?
               </Link>
             </div>
 
-            <Button type="submit" className="w-full" size="lg" isLoading={isSubmitting}>
-              {isSubmitting ? <Loader2 className="h-5 w-5 mr-2" /> : null}
-              Sign In
+            <Button
+              type="submit"
+              className="w-full"
+              size="lg"
+              isLoading={isSubmitting}
+            >
+              Sign in
             </Button>
 
-            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-center text-xs text-stone-500 dark:text-stone-400 pt-1">
               Don't have an account?{' '}
-              <Link href={`/register?redirect=${encodeURIComponent(redirectTo)}`} className="text-primary hover:underline font-medium">
+              <Link
+                href={`/register?redirect=${encodeURIComponent(redirectTo)}`}
+                className="text-primary hover:underline font-medium transition-colors"
+              >
                 Create one
               </Link>
             </p>
@@ -140,3 +161,5 @@ export function LoginForm() {
     </div>
   );
 }
+
+export default LoginForm;

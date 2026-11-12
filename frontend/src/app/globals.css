@@ -6,48 +6,66 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Approved Warm Stone Neutral Ramp (Light) */
+    --background: 60 7% 98%; /* #FAFAF9 warm stone */
+    --foreground: 24 10% 10%; /* #1C1917 stone-900 */
+    --card: 0 0% 100%; /* #FFFFFF pure card */
+    --card-foreground: 24 10% 10%; /* #1C1917 */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 330 81% 60%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 330 81% 60%;
-    --radius: 0.5rem;
+    --popover-foreground: 24 10% 10%;
+    
+    /* Approved Lacquer Rose Accent (Light, >4.5:1 contrast) */
+    --primary: 335 78% 42%; /* #BE185D */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Warm stone raised surfaces */
+    --secondary: 36 17% 95%; /* #F5F3F0 */
+    --secondary-foreground: 24 6% 33%; /* #57534E stone-600 */
+    --muted: 36 17% 95%; /* #F5F3F0 */
+    --muted-foreground: 24 5% 45%; /* #78716C stone-500 */
+    --accent: 36 17% 95%;
+    --accent-foreground: 24 10% 10%;
+    
+    /* Restrained semantic feedback */
+    --destructive: 0 72% 51%; /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Hairline border: stone-900 at 8% opacity on #FAFAF9 (~#E7E5E4) */
+    --border: 24 6% 90%;
+    --input: 24 6% 90%;
+    --ring: 335 78% 42%;
+    --radius: 0.5rem; /* 8px inner controls */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 330 81% 60%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 330 81% 60%;
+    /* Approved Warm Stone Neutral Ramp (Dark) */
+    --background: 240 3% 8%; /* #141415 warm dark */
+    --foreground: 38 33% 90%; /* #EFE9DE warm linen */
+    --card: 30 5% 10%; /* #1A1918 warm charcoal card */
+    --card-foreground: 38 33% 90%;
+    --popover: 30 5% 10%;
+    --popover-foreground: 38 33% 90%;
+    
+    /* Approved Lacquer Rose Accent (Dark, >4.5:1 contrast) */
+    --primary: 339 66% 56%; /* #D9467A */
+    --primary-foreground: 0 0% 100%;
+    
+    /* Dark raised surfaces */
+    --secondary: 30 6% 14%; /* #242220 */
+    --secondary-foreground: 38 33% 90%;
+    --muted: 30 6% 14%; /* #242220 */
+    --muted-foreground: 38 7% 51%; /* #8A847A stone-500 dark */
+    --accent: 30 6% 14%;
+    --accent-foreground: 38 33% 90%;
+    
+    /* Restrained semantic feedback */
+    --destructive: 358 75% 59%; /* #E5484D */
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Hairline border: linen at 8% opacity on #141415 (~#292524) */
+    --border: 30 5% 16%;
+    --input: 30 5% 16%;
+    --ring: 339 66% 56%;
   }
 }
 
@@ -56,7 +74,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/15 selection:text-foreground;
   }
 }
 
@@ -65,7 +83,7 @@
     @apply px-4 sm:px-6 lg:px-8;
   }
   .section-padding {
-    @apply py-12 sm:py-16 lg:py-20;
+    @apply py-12 lg:py-16;
   }
   .text-balance {
     text-wrap: balance;
@@ -74,25 +92,20 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-gray-100 dark:bg-gray-800;
+  @apply bg-stone-100 dark:bg-stone-900;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 dark:bg-gray-600 rounded-full;
+  @apply bg-stone-300 dark:bg-stone-700 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400 dark:bg-gray-500;
+  @apply bg-stone-400 dark:bg-stone-600;
 }
 
-/* Focus visible for accessibility */
+/* Accessible focus visible */
 :focus-visible {
   @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
-}
-
-/* Selection */
-::selection {
-  @apply bg-primary/20 text-primary;
 }

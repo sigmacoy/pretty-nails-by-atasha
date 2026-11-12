@@ -1,24 +1,23 @@
 'use client';
 
 import { useState } from 'react';
-import { Calendar, Clock, ShoppingBag, Archive, Filter, X } from 'lucide-react';
+import { Calendar, Archive, RotateCcw, X, ArrowRight, AlertCircle } from 'lucide-react';
 import { useQuery } from '@/hooks/useApi';
 import { bookingsApi } from '@/lib/api';
-import { BookingDto, BookingStatus } from '@/types';
-import { BookingCard, BookingSkeleton } from '@/components/bookings/BookingCard';
+import { BookingStatus } from '@/types';
+import { BookingCard, BookingSkeleton } from '@/components/customer/BookingCard';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Badge } from '@/components/ui/Badge';
-import { formatDate, formatPrice, getStatusColor, getStatusLabel, isPast } from '@/lib/utils';
+import { isPast } from '@/lib/utils';
 import { toast } from 'sonner';
 
 const STATUS_FILTERS: { value: 'all' | BookingStatus; label: string }[] = [
-  { value: 'all', label: 'All' },
+  { value: 'all', label: 'All bookings' },
   { value: 'PENDING', label: 'Pending' },
   { value: 'CONFIRMED', label: 'Confirmed' },
   { value: 'COMPLETED', label: 'Completed' },
   { value: 'CANCELLED', label: 'Cancelled' },
-  { value: 'NO_SHOW', label: 'No Show' },
+  { value: 'NO_SHOW', label: 'No show' },
 ];
 
 export default function MyBookingsPage() {
@@ -54,38 +53,40 @@ export default function MyBookingsPage() {
 
   if (isLoading) {
     return (
-      <div className="container-padding section-padding">
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <div className="h-8 w-48 bg-muted rounded-lg animate-pulse mb-2" />
-              <div className="h-4 w-64 bg-muted rounded animate-pulse" />
-            </div>
-            <div className="flex gap-2">
-              {STATUS_FILTERS.map((filter) => (
-                <div key={filter.value} className="h-10 w-24 bg-muted rounded-full animate-pulse" />
-              ))}
-            </div>
+      <div className="max-w-5xl mx-auto container-padding section-padding">
+        <div className="mb-8 space-y-4">
+          <div className="space-y-2">
+            <div className="h-8 w-48 bg-stone-200/70 dark:bg-stone-800 rounded-[8px] animate-pulse" />
+            <div className="h-4 w-72 bg-stone-200/50 dark:bg-stone-800/60 rounded-[6px] animate-pulse" />
           </div>
+          <div className="h-11 w-full bg-stone-100 dark:bg-stone-900 rounded-[12px] animate-pulse" />
         </div>
-        <BookingSkeleton count={4} />
+        <BookingSkeleton count={3} />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="container-padding section-padding text-center py-16">
-        <ShoppingBag className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-        <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          Failed to Load Bookings
-        </h2>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">
-          Please try again later or contact support.
-        </p>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Retry
-        </Button>
+      <div className="max-w-5xl mx-auto container-padding section-padding">
+        <Card className="rounded-[12px] border border-stone-200/80 dark:border-stone-800/80 bg-card p-10 sm:p-14 text-center">
+          <AlertCircle className="h-10 w-10 text-rose-500/80 mx-auto mb-3 stroke-[1.5]" />
+          <h2 className="text-lg font-medium text-stone-900 dark:text-stone-100 mb-1.5">
+            Unable to load bookings
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-6 max-w-sm mx-auto">
+            We could not retrieve your appointments right now. Please refresh or try again shortly.
+          </p>
+          <Button
+            variant="outline"
+            size="md"
+            onClick={() => window.location.reload()}
+            className="rounded-[8px] gap-1.5"
+          >
+            <RotateCcw className="h-3.5 w-3.5 stroke-[1.5]" />
+            Retry
+          </Button>
+        </Card>
       </div>
     );
   }
@@ -93,84 +94,87 @@ export default function MyBookingsPage() {
   const hasActiveFilter = activeFilter !== 'all' || showPast;
 
   return (
-    <div className="container-padding section-padding">
+    <div className="max-w-5xl mx-auto container-padding section-padding">
       {/* Header */}
       <div className="mb-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 sm:text-4xl">
-              My Bookings
+            <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+              My bookings
             </h1>
-            <p className="mt-2 text-lg text-gray-600 dark:text-gray-300 max-w-2xl">
-              View and manage your nail salon appointments
+            <p className="mt-1.5 text-sm sm:text-base text-stone-600 dark:text-stone-400 max-w-2xl">
+              Review your salon appointments, downpayment status, and past visits
             </p>
           </div>
         </div>
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-              <div className="flex flex-wrap gap-2" role="tablist" aria-label="Booking status filters">
-                {STATUS_FILTERS.map((filter) => (
-                  <button
-                    key={filter.value}
-                    role="tab"
-                    aria-selected={activeFilter === filter.value}
-                    onClick={() => setActiveFilter(filter.value)}
-                    className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
-                      activeFilter === filter.value
-                        ? 'bg-primary text-primary-foreground shadow-sm'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <Badge
-                      variant="outline"
-                      className={getStatusColor(filter.value as BookingStatus)}
-                    >
-                      {filter.label}
-                    </Badge>
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-2 ml-auto">
-                <Button
-                  variant={showPast ? 'secondary' : 'outline'}
-                  size="sm"
-                  onClick={() => setShowPast(!showPast)}
-                  className="gap-2"
+        {/* Filters: 36px height tabs with 4px gap rhythm */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 p-1.5 bg-stone-100/80 dark:bg-stone-900/60 rounded-[12px] border border-stone-200/80 dark:border-stone-800/80">
+          <div
+            className="flex items-center gap-1 overflow-x-auto max-w-full p-0.5"
+            role="tablist"
+            aria-label="Booking status filters"
+          >
+            {STATUS_FILTERS.map((filter) => {
+              const isActive = activeFilter === filter.value;
+              return (
+                <button
+                  key={filter.value}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setActiveFilter(filter.value)}
+                  className={`h-9 px-3.5 rounded-[8px] text-xs sm:text-sm font-medium transition-colors duration-150 inline-flex items-center whitespace-nowrap ${
+                    isActive
+                      ? 'bg-card text-stone-900 dark:text-stone-100 shadow-xs border border-stone-200/90 dark:border-stone-700/80'
+                      : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/50 dark:hover:bg-stone-800/50'
+                  }`}
                 >
-                  <Archive className="h-4 w-4" />
-                  {showPast ? 'Hide Past' : 'Show Past'}
-                </Button>
-                {hasActiveFilter && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setActiveFilter('all');
-                      setShowPast(false);
-                    }}
-                    className="gap-1"
-                  >
-                    <X className="h-4 w-4" />
-                    Clear
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="flex items-center gap-2 self-end lg:self-auto shrink-0 px-1">
+            <Button
+              variant={showPast ? 'secondary' : 'outline'}
+              size="sm"
+              onClick={() => setShowPast(!showPast)}
+              className="h-9 rounded-[8px] text-xs gap-1.5 font-medium"
+            >
+              <Archive className="h-3.5 w-3.5 stroke-[1.5]" />
+              {showPast ? 'Hide past' : 'Show past'}
+            </Button>
+
+            {hasActiveFilter && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setActiveFilter('all');
+                  setShowPast(false);
+                }}
+                className="h-9 rounded-[8px] text-xs gap-1 text-stone-500 hover:text-stone-900 dark:hover:text-stone-100"
+              >
+                <X className="h-3.5 w-3.5 stroke-[1.5]" />
+                Clear filters
+              </Button>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Upcoming Bookings */}
       {upcomingBookings.length > 0 && (
-        <section className="mb-12" aria-labelledby="upcoming-heading">
-          <div className="flex items-center gap-2 mb-6">
-            <Calendar className="h-6 w-6 text-primary" />
-            <h2 id="upcoming-heading" className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Upcoming ({upcomingBookings.length})
+        <section className="mb-10" aria-labelledby="upcoming-heading">
+          <div className="flex items-center gap-2 mb-4">
+            <Calendar className="h-4 w-4 stroke-[1.5] text-stone-500 dark:text-stone-400" />
+            <h2 id="upcoming-heading" className="text-lg font-medium text-stone-900 dark:text-stone-100">
+              Upcoming appointments
             </h2>
+            <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded-[6px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200/60 dark:border-stone-700/60 ml-1">
+              {upcomingBookings.length}
+            </span>
           </div>
           <div className="space-y-4">
             {upcomingBookings.map((booking) => (
@@ -187,12 +191,17 @@ export default function MyBookingsPage() {
 
       {/* Past Bookings */}
       {(pastBookings.length > 0 || showPast) && (
-        <section aria-labelledby="past-heading">
-          <div className="flex items-center gap-2 mb-6">
-            <Archive className="h-6 w-6 text-gray-500" />
-            <h2 id="past-heading" className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              Past Bookings {pastBookings.length > 0 && `(${pastBookings.length})`}
+        <section className="mb-10" aria-labelledby="past-heading">
+          <div className="flex items-center gap-2 mb-4">
+            <Archive className="h-4 w-4 stroke-[1.5] text-stone-500 dark:text-stone-400" />
+            <h2 id="past-heading" className="text-lg font-medium text-stone-900 dark:text-stone-100">
+              Past appointments
             </h2>
+            {pastBookings.length > 0 && (
+              <span className="text-xs font-mono tabular-nums px-2 py-0.5 rounded-[6px] bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200/60 dark:border-stone-700/60 ml-1">
+                {pastBookings.length}
+              </span>
+            )}
           </div>
           {pastBookings.length > 0 ? (
             <div className="space-y-4">
@@ -206,14 +215,14 @@ export default function MyBookingsPage() {
               ))}
             </div>
           ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Archive className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-                  No Past Bookings
+            <Card className="rounded-[12px] border border-stone-200/80 dark:border-stone-800/80 bg-card">
+              <CardContent className="p-8 sm:p-10 text-center">
+                <Archive className="h-8 w-8 stroke-[1.5] text-stone-400 dark:text-stone-500 mx-auto mb-3" />
+                <h3 className="text-base font-medium text-stone-900 dark:text-stone-100 mb-1">
+                  No past bookings
                 </h3>
-                <p className="text-gray-500 dark:text-gray-400 mb-6">
-                  Your completed and cancelled bookings will appear here.
+                <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
+                  Your completed and cancelled appointments will appear here.
                 </p>
               </CardContent>
             </Card>
@@ -221,26 +230,26 @@ export default function MyBookingsPage() {
         </section>
       )}
 
-      {/* Empty State */}
+      {/* Empty State when zero total filtered bookings */}
       {filteredBookings.length === 0 && !isLoading && (
-        <Card>
-          <CardContent className="p-12 text-center">
-            <ShoppingBag className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              No Bookings Found
+        <Card className="rounded-[12px] border border-stone-200/80 dark:border-stone-800/80 bg-card">
+          <CardContent className="p-10 sm:p-14 text-center">
+            <Calendar className="h-10 w-10 stroke-[1.5] text-stone-400 dark:text-stone-500 mx-auto mb-3" />
+            <h2 className="text-base sm:text-lg font-medium text-stone-900 dark:text-stone-100 mb-1.5">
+              No bookings found
             </h2>
-            <p className="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-6 max-w-sm mx-auto">
               {activeFilter !== 'all'
-                ? `No ${getStatusLabel(activeFilter).toLowerCase()} bookings found.`
-                : 'You haven\'t made any bookings yet.'}
+                ? `No ${activeFilter.toLowerCase().replace('_', ' ')} bookings found for this filter.`
+                : 'You have not scheduled any appointments yet. Choose a service from our menu to book your session.'}
             </p>
             <Button
-              size="lg"
-              className="gap-2"
-              onClick={() => window.location.href = '/services'}
+              size="md"
+              className="rounded-[8px] gap-1.5"
+              onClick={() => (window.location.href = '/services')}
             >
-              Browse Services
-              <ShoppingBag className="h-4 w-4" />
+              Explore services
+              <ArrowRight className="h-3.5 w-3.5 stroke-[1.5]" />
             </Button>
           </CardContent>
         </Card>
