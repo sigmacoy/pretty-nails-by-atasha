@@ -66,3 +66,7 @@ mvnw.cmd
 # Reference dirs
 pretty-nails-source/
 sims-reference/
+backend/
+src/
+backend/
+src/
