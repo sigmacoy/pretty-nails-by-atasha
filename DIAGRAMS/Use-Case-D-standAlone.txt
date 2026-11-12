@@ -1,0 +1,86 @@
+
+flowchart LR
+    %% ============================================================
+    %% ACTORS
+    %% ============================================================
+    Customer["👤 Customer<br/>(End-User)"]
+
+    %% ============================================================
+    %% SYSTEM BOUNDARY
+    %% ============================================================
+    subgraph System ["Pretty Nails by Atasha - Customer Application"]
+
+        subgraph Shared ["Shared Features (All Developers)"]
+            UC_Auth(["Login / Register (Email & Social)"])
+            UC_Profile(["Manage Profile & Contact Info"])
+        end
+
+        subgraph Dev1 ["Dev 1: Booking & Scheduling (Mr. Ambe)"]
+            UC_Slot(["Select Date & Slot (Real-time Availability)"])
+            UC_Inspo(["Upload Inspiration Photo"])
+            UC_Proof(["Upload Downpayment Receipt (GCash/Maya)"])
+            UC_History(["Track Appointment Status & Booking History"])
+            UC_Resched(["Request Reschedule or Cancellation"])
+        end
+
+        subgraph Dev2 ["Dev 2: Digital Loyalty (Mr. Bacalla)"]
+            UC_Card(["View Digital Stamp Card & Balance"])
+            UC_QR(["Present Customer QR Code for Scanning"])
+            UC_Progress(["Track Reward Progress (e.g. Free Gel Set)"])
+            UC_Redeem(["Redeem Reward Voucher (Discount/Freebie)"])
+            UC_StampHist(["View Stamp & Reward History"])
+        end
+
+        subgraph Dev3 ["Dev 3: Gallery & Service Menu (Mr. Bacus)"]
+            UC_Menu(["Browse Service Menu with Tiered Prices"])
+            UC_Gallery(["Browse Interactive Nail Art Gallery"])
+            UC_Filter(["Filter Gallery by Style, Color & Shape"])
+            UC_Fav(["Save / Favorite Nail Designs"])
+            UC_BookDesign(["Book This Design (Direct Action)"])
+        end
+
+    end
+
+    %% ============================================================
+    %% ACTOR TO USE CASE ASSOCIATIONS
+    %% ============================================================
+    Customer --> UC_Auth
+    Customer --> UC_Profile
+
+    Customer --> UC_Slot
+    Customer --> UC_History
+
+    Customer --> UC_Card
+    Customer --> UC_QR
+    Customer --> UC_Progress
+    Customer --> UC_StampHist
+
+    Customer --> UC_Menu
+    Customer --> UC_Gallery
+    Customer --> UC_Fav
+
+    %% ============================================================
+    %% UML INCLUDE & EXTEND RELATIONSHIPS
+    %% ============================================================
+    UC_Slot -.->|"<<include>>"| UC_Proof
+    UC_Inspo -.->|"<<extend>>"| UC_Slot
+    UC_Resched -.->|"<<extend>>"| UC_History
+
+    UC_Redeem -.->|"<<extend>>"| UC_Progress
+
+    UC_Filter -.->|"<<extend>>"| UC_Gallery
+    UC_BookDesign -.->|"<<extend>>"| UC_Gallery
+    UC_BookDesign -.->|"<<include>>"| UC_Slot
+
+    %% ============================================================
+    %% STYLING
+    %% ============================================================
+    classDef actorStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20,font-weight:bold;
+    classDef usecaseStyle fill:#fce4ec,stroke:#c2185b,stroke-width:1.5px,color:#880e4f;
+    classDef packageStyle fill:#fafafa,stroke:#9e9e9e,stroke-width:1px,stroke-dasharray: 4 4;
+    classDef systemStyle fill:#ffffff,stroke:#37474f,stroke-width:2px;
+
+    class Customer actorStyle;
+    class UC_Auth,UC_Profile,UC_Slot,UC_Inspo,UC_Proof,UC_History,UC_Resched,UC_Card,UC_QR,UC_Progress,UC_Redeem,UC_StampHist,UC_Menu,UC_Gallery,UC_Filter,UC_Fav,UC_BookDesign usecaseStyle;
+    class Shared,Dev1,Dev2,Dev3 packageStyle;
+    class System systemStyle;

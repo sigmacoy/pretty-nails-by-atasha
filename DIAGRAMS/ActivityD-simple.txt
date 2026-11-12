@@ -1,4 +1,4 @@
-```mermaid
+
 flowchart TD
     subgraph Customer ["Customer"]
         C1["Browse Services, Gallery & Available Dates"]
@@ -70,4 +70,4 @@ flowchart TD
 
     C8 --> EndComplete([Salon Visit & Loyalty Completed])
     C9 --> EndComplete
-```
+

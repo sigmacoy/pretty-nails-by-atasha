@@ -1,4 +1,4 @@
-```mermaid
+
 classDiagram
     %% ============================================================
     %% Pretty Nails Salon - Core Domain Class Diagram (Simplified)
@@ -142,4 +142,4 @@ classDiagram
     Booking "1" -- "0..*" LoyaltyStamp : loyaltyStamps
 
     LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
-```
+
