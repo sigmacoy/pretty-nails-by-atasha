@@ -1,0 +1,64 @@
+
+classDiagram
+    class User {
+        -id: String
+        -name: String
+        -email: String
+        -role: String
+    }
+
+    class Service {
+        -id: String
+        -name: String
+        -category: String
+        -basePrice: BigDecimal
+    }
+
+    class ServiceVariant {
+        -id: String
+        -name: String
+        -price: BigDecimal
+    }
+
+    class Booking {
+        -id: String
+        -appointmentDate: LocalDate
+        -status: String
+        -totalPrice: BigDecimal
+    }
+
+    class BookingService {
+        -id: String
+        -quantity: Integer
+        -price: BigDecimal
+    }
+
+    class Payment {
+        -id: String
+        -amount: BigDecimal
+        -status: String
+        -method: String
+    }
+
+    class LoyaltyCard {
+        -id: String
+        -stampCount: Integer
+    }
+
+    class LoyaltyStamp {
+        -id: String
+        -amount: Integer
+        -earnedAt: LocalDateTime
+    }
+
+    User "1" *-- "0..*" Booking : bookings
+    User "1" -- "0..1" LoyaltyCard : loyaltyCard
+    User "1" *-- "0..*" Payment : payments
+    Service "1" *-- "0..*" ServiceVariant : variants
+    Service "1" *-- "0..*" BookingService : bookings
+    ServiceVariant "1" -- "0..*" BookingService : bookingServices
+    Booking "1" *-- "0..*" BookingService : services
+    Booking "1" -- "0..1" Payment : payment
+    Booking "1" *-- "0..*" LoyaltyStamp : loyaltyStamps
+    LoyaltyCard "1" *-- "0..*" LoyaltyStamp : stamps
+

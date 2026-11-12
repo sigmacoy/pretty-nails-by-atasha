@@ -1,0 +1,35 @@
+
+flowchart TD
+    subgraph Customer
+        C1["Browse Services & Slots"]
+        C2["Book Appointment"]
+        C3["Submit Payment Proof"]
+        C4["Scan Loyalty QR"]
+    end
+
+    subgraph Admin
+        A1["Review Bookings"]
+        A2["Verify Payment"]
+        A3["Complete Appointment"]
+    end
+
+    subgraph System
+        S1["Check Availability"]
+        S2["Save Booking"]
+        S3["Verify"]
+        S4["Issue Stamps"]
+    end
+
+    Start([Start]) --> C1
+    C1 --> S1
+    S1 --> C2
+    C2 --> S2
+    S2 --> C3
+    C3 --> A1
+    A1 --> A2
+    A2 --> A3
+    A3 --> C4
+    C4 --> S3
+    S3 --> S4
+    S4 --> EndNode([End])
+
