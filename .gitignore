@@ -20,6 +20,7 @@ target/
 *.iws
 *.iml
 *.ipr
+.idea/
 
 ### NetBeans ###
 /nbproject/private/
@@ -37,3 +38,31 @@ build/
 ### Claude ###
 .claude/worktrees/
 node_modules/
+
+# Local C
+mvnw.cmd
+
+# Build outputs
+frontend/.next/
+frontend/node_modules/
+pretty-nails-backend/target/
+
+# Environment
+*.local.env
+
+# Claude config
+.claude/
+
+# Agent configs
+.agents/
+
+# Root node_modules
+node_modules/
+
+# Maven wrapper
+mvnw
+mvnw.cmd
+
+# Reference dirs
+pretty-nails-source/
+sims-reference/
