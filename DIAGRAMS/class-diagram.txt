@@ -201,14 +201,18 @@ class UserDetails {
 class AuthService {
     +register(registerRequest: RegisterRequest): AuthResponse
     +login(loginRequest: LoginRequest): AuthResponse
-    +getCurrentUser(): User
+    +getCurrentUser(user: User): UserDto
+    +updateProfile(userId: String, request: UpdateProfileRequest): UserDto
+    +updateProfile(user: User, request: UpdateProfileRequest): UserDto
+    +changePassword(userId: String, request: ChangePasswordRequest): void
+    +changePassword(user: User, request: ChangePasswordRequest): void
 }
 
 class BookingService {
-    +createBooking(bookingRequest: BookingRequest): BookingResponse
-    +getUserBookings(userId: String): List~BookingResponse~
-    +getAdminBookings(page: Integer, size: Integer): Page~BookingResponse~
-    +updateBookingStatus(bookingId: String, status: String): BookingResponse
+    +createBooking(bookingRequest: BookingRequest): BookingDto
+    +getUserBookings(userId: String): List~BookingDto~
+    +getAdminBookings(page: Integer, size: Integer): Page~BookingDto~
+    +updateBookingStatus(bookingId: String, status: String): BookingDto
 }
 
 class ServiceService {
@@ -254,6 +258,19 @@ class AdminService {
     +deleteCustomerNote(noteId: String): void
 }
 
+class PaymentService {
+    +getPaymentByBookingId(bookingId: String): PaymentDto
+    +createPayment(user: User, request: PaymentRequest): PaymentResponse
+    +createPayment(request: PaymentRequest): PaymentResponse
+    +verifyPayment(paymentId: String, admin: User): PaymentDto
+    +getAllPayments(): List~PaymentDto~
+}
+
+class FileStorageService {
+    +storeFile(file: MultipartFile): UploadResponse
+    +getRootLocation(): Path
+}
+
 %% ===========================================
 %% CONTROLLER CLASSES
 %% ===========================================
@@ -261,14 +278,16 @@ class AdminService {
 class AuthController {
     +register(registerRequest: RegisterRequest): ResponseEntity~AuthResponse~
     +login(loginRequest: LoginRequest): ResponseEntity~AuthResponse~
-    +getCurrentUser(): ResponseEntity~User~
+    +getCurrentUser(): ResponseEntity~UserDto~
+    +updateProfile(request: UpdateProfileRequest): ResponseEntity~UserDto~
+    +changePassword(request: ChangePasswordRequest): ResponseEntity~MessageResponse~
 }
 
 class BookingController {
-    +createBooking(bookingRequest: BookingRequest): ResponseEntity~BookingResponse~
-    +getUserBookings(): List~BookingResponse~
-    +getAdminBookings(page: Integer, size: Integer): Page~BookingResponse~
-    +updateBookingStatus(bookingId: String, status: String): ResponseEntity~BookingResponse~
+    +createBooking(bookingRequest: BookingRequest): ResponseEntity~BookingDto~
+    +getUserBookings(): List~BookingDto~
+    +getAdminBookings(page: Integer, size: Integer): Page~BookingDto~
+    +updateBookingStatus(bookingId: String, status: String): ResponseEntity~BookingDto~
 }
 
 class ServiceController {
@@ -312,6 +331,17 @@ class AdminController {
     +addCustomerNote(noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
     +updateCustomerNote(noteId: String, noteRequest: CustomerNoteRequest): ResponseEntity~CustomerNote~
     +deleteCustomerNote(noteId: String): ResponseEntity~Void~
+}
+
+class PaymentController {
+    +getPaymentByBookingId(bookingId: String): ResponseEntity~PaymentDto~
+    +createPayment(request: PaymentRequest): ResponseEntity~PaymentResponse~
+    +verifyPayment(paymentId: String): ResponseEntity~PaymentDto~
+    +getAllPayments(): List~PaymentDto~
+}
+
+class UploadController {
+    +uploadFile(file: MultipartFile): ResponseEntity~UploadResponse~
 }
 
 %% ===========================================
@@ -456,7 +486,35 @@ class LoginRequest {
 
 class AuthResponse {
     -token: String
-    -user: User
+    -user: UserDto
+}
+
+class UserDto {
+    -id: String
+    -name: String
+    -email: String
+    -role: String
+    -nickname: String
+    -phone: String
+    -image: String
+    -createdAt: LocalDateTime
+}
+
+class UpdateProfileRequest {
+    -name: String
+    -phone: String
+    -nickname: String
+    -image: String
+}
+
+class ChangePasswordRequest {
+    -currentPassword: String
+    -newPassword: String
+    -confirmPassword: String
+}
+
+class MessageResponse {
+    -message: String
 }
 
 class BookingRequest {
@@ -474,7 +532,7 @@ class BookingServiceRequest {
     -quantity: Integer
 }
 
-class BookingResponse {
+class BookingDto {
     -id: String
     -userId: String
     -status: String
@@ -485,12 +543,12 @@ class BookingResponse {
     -downpayment: BigDecimal
     -notes: String
     -inspirationImg: String
-    -services: List~BookingServiceResponse~
-    -payment: PaymentResponse
+    -services: List~BookingServiceDto~
+    -payment: PaymentDto
     -createdAt: LocalDateTime
 }
 
-class BookingServiceResponse {
+class BookingServiceDto {
     -id: String
     -serviceId: String
     -variantId: String
@@ -567,13 +625,32 @@ class LoyaltyActionResponse {
     -newStampCount: Integer
 }
 
+class PaymentRequest {
+    -bookingId: String
+    -amount: BigDecimal
+    -method: String
+    -reference: String
+}
+
 class PaymentResponse {
     -id: String
+    -bookingId: String
+    -status: String
+    -message: String
+}
+
+class PaymentDto {
+    -id: String
+    -bookingId: String
+    -userId: String
     -amount: BigDecimal
     -status: String
     -method: String
     -reference: String
-    -verifiedAt: LocalDateTime
+    -verifiedAt: String
+    -verifiedBy: String
+    -createdAt: String
+    -updatedAt: String
 }
 
 class CustomerNoteRequest {
@@ -612,6 +689,12 @@ class LoyaltySettingsRequest {
     -stampExpiryDays: Integer
 }
 
+class UploadResponse {
+    -url: String
+    -filename: String
+    -size: Long
+}
+
 %% ===========================================
 %% RELATIONSHIPS (ARROWS)
 %% ===========================================
@@ -645,6 +728,8 @@ AvailabilityController --> AvailabilityService : uses
 GalleryController --> GalleryService : uses
 LoyaltyController --> LoyaltyService : uses
 AdminController --> AdminService : uses
+PaymentController --> PaymentService : uses
+UploadController --> FileStorageService : uses
 
 SecurityConfig --> JwtAuthenticationFilter : creates
 SecurityConfig --> CustomUserDetailsService : creates
@@ -654,6 +739,7 @@ JwtAuthenticationFilter --> CustomUserDetailsService : uses
 CustomUserDetailsService --> UserRepository : uses
 
 AuthService --> UserRepository : uses
+AuthService --> LoyaltyCardRepository : uses
 BookingService --> BookingRepository : uses
 BookingService --> BookingServiceRepository : uses
 BookingService --> PaymentRepository : uses
@@ -671,15 +757,22 @@ AdminService --> CustomerNoteRepository : uses
 AdminService --> BookingRepository : uses
 AdminService --> LoyaltyCardRepository : uses
 AdminService --> SettingRepository : uses
+PaymentService --> PaymentRepository : uses
+PaymentService --> BookingRepository : uses
+%% FileStorageService has no repository (uses filesystem)
 
 %% DTO Relationships
 AuthService --> RegisterRequest : uses
 AuthService --> LoginRequest : uses
 AuthService --> AuthResponse : uses
+AuthService --> UpdateProfileRequest : uses
+AuthService --> ChangePasswordRequest : uses
+AuthService --> UserDto : uses
+AuthService --> MessageResponse : uses
 BookingService --> BookingRequest : uses
-BookingService --> BookingResponse : uses
+BookingService --> BookingDto : uses
 BookingService --> BookingServiceRequest : uses
-BookingService --> BookingServiceResponse : uses
+BookingService --> BookingServiceDto : uses
 ServiceService --> ServiceRequest : uses
 AvailabilityService --> AvailabilityRequest : uses
 GalleryService --> GalleryRequest : uses
@@ -694,3 +787,8 @@ AdminService --> ReportResponse : uses
 AdminService --> LoyaltySettingsResponse : uses
 AdminService --> LoyaltySettingsRequest : uses
 AdminService --> CustomerNoteRequest : uses
+PaymentService --> PaymentRequest : uses
+PaymentService --> PaymentResponse : uses
+PaymentService --> PaymentDto : uses
+UploadController --> UploadResponse : uses
+FileStorageService --> UploadResponse : uses
