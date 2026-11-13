@@ -142,7 +142,7 @@ export default function HomePage() {
                 </div>
                 <div>
                   <div className="text-xs text-muted-foreground">Location</div>
-                  <div className="text-sm font-medium text-foreground mt-0.5">Talisay City studio</div>
+                  <div className="text-sm font-medium text-foreground mt-0.5">Cebu City</div>
                 </div>
               </div>
             </div>

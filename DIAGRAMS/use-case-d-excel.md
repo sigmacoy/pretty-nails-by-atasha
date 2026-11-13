@@ -175,7 +175,7 @@
 
 ---
 
-## UC11: Manage Services (CRUD)
+## UC10: Manage Services (CRUD)
 
 | Field | Details |
 |-------|---------|
@@ -194,7 +194,7 @@
 
 ---
 
-## UC13: Manage Availability (CRUD)
+## UC11: Manage Availability (CRUD)
 
 | Field | Details |
 |-------|---------|
@@ -213,7 +213,7 @@
 
 ---
 
-## UC14: View Public Gallery
+## UC12: View Public Gallery
 
 | Field | Details |
 |-------|---------|
@@ -232,7 +232,7 @@
 
 ---
 
-## UC15: Manage Gallery (CRUD)
+## UC13: Manage Gallery (CRUD)
 
 | Field | Details |
 |-------|---------|
@@ -251,7 +251,7 @@
 
 ---
 
-## UC16: View My Loyalty Card
+## UC14: View My Loyalty Card
 
 | Field | Details |
 |-------|---------|
@@ -270,7 +270,7 @@
 
 ---
 
-## UC17: Earn Stamps via QR Code
+## UC15: Earn Stamps via QR Code
 
 | Field | Details |
 |-------|---------|
@@ -289,7 +289,7 @@
 
 ---
 
-## UC18: View All Loyalty Cards
+## UC16: View All Loyalty Cards
 
 | Field | Details |
 |-------|---------|
@@ -308,7 +308,7 @@
 
 ---
 
-## UC19: Redeem Stamps
+## UC17: Redeem Stamps
 
 | Field | Details |
 |-------|---------|
@@ -327,7 +327,7 @@
 
 ---
 
-## UC20: View Dashboard Stats
+## UC18: View Dashboard Stats
 
 | Field | Details |
 |-------|---------|
@@ -346,7 +346,7 @@
 
 ---
 
-## UC21: View Reports
+## UC19: View Reports
 
 | Field | Details |
 |-------|---------|
@@ -365,7 +365,7 @@
 
 ---
 
-## UC22: Manage Loyalty Settings
+## UC20: Manage Loyalty Settings
 
 | Field | Details |
 |-------|---------|
@@ -384,7 +384,7 @@
 
 ---
 
-## UC23: Manage Customers
+## UC21: Manage Customers
 
 | Field | Details |
 |-------|---------|
@@ -403,7 +403,7 @@
 
 ---
 
-## UC24: Manage Customer Notes
+## UC22: Manage Customer Notes
 
 | Field | Details |
 |-------|---------|
@@ -424,30 +424,30 @@
 
 ## Summary Table
 
-| UC# | Use Case Name | Primary Actor | Package | API Endpoint(s) |
-|-----|---------------|---------------|---------|-----------------|
-| UC1 | Register Account | Public | Authentication | POST `/auth/register` |
-| UC2 | Login | Public | Authentication | POST `/auth/login` |
-| UC3 | View Profile | Customer | Authentication | GET/PUT `/auth/me` |
-| UC4 | View Available Dates | Public/Customer | Availability | GET `/availability` |
-| UC5 | View Active Services | Public/Customer | Service | GET `/services` |
-| UC6 | Create Booking | Customer | Booking | POST `/bookings` |
-| UC7 | View My Bookings | Customer | Booking | GET `/bookings` |
-| UC8 | View All Bookings | Admin | Booking | GET `/admin/bookings` |
-| UC9 | Update Booking Status | Admin | Booking | PUT `/admin/bookings/{id}/status` |
-| UC11 | Manage Services (CRUD) | Admin | Service | GET/POST/PUT/DELETE `/admin/services` |
-| UC13 | Manage Availability (CRUD) | Admin | Availability | GET/POST/PUT/DELETE `/admin/availability` |
-| UC14 | View Public Gallery | Public/Customer | Gallery | GET `/gallery` |
-| UC15 | Manage Gallery (CRUD) | Admin | Gallery | GET/POST/PUT/DELETE `/admin/gallery` |
-| UC16 | View My Loyalty Card | Customer | Loyalty | GET `/loyalty/card` |
-| UC17 | Earn Stamps via QR Code | Customer | Loyalty | POST `/loyalty/stamp` |
-| UC18 | View All Loyalty Cards | Admin | Loyalty | GET `/admin/loyalty` |
-| UC19 | Redeem Stamps | Customer | Loyalty | POST `/loyalty/redeem` |
-| UC20 | View Dashboard Stats | Admin | Admin Dashboard | GET `/admin/stats` |
-| UC21 | View Reports | Admin | Admin Dashboard | GET `/admin/reports` |
-| UC22 | Manage Loyalty Settings | Admin | Admin Dashboard | GET/POST `/admin/settings` |
-| UC23 | Manage Customers | Admin | Admin Dashboard | GET `/admin/customers` |
-| UC24 | Manage Customer Notes | Admin | Admin Dashboard | POST `/admin/customers/{userId}/notes` |
+| UC#  | Use Case Name | Primary Actor | Package | API Endpoint(s) |
+|------|---------------|---------------|---------|-----------------|
+| UC1  | Register Account | Public | Authentication | POST `/auth/register` |
+| UC2  | Login | Public | Authentication | POST `/auth/login` |
+| UC3  | View Profile | Customer | Authentication | GET/PUT `/auth/me` |
+| UC4  | View Available Dates | Public/Customer | Availability | GET `/availability` |
+| UC5  | View Active Services | Public/Customer | Service | GET `/services` |
+| UC6  | Create Booking | Customer | Booking | POST `/bookings` |
+| UC7  | View My Bookings | Customer | Booking | GET `/bookings` |
+| UC8  | View All Bookings | Admin | Booking | GET `/admin/bookings` |
+| UC9  | Update Booking Status | Admin | Booking | PUT `/admin/bookings/{id}/status` |
+| UC10 | Manage Services (CRUD) | Admin | Service | GET/POST/PUT/DELETE `/admin/services` |
+| UC11 | Manage Availability (CRUD) | Admin | Availability | GET/POST/PUT/DELETE `/admin/availability` |
+| UC12 | View Public Gallery | Public/Customer | Gallery | GET `/gallery` |
+| UC13 | Manage Gallery (CRUD) | Admin | Gallery | GET/POST/PUT/DELETE `/admin/gallery` |
+| UC14 | View My Loyalty Card | Customer | Loyalty | GET `/loyalty/card` |
+| UC15 | Earn Stamps via QR Code | Customer | Loyalty | POST `/loyalty/stamp` |
+| UC16 | View All Loyalty Cards | Admin | Loyalty | GET `/admin/loyalty` |
+| UC17 | Redeem Stamps | Customer | Loyalty | POST `/loyalty/redeem` |
+| UC18 | View Dashboard Stats | Admin | Admin Dashboard | GET `/admin/stats` |
+| UC19 | View Reports | Admin | Admin Dashboard | GET `/admin/reports` |
+| UC20 | Manage Loyalty Settings | Admin | Admin Dashboard | GET/POST `/admin/settings` |
+| UC21 | Manage Customers | Admin | Admin Dashboard | GET `/admin/customers` |
+| UC22 | Manage Customer Notes | Admin | Admin Dashboard | POST `/admin/customers/{userId}/notes` |
 
 ---
 

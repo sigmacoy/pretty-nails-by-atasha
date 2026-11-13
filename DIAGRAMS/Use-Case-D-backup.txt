@@ -1,0 +1,141 @@
+flowchart TD
+    %% ==============================
+    %% ACTORS
+    %% ==============================
+    Public["Unauthenticated User<br/>(Public)"]
+    Customer["Customer"]
+    Admin["Admin"]
+
+    %% ==============================
+    %% PACKAGE: Authentication
+    %% ==============================
+    subgraph Auth["Authentication"]
+        UC1["UC1: Register Account"]
+        UC2["UC2: Login"]
+        UC3["UC3: View Profile"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Booking Management
+    %% ==============================
+    subgraph Booking["Booking Management"]
+        UC6["UC6: Create Booking"]
+        UC7["UC7: View My Bookings"]
+        UC8["UC8: View All Bookings"]
+        UC9["UC9: Update Booking Status"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Service Management
+    %% ==============================
+    subgraph Service["Service Management"]
+        UC5["UC5: View Active Services"]
+        UC11["UC11: Manage Services (CRUD)"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Availability Management
+    %% ==============================
+    subgraph Availability["Availability Management"]
+        UC4["UC4: View Available Dates"]
+        UC13["UC13: Manage Availability (CRUD)"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Gallery Management
+    %% ==============================
+    subgraph Gallery["Gallery Management"]
+        UC14["UC14: View Public Gallery"]
+        UC15["UC15: Manage Gallery (CRUD)"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Loyalty Program
+    %% ==============================
+    subgraph Loyalty["Loyalty Program"]
+        UC16["UC16: View My Loyalty Card"]
+        UC17["UC17: Earn Stamps via QR Code"]
+        UC18["UC18: View All Loyalty Cards"]
+        UC19["UC19: Redeem Stamps"]
+    end
+
+    %% ==============================
+    %% PACKAGE: Admin Dashboard & Reports
+    %% ==============================
+    subgraph AdminDash["Admin Dashboard & Reports"]
+        UC20["UC20: View Dashboard Stats"]
+        UC21["UC21: View Reports"]
+        UC22["UC22: Manage Loyalty Settings"]
+        UC23["UC23: Manage Customers"]
+        UC24["UC24: Manage Customer Notes"]
+    end
+
+    %% ==============================
+    %% ACTOR - USE CASE RELATIONSHIPS
+    %% ==============================
+
+    %% Public (Unauthenticated User)
+    Public --> UC1
+    Public --> UC2
+    Public --> UC4
+    Public --> UC5
+    Public --> UC14
+
+    %% Customer (Authenticated)
+    Customer --> UC3
+    Customer --> UC4
+    Customer --> UC5
+    Customer --> UC6
+    Customer --> UC7
+    Customer --> UC16
+    Customer --> UC17
+
+    %% Admin (Authenticated)
+    Admin --> UC8
+    Admin --> UC9
+    Admin --> UC11
+    Admin --> UC13
+    Admin --> UC15
+    Admin --> UC18
+    Admin --> UC19
+    Admin --> UC20
+    Admin --> UC21
+    Admin --> UC22
+    Admin --> UC23
+    Admin --> UC24
+
+    %% ==============================
+    %% INCLUDE / EXTEND RELATIONSHIPS
+    %% ==============================
+
+    %% UC9 extends UC8 (Update Booking Status extends View All Bookings)
+    UC9 -.->|"<<extend>>"| UC8
+
+    %% UC13 includes UC4 (Manage Availability includes View Available Dates)
+    UC13 -.->|"<<include>>"| UC4
+
+    %% UC15 includes UC14 (Manage Gallery includes View Public Gallery)
+    UC15 -.->|"<<include>>"| UC14
+
+    %% UC19 extends UC18 (View All Loyalty Cards extends/includes Redeem Stamps)
+    UC19 -.->|"<<extend>>"| UC18
+
+    %% ==============================
+    %% GENERALIZATION RELATIONSHIPS
+    %% ==============================
+
+    %% Admin generalizes Customer (Admin has all Customer capabilities plus more)
+    Admin ==> Customer
+
+    %% ==============================
+    %% STYLING
+    %% ==============================
+    classDef actorStyle fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef usecaseStyle fill:#e3f2fd,stroke:#1565c0,stroke-width:1.5px,color:#0d47a1;
+    classDef includeStyle fill:#bbdefb,stroke:#1976d2,stroke-width:1.5px,stroke-dasharray: 5 5,color:#0d47a1;
+    classDef extendStyle fill:#fff9c4,stroke:#fbc02d,stroke-width:1.5px,stroke-dasharray: 5 5,color:#f57f17;
+    classDef packageStyle fill:#f5f5f5,stroke:#757575,stroke-width:1px;
+
+    class Public,Customer,Admin actorStyle;
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC11,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20,UC21,UC22,UC23,UC24 usecaseStyle;
+    class Auth,Booking,Service,Availability,Gallery,Loyalty,AdminDash packageStyle;
