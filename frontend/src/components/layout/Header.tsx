@@ -164,12 +164,20 @@ export function Header() {
               )}
             </div>
           ) : (
-            <div className="hidden lg:flex lg:items-center lg:gap-2">
-              <Link href="/login">
-                <Button variant="ghost" size="sm">Log in</Button>
+            <div className="hidden lg:flex lg:items-center lg:gap-3">
+              <Link
+                href="/login"
+                className="px-3.5 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-stone-700 hover:text-stone-950 dark:text-stone-300 dark:hover:text-white transition-colors"
+              >
+                Sign In
               </Link>
-              <Link href="/register">
-                <Button size="sm">Get started</Button>
+              <Link href="/booking">
+                <button
+                  type="button"
+                  className="px-4 py-2 rounded-full text-xs font-medium uppercase tracking-[0.14em] bg-rose-900 hover:bg-rose-950 text-white dark:bg-rose-100 dark:text-stone-950 dark:hover:bg-white shadow-[0_2px_8px_rgba(76,5,25,0.22)] border border-rose-800/80 transition-all duration-200"
+                >
+                  Book Appointment
+                </button>
               </Link>
             </div>
           )}
@@ -237,12 +245,21 @@ export function Header() {
               </button>
             </>
           ) : (
-            <div className="flex flex-col gap-2 pt-2">
-              <Link href="/login" onClick={() => setIsMenuOpen(false)}>
-                <Button variant="outline" size="sm" className="w-full">Log in</Button>
+            <div className="flex flex-col gap-2 pt-3 border-t border-stone-200/80 dark:border-stone-800/80 mt-2">
+              <Link
+                href="/login"
+                onClick={() => setIsMenuOpen(false)}
+                className="w-full text-center py-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-700 dark:text-stone-300"
+              >
+                Sign In
               </Link>
-              <Link href="/register" onClick={() => setIsMenuOpen(false)}>
-                <Button size="sm" className="w-full">Get started</Button>
+              <Link href="/booking" onClick={() => setIsMenuOpen(false)}>
+                <button
+                  type="button"
+                  className="w-full py-2.5 rounded-full text-xs font-medium uppercase tracking-[0.14em] bg-rose-900 hover:bg-rose-950 text-white dark:bg-rose-100 dark:text-stone-950 shadow-xs"
+                >
+                  Book Appointment
+                </button>
               </Link>
             </div>
           )}

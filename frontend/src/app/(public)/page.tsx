@@ -2,8 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Check, Clock } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { ArrowUpRight, Check, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { servicesApi, galleryApi } from '@/lib/api';
 import { useQuery } from '@/hooks/useApi';
@@ -67,7 +66,6 @@ export default function HomePage() {
     if (apiItems.length >= 4) {
       return apiItems.slice(0, 4);
     }
-    // Blend with local gallery assets for rich visual lookbook presentation
     return [...apiItems, ...localGalleryFallback].slice(0, 4);
   }, [galleryData?.data]);
 
@@ -98,37 +96,37 @@ export default function HomePage() {
     {
       name: 'Rosewater Glaze',
       formula: 'Translucent Petal Sheer',
-      description: 'High-refraction Korean glass skin effect with a whisper of blush pink.',
+      description: 'High-refraction glass skin effect with a whisper of natural blush.',
       swatchClass: 'bg-gradient-to-br from-rose-200 via-rose-100 to-pink-50 border-rose-300/80',
-      badge: 'Signature Sheer',
+      opacityNote: 'Customizable sheer opacity',
     },
     {
       name: 'Ballet Slipper BIAB',
       formula: 'Reinforced Milky Blush',
-      description: 'Medical-grade apex architecture that supports natural growth for 4+ weeks.',
+      description: 'Structural apex architecture reinforcing natural nails for 4+ weeks.',
       swatchClass: 'bg-gradient-to-br from-rose-300 via-pink-200 to-rose-100 border-rose-400/80',
-      badge: 'Apex Builder',
+      opacityNote: 'High-strength apex overlay',
     },
     {
       name: 'Champagne Chrome',
       formula: 'Soft Mirror Micro-Pearl',
-      description: 'Ultra-fine rose-gold chrome burnished into cured gel for a liquid silk glow.',
+      description: 'Ultra-fine rose-gold pigment burnished into gel for liquid silk lustre.',
       swatchClass: 'bg-gradient-to-br from-amber-200/90 via-rose-200 to-pink-200 border-amber-300/80',
-      badge: 'Liquid Lustre',
+      opacityNote: 'Mirror-finish burnish',
     },
     {
       name: 'Velvet Noir Rose',
       formula: 'Deep Lacquer Berry',
       description: 'Couture deep cherry-wine pigment sealed under high-gloss cushion topcoat.',
       swatchClass: 'bg-gradient-to-br from-rose-950 via-rose-900 to-primary-950 border-rose-800/80',
-      badge: 'Haute Pigment',
+      opacityNote: 'Rich opaque pigment',
     },
   ];
 
   return (
     <div className="flex flex-col bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
       {/* ========================================================================= */}
-      {/* CHAPTER 1: THE PRIVATE ATELIER HERO                                       */}
+      {/* SECTION 1: THE PRIVATE ATELIER HERO                                       */}
       {/* ========================================================================= */}
       <section className="relative overflow-hidden border-b border-rose-200/70 dark:border-rose-950/60 pt-16 pb-20 sm:pt-20 sm:pb-24 lg:pt-24 lg:pb-32 bg-gradient-to-b from-[#FFF5F7] via-[#FFF0F3] to-[#FFF0F3] dark:from-[#1A0E15] dark:via-[#160D12] dark:to-[#160D12]">
         {/* Soft Ambient Rose Silk Radiance */}
@@ -141,14 +139,13 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Column: Haute Editorial Typography & Actions */}
             <div className="lg:col-span-7 flex flex-col items-start text-left">
-              {/* Studio Crest / Pill Badge */}
-              <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-[0.22em] bg-white/80 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 border border-rose-200/90 dark:border-rose-800/60 shadow-[0_2px_8px_-2px_rgba(244,114,182,0.2)] backdrop-blur-sm">
-                <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-                <span>Atelier Privé No. 04 · Cebu City</span>
-              </div>
+              {/* Integrated Editorial Kicker (No hanging pill, no pulse dot) */}
+              <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold">
+                Private Atelier · Cebu City
+              </span>
 
-              {/* Display Headline with Serif Contrast */}
-              <h1 className="mt-6 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-[1.04]">
+              {/* Display Headline with High-Contrast Serif Styling */}
+              <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-[1.04]">
                 Haute nail artistry &{' '}
                 <span className="italic font-normal text-rose-700 dark:text-rose-300">
                   structured BIAB
@@ -159,29 +156,27 @@ export default function HomePage() {
               {/* Elevated Narrative Copy */}
               <p className="mt-6 text-base sm:text-lg text-stone-600 dark:text-stone-300 max-w-xl font-normal leading-relaxed">
                 Pretty Nails by Atasha is a private, appointment-only studio sanctuary dedicated to
-                natural nail preservation, Japanese apex gel architecture, and bespoke micro-painted
+                natural nail preservation, Japanese apex gel architecture, and bespoke hand-painted
                 finishes. Every treatment is conducted in an unhurried, hygienic setting.
               </p>
 
-              {/* Luxury CTAs */}
-              <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 w-full sm:w-auto">
-                <Link href="/booking">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto gap-2.5 text-sm font-medium bg-primary hover:bg-rose-700 text-white shadow-[0_4px_20px_rgba(190,24,93,0.3)] hover:shadow-[0_6px_28px_rgba(190,24,93,0.45)] border border-primary-400/40 transition-all duration-300"
+              {/* Luxury Tailored Buttons */}
+              <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full sm:w-auto">
+                <Link href="/booking" className="w-full sm:w-auto">
+                  <button
+                    type="button"
+                    className="w-full sm:w-auto inline-flex items-center justify-center h-14 sm:h-16 px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-base sm:text-lg tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.28)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.4)] border border-rose-800/80 transition-all duration-300 hover:scale-[1.01]"
                   >
-                    <span>Reserve your appointment</span>
-                    <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
-                  </Button>
+                    Reserve an Appointment
+                  </button>
                 </Link>
-                <Link href="/services">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full sm:w-auto text-sm font-medium bg-white/80 dark:bg-stone-900/80 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-stone-900 dark:text-rose-100 border border-rose-200 dark:border-rose-900/60 shadow-xs transition-colors"
+                <Link href="/services" className="w-full sm:w-auto">
+                  <button
+                    type="button"
+                    className="w-full sm:w-auto inline-flex items-center justify-center h-14 sm:h-16 px-10 rounded-full bg-white/95 hover:bg-rose-50 dark:bg-stone-900/90 dark:hover:bg-rose-950/40 text-rose-950 dark:text-rose-100 font-medium text-base sm:text-lg border border-rose-300/80 dark:border-rose-800/80 shadow-xs transition-colors duration-200"
                   >
-                    Explore service catalog
-                  </Button>
+                    Explore Service Catalog
+                  </button>
                 </Link>
               </div>
 
@@ -214,7 +209,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Framed Editorial Lookbook Plate */}
+            {/* Right Column: Clean Editorial Lookbook Plate (Zero hanging sticker badges) */}
             <div className="lg:col-span-5 w-full">
               <div className="relative p-2.5 sm:p-3 rounded-3xl bg-gradient-to-b from-rose-200/60 via-white to-rose-100/50 dark:from-rose-950/60 dark:via-stone-900 dark:to-stone-950 border border-rose-200/90 dark:border-rose-900/60 shadow-[0_16px_48px_-12px_rgba(244,114,182,0.22)]">
                 <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-900 group">
@@ -225,24 +220,16 @@ export default function HomePage() {
                     loading="eager"
                   />
 
-                  {/* Top Seal Pill */}
-                  <div className="absolute top-4 right-4">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.16em] bg-white/90 dark:bg-black/80 text-rose-900 dark:text-rose-200 backdrop-blur-md border border-rose-200/70 shadow-xs">
-                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                      Studio Signature
-                    </span>
-                  </div>
-
-                  {/* Frosted Glass Lookbook Caption Plate */}
-                  <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-stone-950/90 via-stone-950/50 to-transparent">
-                    <div className="p-4 rounded-xl bg-white/10 dark:bg-stone-900/60 backdrop-blur-md border border-white/20 dark:border-rose-900/40 text-left">
-                      <span className="text-[10px] uppercase tracking-[0.2em] text-rose-200 font-semibold">
-                        Collection No. 04 · Atasha
-                      </span>
+                  {/* Clean Lookbook Gallery Plate (No floating sticker) */}
+                  <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent">
+                    <div className="p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-left">
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-rose-200/90 font-medium">
+                        Atelier Archive · Signature Manicure
+                      </div>
                       <h2 className="mt-1 text-base sm:text-lg font-serif font-normal text-white tracking-tight leading-snug">
-                        Structured BIAB overlay with rose chrome glaze
+                        Structured BIAB overlay with hand-painted micro art
                       </h2>
-                      <div className="mt-3 pt-3 border-t border-white/15 flex items-center justify-between text-xs text-rose-100/90">
+                      <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs text-rose-100/90">
                         <span className="flex items-center gap-1.5 tabular-nums">
                           <Clock className="h-3.5 w-3.5 text-rose-300" strokeWidth={1.5} />
                           90 min session
@@ -252,7 +239,7 @@ export default function HomePage() {
                           className="inline-flex items-center gap-1 text-white font-medium hover:text-rose-200 transition-colors"
                         >
                           Book this style
-                          <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={1.75} />
+                          <ArrowUpRight className="h-3.5 w-3.5 stroke-[1.5]" />
                         </Link>
                       </div>
                     </div>
@@ -265,17 +252,17 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* CHAPTER 2: THE HAUTE PIGMENT & FINISH ARCHIVE                             */}
+      {/* SECTION 2: THE HAUTE PIGMENT & FINISH ARCHIVE                             */}
       {/* ========================================================================= */}
       <section className="py-16 sm:py-20 border-b border-rose-200/70 dark:border-rose-950/60 bg-white/50 dark:bg-rose-950/15 backdrop-blur-xs">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 text-left">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.25em] text-rose-700 dark:text-rose-400 font-semibold">
-                Studio Materiality · Chapter 01
+              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
+                Studio Materiality & Palette
               </span>
               <h2 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-                Signature Finishes & Pigments
+                Signature Finishes & Japanese Gels
               </h2>
             </div>
             <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-md font-normal leading-relaxed">
@@ -284,6 +271,7 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Minimalist Cosmetic Compact Swatches (Zero hanging chip stickers) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {studioFinishes.map((finish, i) => (
               <div
@@ -291,29 +279,25 @@ export default function HomePage() {
                 className="group relative p-5 rounded-2xl bg-white dark:bg-stone-900/90 border border-rose-200/80 dark:border-rose-900/50 shadow-card hover:shadow-[0_8px_28px_-6px_rgba(244,114,182,0.18)] hover:border-rose-300 dark:hover:border-rose-700 transition-all duration-300 text-left flex flex-col justify-between"
               >
                 <div>
-                  {/* Swatch Sample Bar */}
+                  {/* Clean Tactile Color Sample (No floating sticker) */}
                   <div
-                    className={`h-16 w-full rounded-xl border ${finish.swatchClass} mb-4 relative overflow-hidden flex items-end p-2.5 transition-transform duration-500 group-hover:scale-[1.02]`}
-                  >
-                    <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-semibold tracking-wider uppercase bg-white/90 dark:bg-black/80 text-stone-900 dark:text-white backdrop-blur-xs shadow-xs">
-                      {finish.badge}
-                    </span>
-                  </div>
+                    className={`h-14 w-full rounded-xl border ${finish.swatchClass} mb-4 transition-transform duration-300 group-hover:scale-[1.01]`}
+                  />
 
                   <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-100 group-hover:text-primary transition-colors">
                     {finish.name}
                   </h3>
-                  <div className="text-[11px] uppercase tracking-[0.14em] text-rose-700 dark:text-rose-400 font-medium mt-0.5">
+                  <div className="text-xs text-rose-800 dark:text-rose-300 font-medium mt-0.5">
                     {finish.formula}
                   </div>
-                  <p className="mt-2.5 text-xs text-stone-500 dark:text-stone-400 leading-relaxed font-normal">
+                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed font-normal">
                     {finish.description}
                   </p>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-rose-100 dark:border-rose-950/80 flex items-center justify-between text-[11px] text-rose-800 dark:text-rose-300 font-medium">
-                  <span>Customizable opacity</span>
-                  <span className="tabular-nums">Tier 01</span>
+                  <span>{finish.opacityNote}</span>
+                  <span className="tabular-nums">Atelier Standard</span>
                 </div>
               </div>
             ))}
@@ -322,14 +306,14 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* CHAPTER 3: THE SERVICE MENU (Haute Atelier Treatment Card)                */}
+      {/* SECTION 3: THE SERVICE MENU (Clean Haute Atelier Rate Card)               */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-rose-200/70 dark:border-rose-950/60 bg-gradient-to-b from-transparent via-rose-50/30 to-transparent dark:via-rose-950/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 text-left">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.25em] text-rose-700 dark:text-rose-400 font-semibold">
-                Treatment Catalog · Chapter 02
+              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
+                Curated Service Menu
               </span>
               <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
                 Selected Studio Treatments
@@ -339,15 +323,11 @@ export default function HomePage() {
                 Each tier includes complete hygienic consultation.
               </p>
             </div>
-            <Link href="/services">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 text-xs font-medium border-rose-300/80 text-rose-950 hover:bg-rose-100/60 dark:border-rose-800 dark:text-rose-200 dark:hover:bg-rose-950/50"
-              >
-                Full service menu & tiers
-                <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.75} />
-              </Button>
+            <Link
+              href="/services"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-rose-300/80 bg-white/80 dark:bg-stone-900/80 text-rose-950 dark:text-rose-200 text-xs font-medium hover:bg-rose-50 transition-colors shadow-xs"
+            >
+              View Full Menu & Pricing
             </Link>
           </div>
 
@@ -360,7 +340,7 @@ export default function HomePage() {
                   onClick={() => setSelectedCategory(cat)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-[0.12em] uppercase transition-all duration-200 shrink-0 ${
                     selectedCategory === cat
-                      ? 'bg-primary text-white shadow-xs font-semibold'
+                      ? 'bg-rose-900 text-white shadow-xs font-semibold'
                       : 'bg-white/80 dark:bg-stone-900/80 text-stone-600 dark:text-stone-300 border border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-900'
                   }`}
                 >
@@ -370,7 +350,7 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Clean Hairline Typographic Table with Rose Transitions */}
+          {/* Clean Hairline Typographic Table (No chip-cloud tags) */}
           {servicesLoading ? (
             <div className="divide-y divide-rose-200/60 dark:divide-rose-950/60 border-y border-rose-200/70 dark:border-rose-950/70">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -396,7 +376,8 @@ export default function HomePage() {
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left">
                     <div className="flex items-start sm:items-center gap-4 sm:gap-6">
-                      <span className="inline-block px-2.5 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.18em] bg-rose-100/80 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 border border-rose-200/80 dark:border-rose-800/60 shrink-0">
+                      {/* Quiet Typographic Category Column (No rounded pill chip) */}
+                      <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-rose-800/80 dark:text-rose-300/80 w-28 shrink-0">
                         {service.category.toLowerCase().replace('_', ' ')}
                       </span>
                       <div>
@@ -439,29 +420,25 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* CHAPTER 4: LOOKBOOK ARCHIVE & MASTERWORK FINISHES                         */}
+      {/* SECTION 4: LOOKBOOK ARCHIVE & MASTERWORK FINISHES                         */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-rose-200/70 dark:border-rose-950/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 text-left">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.25em] text-rose-700 dark:text-rose-400 font-semibold">
-                Lookbook Archive · Chapter 03
+              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
+                Studio Archive & Lookbook
               </span>
               <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
                 Recent Studio Finishes
               </h2>
             </div>
-            <Link href="/gallery">
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 text-xs font-medium border-rose-300/80 text-rose-950 hover:bg-rose-100/60 dark:border-rose-800 dark:text-rose-200 dark:hover:bg-rose-950/50"
-              >
-                View complete archive
-                <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.75} />
-              </Button>
+            <Link
+              href="/gallery"
+              className="inline-flex items-center justify-center px-5 py-2.5 rounded-full border border-rose-300/80 bg-white/80 dark:bg-stone-900/80 text-rose-950 dark:text-rose-200 text-xs font-medium hover:bg-rose-50 transition-colors shadow-xs"
+            >
+              View Complete Gallery
             </Link>
           </div>
 
@@ -592,10 +569,9 @@ export default function HomePage() {
                 <div className="mt-4 pt-3 border-t border-rose-100 dark:border-rose-950/80">
                   <Link
                     href="/loyalty"
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-rose-700 transition-colors"
+                    className="inline-flex items-center text-xs font-semibold text-primary hover:text-rose-700 hover:underline transition-colors"
                   >
                     View your digital loyalty card
-                    <ArrowRight className="h-3.5 w-3.5" />
                   </Link>
                 </div>
               </div>
@@ -605,7 +581,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* CHAPTER 5: FINAL PRIVATE BOOKING INVITATION                               */}
+      {/* SECTION 5: FINAL PRIVATE BOOKING INVITATION                               */}
       {/* ========================================================================= */}
       <section className="relative overflow-hidden py-24 lg:py-36 bg-gradient-to-b from-transparent via-[#FFEBF0]/70 to-[#FFF0F3] dark:via-rose-950/25 dark:to-[#160D12]">
         {/* Soft Ambient Rose Background Glow */}
@@ -615,10 +591,10 @@ export default function HomePage() {
         />
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.22em] bg-white/90 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border border-rose-200/90 dark:border-rose-800/60 shadow-xs mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-            <span>Private Atelier Booking</span>
-          </div>
+          {/* Understated Editorial Subline (No hanging pill badge) */}
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold mb-3 block">
+            Dedicated Appointments · Cebu City
+          </span>
 
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Reserve your studio appointment
@@ -629,24 +605,23 @@ export default function HomePage() {
             and enjoy an unhurried, private 1-on-1 experience.
           </p>
 
-          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5">
+          {/* Haute Atelier Button Pair */}
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/booking" className="w-full sm:w-auto">
-              <Button
-                size="lg"
-                className="w-full sm:w-auto gap-2.5 text-sm font-medium bg-primary hover:bg-rose-700 text-white shadow-[0_4px_24px_rgba(190,24,93,0.35)] hover:shadow-[0_6px_32px_rgba(190,24,93,0.5)] border border-primary-400/40 transition-all duration-300"
+              <button
+                type="button"
+                className="w-full sm:w-auto inline-flex items-center justify-center h-14 sm:h-16 px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-base sm:text-lg tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.3)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.45)] border border-rose-800/80 transition-all duration-300 hover:scale-[1.01]"
               >
-                <span>Book your appointment</span>
-                <ArrowRight className="h-4 w-4" strokeWidth={1.75} />
-              </Button>
+                Reserve an Appointment
+              </button>
             </Link>
             <Link href="/availability" className="w-full sm:w-auto">
-              <Button
-                variant="outline"
-                size="lg"
-                className="w-full sm:w-auto text-sm font-medium bg-white/90 dark:bg-stone-900/90 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-stone-900 dark:text-rose-100 border border-rose-300/80 dark:border-rose-800 shadow-xs"
+              <button
+                type="button"
+                className="w-full sm:w-auto inline-flex items-center justify-center h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-white/95 hover:bg-rose-50 dark:bg-stone-900/90 dark:hover:bg-rose-950/40 text-rose-950 dark:text-rose-100 font-medium text-base sm:text-lg border border-rose-300/80 dark:border-rose-800/80 shadow-xs transition-colors duration-200"
               >
-                Check live availability
-              </Button>
+                Check Live Availability
+              </button>
             </Link>
           </div>
 
