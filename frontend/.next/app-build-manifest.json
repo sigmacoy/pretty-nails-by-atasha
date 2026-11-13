@@ -26,20 +26,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/error.js"
     ],
-    "/(public)/availability/page": [
+    "/_not-found/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/(public)/availability/page.js"
-    ],
-    "/(public)/gallery/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/gallery/page.js"
-    ],
-    "/(public)/services/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/services/page.js"
+      "static/chunks/app/_not-found/page.js"
     ]
   }
 }

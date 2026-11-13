@@ -211,11 +211,11 @@ export default function HomePage() {
 
               {/* Display Headline with High-Contrast Serif Styling */}
               <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-[1.04]">
-                Haute nail artistry &{' '}
+                Life is too short to have{' '}
                 <span className="italic font-normal text-rose-700 dark:text-rose-300">
-                  structured BIAB
-                </span>{' '}
-                overlays.
+                  naked nails
+                </span>
+                .
               </h1>
 
               {/* Elevated Narrative Copy */}
