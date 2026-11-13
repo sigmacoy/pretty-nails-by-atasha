@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, Check, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -19,14 +19,12 @@ export default function HomePage() {
     { enabled: true }
   );
 
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
-
-  // Real studio gallery fallback items
+  // Real studio gallery fallback items with distinct local photography
   const localGalleryFallback: GalleryDto[] = [
     {
       id: 'local-1',
-      title: 'Structured BIAB with Micro French Hairline',
-      category: 'BIAB OVERLAY',
+      title: 'Magnetic Velvet Cat-Eye in Bronze Shimmer',
+      category: 'CAT-EYE FINISH',
       imageUrl: '/gallery/sample2.jpg',
       isActive: true,
       createdAt: '',
@@ -34,8 +32,8 @@ export default function HomePage() {
     },
     {
       id: 'local-2',
-      title: 'Rose Quartz Glaze & Dimensional Micro Pearls',
-      category: 'NAIL ART',
+      title: 'Tortoiseshell Glass & Noir Minimalist',
+      category: 'BESPOKE ART',
       imageUrl: '/gallery/sample3.jpg',
       isActive: true,
       createdAt: '',
@@ -43,8 +41,8 @@ export default function HomePage() {
     },
     {
       id: 'local-3',
-      title: 'Champagne Chrome Mirror over Sheer Blush',
-      category: 'CHROME FINISH',
+      title: 'Burgundy Wave French with Gold Hairline',
+      category: 'STRUCTURED BIAB',
       imageUrl: '/gallery/sample4.jpg',
       isActive: true,
       createdAt: '',
@@ -52,44 +50,143 @@ export default function HomePage() {
     },
     {
       id: 'local-4',
-      title: 'Botanical Hand-Painted Miniatures on Linen',
-      category: 'BESPOKE ART',
+      title: 'Milky Blush Soft Gel with Glass Cushion Top',
+      category: 'GEL OVERLAY',
       imageUrl: '/gallery/sample5.jpg',
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'local-5',
+      title: 'Pastel Buttercup & Metallic Foil Accent',
+      category: 'NAIL ART',
+      imageUrl: '/gallery/sample6.jpg',
+      isActive: true,
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'local-6',
+      title: 'Precision Cuticle Prep & Gold Contour Detail',
+      category: 'STUDIO CRAFT',
+      imageUrl: '/gallery/sample7.jpg',
       isActive: true,
       createdAt: '',
       updatedAt: '',
     },
   ];
 
+  // Dedicated hero visual plate (never duplicated in gallery)
+  const heroImage = '/gallery/sample1.jpg';
+
+  // Strict deduplication of lookbook items by imageUrl
   const galleryItems = useMemo(() => {
     const apiItems = galleryData?.data?.filter((item) => item.isActive) || [];
-    if (apiItems.length >= 4) {
-      return apiItems.slice(0, 4);
+    const seenUrls = new Set<string>();
+    
+    // Exclude hero image to prevent duplication between hero plate and gallery
+    seenUrls.add(heroImage);
+
+    const uniqueItems: GalleryDto[] = [];
+
+    for (const item of [...apiItems, ...localGalleryFallback]) {
+      if (!item.imageUrl) continue;
+      const normalizedUrl = item.imageUrl.trim();
+      if (!seenUrls.has(normalizedUrl)) {
+        seenUrls.add(normalizedUrl);
+        uniqueItems.push(item);
+      }
+      if (uniqueItems.length === 4) break;
     }
-    return [...apiItems, ...localGalleryFallback].slice(0, 4);
+
+    return uniqueItems;
   }, [galleryData?.data]);
 
-  // Primary hero visual plate
-  const heroImage = galleryItems[0]?.imageUrl || '/gallery/sample1.jpg';
+  // Curated studio treatments fallback (active 4 core disciplines)
+  const defaultServicesFallback: ServiceDto[] = [
+    {
+      id: 'service-extension',
+      name: 'Soft Gel Extension',
+      category: 'EXTENSION',
+      description: 'Sculpted length with apex architecture and Japanese soft gel',
+      basePrice: 80000,
+      duration: 90,
+      isActive: true,
+      variants: [
+        { id: 'v1', serviceId: 'service-extension', name: 'Short', price: 80000 },
+        { id: 'v2', serviceId: 'service-extension', name: 'Medium', price: 95000 },
+        { id: 'v3', serviceId: 'service-extension', name: 'Long', price: 110000 },
+      ],
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'service-gel',
+      name: 'Structured BIAB & Gel Overlay',
+      category: 'GEL',
+      description: 'Natural plate reinforcement with Russian dry cuticle prep',
+      basePrice: 50000,
+      duration: 60,
+      isActive: true,
+      variants: [
+        { id: 'v4', serviceId: 'service-gel', name: 'Classic', price: 50000 },
+        { id: 'v5', serviceId: 'service-gel', name: 'French Accent', price: 60000 },
+      ],
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'service-pedicure',
+      name: 'Signature Luxe Gel Pedicure',
+      category: 'PEDICURE',
+      description: 'Callus softening, gentle dry prep, and high-shine gel finish',
+      basePrice: 60000,
+      duration: 60,
+      isActive: true,
+      variants: [
+        { id: 'v6', serviceId: 'service-pedicure', name: 'Classic', price: 60000 },
+        { id: 'v7', serviceId: 'service-pedicure', name: 'French Finish', price: 70000 },
+      ],
+      createdAt: '',
+      updatedAt: '',
+    },
+    {
+      id: 'service-cleaning',
+      name: 'Studio Dry Cuticle Prep & Hygiene Care',
+      category: 'CLEANING',
+      description: 'Precision e-file dry manicuring and natural plate conditioning',
+      basePrice: 30000,
+      duration: 30,
+      isActive: true,
+      variants: [
+        { id: 'v8', serviceId: 'service-cleaning', name: 'Basic', price: 30000 },
+        { id: 'v9', serviceId: 'service-cleaning', name: 'Deep Clean', price: 45000 },
+      ],
+      createdAt: '',
+      updatedAt: '',
+    },
+  ];
 
-  // Categories extracted from real service data
-  const categories = useMemo(() => {
-    const list = servicesData?.data || [];
-    const set = new Set<string>();
-    list.forEach((s) => {
-      if (s.category) set.add(s.category.toUpperCase());
-    });
-    return ['ALL', ...Array.from(set)];
-  }, [servicesData?.data]);
-
-  // Filtered services for interactive showcase
+  // Curated studio treatments in atelier discipline order
   const displayedServices = useMemo(() => {
-    const all = servicesData?.data || [];
-    if (selectedCategory === 'ALL') {
-      return all.slice(0, 6);
-    }
-    return all.filter((s) => s.category?.toUpperCase() === selectedCategory).slice(0, 6);
-  }, [servicesData?.data, selectedCategory]);
+    const activeFromApi = servicesData?.data?.filter((s) => s.isActive) || [];
+    const source = activeFromApi.length > 0 ? activeFromApi : defaultServicesFallback;
+    const categoryOrder: Record<string, number> = {
+      EXTENSION: 1,
+      GEL: 2,
+      BIAB: 2,
+      PEDICURE: 3,
+      CLEANING: 4,
+    };
+    return [...source]
+      .sort(
+        (a, b) =>
+          (categoryOrder[a.category?.toUpperCase()] || 99) -
+          (categoryOrder[b.category?.toUpperCase()] || 99)
+      )
+      .slice(0, 4);
+  }, [servicesData?.data]);
 
   // Haute studio finishes and pigment curation
   const studioFinishes = [
@@ -209,41 +306,31 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Clean Editorial Lookbook Plate (Zero hanging sticker badges) */}
+            {/* Right Column: Clean Editorial Lookbook Plate */}
             <div className="lg:col-span-5 w-full">
-              <div className="relative p-2.5 sm:p-3 rounded-3xl bg-gradient-to-b from-rose-200/60 via-white to-rose-100/50 dark:from-rose-950/60 dark:via-stone-900 dark:to-stone-950 border border-rose-200/90 dark:border-rose-900/60 shadow-[0_16px_48px_-12px_rgba(244,114,182,0.22)]">
-                <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-900 group">
+              <div className="relative p-3 sm:p-4 rounded-3xl bg-white dark:bg-stone-900 border border-rose-200/90 dark:border-rose-900/60 shadow-[0_16px_48px_-12px_rgba(244,114,182,0.22)]">
+                <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-950">
                   <img
                     src={heroImage}
                     alt="Pretty Nails by Atasha signature structured BIAB manicure"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-[1.02]"
                     loading="eager"
                   />
+                </div>
 
-                  {/* Clean Lookbook Gallery Plate (No floating sticker) */}
-                  <div className="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent">
-                    <div className="p-4 rounded-xl bg-black/40 backdrop-blur-md border border-white/15 text-left">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-rose-200/90 font-medium">
-                        Atelier Archive · Signature Manicure
-                      </div>
-                      <h2 className="mt-1 text-base sm:text-lg font-serif font-normal text-white tracking-tight leading-snug">
-                        Structured BIAB overlay with hand-painted micro art
-                      </h2>
-                      <div className="mt-2.5 pt-2.5 border-t border-white/15 flex items-center justify-between text-xs text-rose-100/90">
-                        <span className="flex items-center gap-1.5 tabular-nums">
-                          <Clock className="h-3.5 w-3.5 text-rose-300" strokeWidth={1.5} />
-                          90 min session
-                        </span>
-                        <Link
-                          href="/booking"
-                          className="inline-flex items-center gap-1 text-white font-medium hover:text-rose-200 transition-colors"
-                        >
-                          Book this style
-                          <ArrowUpRight className="h-3.5 w-3.5 stroke-[1.5]" />
-                        </Link>
-                      </div>
-                    </div>
+                {/* Editorial Exhibition Caption */}
+                <div className="pt-4 pb-1 px-1 flex items-baseline justify-between text-left">
+                  <div>
+                    <h2 className="font-serif text-base sm:text-lg font-medium text-stone-900 dark:text-rose-50 leading-snug">
+                      Structured BIAB Overlay
+                    </h2>
+                    <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-0.5 font-normal">
+                      Natural nail architecture in rosewater glaze
+                    </p>
                   </div>
+                  <span className="text-[10px] uppercase tracking-[0.24em] text-stone-400 dark:text-stone-500 font-semibold shrink-0">
+                    Atelier Cebu
+                  </span>
                 </div>
               </div>
             </div>
@@ -331,29 +418,10 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {/* Interactive Category Filter Pills */}
-          {categories.length > 2 && (
-            <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-6 scrollbar-none">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium tracking-[0.12em] uppercase transition-all duration-200 shrink-0 ${
-                    selectedCategory === cat
-                      ? 'bg-rose-900 text-white shadow-xs font-semibold'
-                      : 'bg-white/80 dark:bg-stone-900/80 text-stone-600 dark:text-stone-300 border border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-900'
-                  }`}
-                >
-                  {cat === 'ALL' ? 'All Treatments' : cat.toLowerCase().replace('_', ' ')}
-                </button>
-              ))}
-            </div>
-          )}
-
           {/* Clean Hairline Typographic Table (No chip-cloud tags) */}
           {servicesLoading ? (
             <div className="divide-y divide-rose-200/60 dark:divide-rose-950/60 border-y border-rose-200/70 dark:border-rose-950/70">
-              {Array.from({ length: 5 }).map((_, i) => (
+              {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="py-6 flex items-center justify-between">
                   <div className="space-y-2">
                     <Skeleton className="h-3 w-24 bg-rose-100/60 dark:bg-rose-950/40" />
@@ -416,6 +484,20 @@ export default function HomePage() {
               ))}
             </div>
           )}
+
+          {/* Editorial Rate Card Notice & Full Menu Link */}
+          <div className="mt-8 pt-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left border-t border-rose-100 dark:border-rose-950/60">
+            <p className="text-xs text-stone-500 dark:text-stone-400 font-normal max-w-2xl leading-relaxed">
+              Base rates include hospital-grade autoclave sterilization, single-use file implements, and thorough Russian dry cuticle refinement.
+            </p>
+            <Link
+              href="/services"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-rose-900 dark:text-rose-300 hover:text-rose-950 dark:hover:text-rose-200 shrink-0 transition-colors"
+            >
+              <span>Explore All Tiers & Pricing</span>
+              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -626,7 +708,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-6 text-xs text-rose-800/70 dark:text-rose-300/70 tracking-wide font-normal">
-            GCash & Maya reservation deposits · Instant confirmation · 24-hr advance rescheduling
+            GCash & Maya reservation deposits · Confirmed by studio upon deposit review · 24-hr advance rescheduling
           </p>
         </div>
       </section>
