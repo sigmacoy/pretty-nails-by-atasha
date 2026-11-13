@@ -75,8 +75,8 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
+        sans: ['var(--font-sans)', 'var(--font-instrument)', 'Instrument Sans', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Newsreader', 'Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
       },
       borderRadius: {
         sm: '0.375rem', // 6px for tags/pills
