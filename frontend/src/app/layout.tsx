@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Cormorant_Garamond } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '@/lib/auth';
 import { Toaster } from 'sonner';
@@ -8,6 +8,14 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-serif',
 });
 
 export const metadata: Metadata = {
@@ -67,7 +75,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${cormorant.variable} antialiased`} suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />

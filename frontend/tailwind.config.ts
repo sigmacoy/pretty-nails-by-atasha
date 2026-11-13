@@ -75,7 +75,8 @@ const config: Config = {
         ring: 'hsl(var(--ring))',
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['var(--font-inter)', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Cormorant Garamond', 'Playfair Display', 'Georgia', 'serif'],
       },
       borderRadius: {
         sm: '0.375rem', // 6px for tags/pills
