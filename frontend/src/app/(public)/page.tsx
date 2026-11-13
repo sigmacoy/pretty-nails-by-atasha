@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Clock,
-  ArrowRight,
-  ArrowUpRight,
-  Sparkle,
-  ShieldCheck,
-  CalendarCheck,
-  CreditCard,
-} from 'lucide-react';
+import { ArrowRight, ArrowUpRight } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -36,7 +28,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col bg-background text-foreground">
       {/* ========================================================================= */}
-      {/* 1. HERO SECTION: True Editorial Split with Real Studio Imagery            */}
+      {/* CHAPTER 1: THE STUDIO HERO & EDITORIAL FEATURE                            */}
       {/* ========================================================================= */}
       <section className="relative border-b border-border/60 py-16 sm:py-20 lg:py-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -48,13 +40,13 @@ export default function HomePage() {
               </span>
 
               <h1 className="mt-5 text-4xl sm:text-5xl lg:text-6xl font-normal sm:font-medium tracking-tighter text-foreground leading-[1.08]">
-                Handcrafted nail art & structured overlays.
+                Handcrafted nail art & structured gel overlays.
               </h1>
 
               <p className="mt-6 text-base sm:text-lg text-muted-foreground max-w-xl font-normal leading-relaxed">
-                Pretty Nails by Atasha is a private, appointment-only nail atelier dedicated to
-                natural nail reinforcement, BIAB gel overlays, and bespoke hand-painted finishes.
-                Every set is tailored to you in an unhurried, hygienic setting.
+                Pretty Nails by Atasha is a private, appointment-only atelier dedicated to natural
+                nail reinforcement, BIAB gel overlays, and bespoke hand-painted finishes. Every set is
+                crafted in an unhurried, hygienic setting.
               </p>
 
               <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
@@ -71,7 +63,7 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Editorial Studio Details Bar */}
+              {/* Quiet Studio Metadata Strip */}
               <div className="mt-12 pt-8 border-t border-border/60 grid grid-cols-3 gap-6 w-full text-left">
                 <div>
                   <div className="text-[11px] uppercase tracking-[0.16em] text-muted-foreground font-medium">
@@ -94,7 +86,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Right Column: Hero Visual — High-Impact Studio Photography */}
+            {/* Right Column: Hero Visual — Real Studio Photography */}
             <div className="lg:col-span-5 w-full">
               <div className="relative aspect-[4/5] sm:aspect-[3/4] rounded-2xl overflow-hidden border border-border/80 bg-muted group">
                 <img
@@ -103,14 +95,11 @@ export default function HomePage() {
                   className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.02]"
                   loading="eager"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/15 to-transparent flex flex-col justify-end p-6">
-                  <div className="inline-flex items-center gap-2 mb-2">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-                    <span className="text-[11px] uppercase tracking-[0.16em] text-stone-200 font-medium">
-                      Studio Archive · Atasha
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-medium text-white tracking-tight leading-snug">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex flex-col justify-end p-6">
+                  <span className="text-[11px] uppercase tracking-[0.16em] text-stone-300 font-medium">
+                    Studio Archive · Atasha
+                  </span>
+                  <h3 className="mt-1 text-lg font-medium text-white tracking-tight leading-snug">
                     Structured BIAB overlay with hand-painted micro art
                   </h3>
                   <div className="mt-3 pt-3 border-t border-white/20 flex items-center justify-between text-xs text-stone-300">
@@ -131,55 +120,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 2. THE ATELIER & ARTIST NOTE: Authentic Human Voice & Philosophy         */}
-      {/* ========================================================================= */}
-      <section className="py-20 lg:py-28 border-b border-border/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-            <div className="lg:col-span-5 lg:sticky lg:top-28">
-              <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-                The Atelier Philosophy
-              </span>
-              <h2 className="mt-3 text-3xl sm:text-4xl font-medium tracking-tighter text-foreground leading-tight">
-                Focus, patience, & natural nail health.
-              </h2>
-            </div>
-
-            <div className="lg:col-span-7 space-y-6 text-muted-foreground text-base leading-relaxed">
-              <p>
-                Too many salon experiences feel rushed, noisy, and damaging to natural nails. At
-                Pretty Nails by Atasha, every appointment is a dedicated one-on-one session where your
-                comfort and nail integrity come first.
-              </p>
-              <p>
-                I specialize in <strong>BIAB (Builder in a Bottle)</strong> and soft gel overlays.
-                Instead of harsh electric filing down to the nail plate, treatments emphasize gentle
-                cuticle care, precise structural apex building, and non-destructive fills that allow
-                your natural nails to grow long and healthy underneath.
-              </p>
-              <p>
-                Every metal implement goes through a hospital-grade autoclave sterilization cycle,
-                sealed in individual pouches opened exclusively in front of you. Single-use disposable
-                files and buffers are used for every client.
-              </p>
-
-              <div className="pt-6 border-t border-border/60 flex items-center justify-between">
-                <div>
-                  <div className="text-foreground font-medium text-base tracking-tight">Atasha</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">Founder & Studio Artist</div>
-                </div>
-                <div className="text-right">
-                  <div className="text-foreground font-medium text-sm tabular-nums">Cebu City</div>
-                  <div className="text-xs text-muted-foreground mt-0.5">Private Studio Location</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* 3. CURATED SERVICE MENU: Clean Horizontal Hairline Rows                   */}
+      {/* CHAPTER 2: THE SERVICE MENU (Clean Horizontal Typographic List)           */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-border/60 bg-muted/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -194,13 +135,13 @@ export default function HomePage() {
             </div>
             <Link href="/services">
               <Button variant="outline" size="sm" className="gap-2 text-xs font-medium">
-                View all pricing & tiers
+                Full service pricing & tiers
                 <ArrowRight className="h-3.5 w-3.5" strokeWidth={1.5} />
               </Button>
             </Link>
           </div>
 
-          {/* Interactive Hairline Rows */}
+          {/* Clean Hairline Typographic Rows */}
           {servicesLoading ? (
             <div className="divide-y divide-border/60 border-y border-border/60">
               {Array.from({ length: 5 }).map((_, i) => (
@@ -242,8 +183,7 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex items-center justify-between sm:justify-end gap-6 sm:gap-8 pt-2 sm:pt-0 border-t sm:border-t-0 border-border/40">
-                      <span className="text-xs text-muted-foreground tabular-nums flex items-center gap-1.5">
-                        <Clock className="h-3.5 w-3.5" strokeWidth={1.5} />
+                      <span className="text-xs text-muted-foreground tabular-nums">
                         {service.duration} min
                       </span>
                       <div className="flex items-center gap-3">
@@ -265,14 +205,15 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* 4. RECENT STUDIO WORK: Visual-First Nail Art Showcase                      */}
+      {/* CHAPTER 3: LOOKBOOK ARCHIVE, ATELIER PRACTICE & VISITING                   */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-border/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Part A: Visual Lookbook Archive */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-                Studio Archive
+                Lookbook Archive
               </span>
               <h2 className="mt-2 text-3xl sm:text-4xl font-medium tracking-tighter text-foreground">
                 Recent studio finishes
@@ -342,167 +283,94 @@ export default function HomePage() {
               )}
             </div>
           )}
-        </div>
-      </section>
 
-      {/* ========================================================================= */}
-      {/* 5. TACTILE LOYALTY CARD: Dedicated Physical Paper Artifact Moment          */}
-      {/* ========================================================================= */}
-      <section className="py-20 lg:py-28 border-b border-border/60 bg-muted/20">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mx-auto text-center mb-12">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-              Client Loyalty Program
-            </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-medium tracking-tighter text-foreground">
-              A physical card for your digital visits.
-            </h2>
-            <p className="mt-3 text-sm sm:text-base text-muted-foreground leading-relaxed">
-              Every completed appointment earns automated digital stamps on your phone. Scan in studio
-              after each appointment to track progress toward complimentary refills.
-            </p>
-          </div>
-
-          {/* Physical Cream Cardstock Representation */}
-          <div className="max-w-xl mx-auto rounded-2xl border border-border/90 bg-[#FDFBF7] dark:bg-stone-900 p-6 sm:p-8 shadow-sm">
-            <div className="flex items-center justify-between pb-4 border-b border-stone-200 dark:border-stone-800">
-              <div>
-                <div className="text-xs uppercase tracking-[0.16em] text-stone-500 dark:text-stone-400 font-medium">
-                  Studio Loyalty Card
-                </div>
-                <div className="text-base font-medium text-stone-900 dark:text-stone-100 mt-0.5">
-                  Pretty Nails by Atasha
-                </div>
-              </div>
-              <span className="text-[11px] font-mono uppercase tracking-widest text-primary bg-primary/10 px-2.5 py-1 rounded">
-                Tier 1
+          {/* Part B: The Atelier Practice & Human Studio Voice */}
+          <div className="mt-20 sm:mt-24 pt-16 border-t border-border/60 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+            <div className="lg:col-span-5">
+              <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
+                The Atelier Practice
               </span>
-            </div>
-
-            {/* Stamp Slots */}
-            <div className="mt-6">
-              <div className="flex items-center justify-between text-xs text-stone-600 dark:text-stone-400 mb-3">
-                <span>Earn 1 stamp per completed appointment</span>
-                <span className="font-mono tabular-nums">10 stamps total</span>
+              <h3 className="mt-3 text-2xl sm:text-3xl font-medium tracking-tighter text-foreground leading-tight">
+                Natural nail health, patience, & precision.
+              </h3>
+              <div className="mt-6 text-sm sm:text-base text-muted-foreground space-y-4 leading-relaxed">
+                <p>
+                  Every appointment at Pretty Nails is a private, one-on-one session where your
+                  natural nail health comes first. I specialize in BIAB (Builder in a Bottle) and
+                  soft gel overlays that reinforce your nails without abrasive filing.
+                </p>
+                <p>
+                  All metal implements undergo hospital-grade autoclave sterilization in individual
+                  pouches, and files are single-use for each client.
+                </p>
               </div>
-
-              <div className="grid grid-cols-5 gap-2.5">
-                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((slot) => {
-                  const isSampleEarned = slot <= 4;
-                  const isMilestone = slot === 5 || slot === 10;
-
-                  return (
-                    <div
-                      key={slot}
-                      className={`aspect-square rounded-xl flex flex-col items-center justify-center relative transition-colors ${
-                        isSampleEarned
-                          ? 'bg-primary/15 border border-primary/30 text-primary font-medium'
-                          : isMilestone
-                          ? 'border border-dashed border-primary/40 bg-primary/5 text-primary'
-                          : 'border border-dashed border-stone-300 dark:border-stone-700 text-stone-400'
-                      }`}
-                    >
-                      {isSampleEarned ? (
-                        <span className="h-2.5 w-2.5 rounded-full bg-primary" />
-                      ) : (
-                        <span className="text-xs font-mono tabular-nums">{slot}</span>
-                      )}
-                      {slot === 5 && (
-                        <span className="text-[9px] uppercase tracking-tighter text-primary font-medium mt-0.5">
-                          -20%
-                        </span>
-                      )}
-                      {slot === 10 && (
-                        <span className="text-[9px] uppercase tracking-tighter text-primary font-medium mt-0.5">
-                          Free
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-stone-200 dark:border-stone-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-stone-500 dark:text-stone-400">
-                <p>5 stamps: 20% off your refill · 10 stamps: Complimentary gel set</p>
-                <Link
-                  href="/loyalty"
-                  className="font-medium text-primary hover:underline shrink-0 inline-flex items-center gap-1"
-                >
-                  View your card
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+              <div className="mt-6 pt-4 border-t border-border/40">
+                <span className="text-foreground font-medium text-sm">Atasha</span>
+                <span className="text-muted-foreground text-xs ml-2">Studio Artist & Founder</span>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ========================================================================= */}
-      {/* 6. STUDIO POLICIES: Transparent, Human Booking Standards                  */}
-      {/* ========================================================================= */}
-      <section className="py-20 lg:py-28 border-b border-border/60">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="max-w-2xl mb-12">
-            <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-              Studio Guidelines
-            </span>
-            <h2 className="mt-2 text-3xl sm:text-4xl font-medium tracking-tighter text-foreground">
-              What to expect when booking
-            </h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-border/60 border-y border-border/60">
-            <div className="py-8 md:py-10 md:px-8 first:md:pl-0 last:md:pr-0">
-              <div className="flex items-center gap-2 text-foreground font-medium text-base">
-                <CreditCard className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <span>Reservation Deposit</span>
+            {/* Part C: Visiting Guidelines (Typography-First, Zero Icons) */}
+            <div className="lg:col-span-7 space-y-8 divide-y divide-border/60">
+              <div className="pt-0">
+                <h4 className="text-base font-medium text-foreground tracking-tight">
+                  Reservation Deposit
+                </h4>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  A small reservation deposit via GCash or Maya secures your dedicated time slot on
+                  the calendar. This amount is automatically credited toward your final bill upon
+                  checkout.
+                </p>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                A small reservation fee is submitted via GCash or Maya upon booking. This secures
-                your dedicated time slot on the studio calendar and is deducted from your final bill.
-              </p>
-            </div>
 
-            <div className="py-8 md:py-10 md:px-8 first:md:pl-0 last:md:pr-0">
-              <div className="flex items-center gap-2 text-foreground font-medium text-base">
-                <CalendarCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <span>24-Hour Reschedule</span>
+              <div className="pt-6">
+                <h4 className="text-base font-medium text-foreground tracking-tight">
+                  24-Hour Reschedule
+                </h4>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  Appointments can be rescheduled up to 24 hours in advance directly through your
+                  client portal without forfeiting your reservation deposit.
+                </p>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                Life happens. You can request a reschedule up to 24 hours prior to your appointment
-                without forfeiting your deposit through your client portal.
-              </p>
-            </div>
 
-            <div className="py-8 md:py-10 md:px-8 first:md:pl-0 last:md:pr-0">
-              <div className="flex items-center gap-2 text-foreground font-medium text-base">
-                <ShieldCheck className="h-4 w-4 text-primary" strokeWidth={1.5} />
-                <span>Sanitization Standard</span>
+              <div className="pt-6">
+                <h4 className="text-base font-medium text-foreground tracking-tight">
+                  Studio Loyalty Card
+                </h4>
+                <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                  Every completed appointment automatically accrues digital stamps toward
+                  complimentary refills and tier rewards.
+                </p>
+                <div className="mt-3">
+                  <Link
+                    href="/loyalty"
+                    className="inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                  >
+                    View your digital loyalty card
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                All metal implements are autoclave-sterilized in sealed pouches opened in front of you.
-                Buffers and files are single-use and disposed of after each client.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
       {/* ========================================================================= */}
-      {/* 7. QUIET CALL TO ACTION: Refined Luxury Studio Banner                     */}
+      {/* FINAL QUIET BOOKING INVITATION                                             */}
       {/* ========================================================================= */}
       <section className="py-24 lg:py-32">
-        <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
           <span className="text-[11px] uppercase tracking-[0.2em] text-muted-foreground font-medium">
-            Reserve Your Appointment
+            Appointments
           </span>
 
           <h2 className="mt-3 text-3xl sm:text-4xl lg:text-5xl font-medium tracking-tighter text-foreground leading-tight">
-            Ready for your next studio set?
+            Reserve your studio appointment
           </h2>
 
           <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Select your preferred treatment, view open calendar dates, and confirm in minutes.
+            Select your service, choose an open date, and enjoy a quiet, considered appointment.
           </p>
 
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
