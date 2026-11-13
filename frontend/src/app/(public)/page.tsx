@@ -188,38 +188,6 @@ export default function HomePage() {
       .slice(0, 4);
   }, [servicesData?.data]);
 
-  // Haute studio finishes and pigment curation
-  const studioFinishes = [
-    {
-      name: 'Rosewater Glaze',
-      formula: 'Translucent Petal Sheer',
-      description: 'High-refraction glass skin effect with a whisper of natural blush.',
-      swatchClass: 'bg-gradient-to-br from-rose-200 via-rose-100 to-pink-50 border-rose-300/80',
-      opacityNote: 'Customizable sheer opacity',
-    },
-    {
-      name: 'Ballet Slipper BIAB',
-      formula: 'Reinforced Milky Blush',
-      description: 'Structural apex architecture reinforcing natural nails for 4+ weeks.',
-      swatchClass: 'bg-gradient-to-br from-rose-300 via-pink-200 to-rose-100 border-rose-400/80',
-      opacityNote: 'High-strength apex overlay',
-    },
-    {
-      name: 'Champagne Chrome',
-      formula: 'Soft Mirror Micro-Pearl',
-      description: 'Ultra-fine rose-gold pigment burnished into gel for liquid silk lustre.',
-      swatchClass: 'bg-gradient-to-br from-amber-200/90 via-rose-200 to-pink-200 border-amber-300/80',
-      opacityNote: 'Mirror-finish burnish',
-    },
-    {
-      name: 'Velvet Noir Rose',
-      formula: 'Deep Lacquer Berry',
-      description: 'Couture deep cherry-wine pigment sealed under high-gloss cushion topcoat.',
-      swatchClass: 'bg-gradient-to-br from-rose-950 via-rose-900 to-primary-950 border-rose-800/80',
-      opacityNote: 'Rich opaque pigment',
-    },
-  ];
-
   return (
     <div className="flex flex-col bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
       {/* ========================================================================= */}
@@ -277,61 +245,17 @@ export default function HomePage() {
                 </Link>
               </div>
 
-              {/* Studio Atelier Standards Strip */}
-              <div className="mt-12 pt-8 border-t border-rose-200/70 dark:border-rose-950/70 grid grid-cols-3 gap-6 sm:gap-8 w-full text-left">
-                <div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-rose-700 dark:text-rose-400 font-semibold">
-                    The Suite
-                  </div>
-                  <div className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 mt-1">
-                    Private 1-on-1 Studio
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-rose-700 dark:text-rose-400 font-semibold">
-                    The Craft
-                  </div>
-                  <div className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 mt-1">
-                    Structured BIAB Gel
-                  </div>
-                </div>
-                <div>
-                  <div className="text-[10px] sm:text-[11px] uppercase tracking-[0.2em] text-rose-700 dark:text-rose-400 font-semibold">
-                    Hygiene
-                  </div>
-                  <div className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 mt-1">
-                    Autoclave Sterile
-                  </div>
-                </div>
-              </div>
             </div>
 
-            {/* Right Column: Clean Editorial Lookbook Plate */}
+            {/* Right Column: Clean Editorial Framed Portrait */}
             <div className="lg:col-span-5 w-full">
-              <div className="relative p-3 sm:p-4 rounded-3xl bg-white dark:bg-stone-900 border border-rose-200/90 dark:border-rose-900/60 shadow-[0_16px_48px_-12px_rgba(244,114,182,0.22)]">
-                <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-2xl overflow-hidden bg-stone-100 dark:bg-stone-950">
-                  <img
-                    src={heroImage}
-                    alt="Pretty Nails by Atasha signature structured BIAB manicure"
-                    className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-[1.02]"
-                    loading="eager"
-                  />
-                </div>
-
-                {/* Editorial Exhibition Caption */}
-                <div className="pt-4 pb-1 px-1 flex items-baseline justify-between text-left">
-                  <div>
-                    <h2 className="font-serif text-base sm:text-lg font-medium text-stone-900 dark:text-rose-50 leading-snug">
-                      Structured BIAB Overlay
-                    </h2>
-                    <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-0.5 font-normal">
-                      Natural nail architecture in rosewater glaze
-                    </p>
-                  </div>
-                  <span className="text-[10px] uppercase tracking-[0.24em] text-stone-400 dark:text-stone-500 font-semibold shrink-0">
-                    Atelier Cebu
-                  </span>
-                </div>
+              <div className="relative aspect-[3/4] sm:aspect-[4/5] rounded-3xl overflow-hidden border border-rose-200/90 dark:border-rose-900/60 shadow-[0_20px_50px_-12px_rgba(244,114,182,0.22)] bg-stone-100 dark:bg-stone-950">
+                <img
+                  src={heroImage}
+                  alt="Pretty Nails by Atasha signature structured BIAB manicure"
+                  className="h-full w-full object-cover transition-transform duration-700 ease-out hover:scale-[1.02]"
+                  loading="eager"
+                />
               </div>
             </div>
           </div>
@@ -339,61 +263,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SECTION 2: THE HAUTE PIGMENT & FINISH ARCHIVE                             */}
-      {/* ========================================================================= */}
-      <section className="py-16 sm:py-20 border-b border-rose-200/70 dark:border-rose-950/60 bg-white/50 dark:bg-rose-950/15 backdrop-blur-xs">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10 text-left">
-            <div>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
-                Studio Materiality & Palette
-              </span>
-              <h2 className="mt-2 text-2xl sm:text-3xl lg:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-                Signature Finishes & Japanese Gels
-              </h2>
-            </div>
-            <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-md font-normal leading-relaxed">
-              Formulated with Japanese 5-free soft gels and apex builders for 4+ week chip-resistant
-              wear without abrasive natural plate filing.
-            </p>
-          </div>
-
-          {/* Minimalist Cosmetic Compact Swatches (Zero hanging chip stickers) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-            {studioFinishes.map((finish, i) => (
-              <div
-                key={i}
-                className="group relative p-5 rounded-2xl bg-white dark:bg-stone-900/90 border border-rose-200/80 dark:border-rose-900/50 shadow-card hover:shadow-[0_8px_28px_-6px_rgba(244,114,182,0.18)] hover:border-rose-300 dark:hover:border-rose-700 transition-all duration-300 text-left flex flex-col justify-between"
-              >
-                <div>
-                  {/* Clean Tactile Color Sample (No floating sticker) */}
-                  <div
-                    className={`h-14 w-full rounded-xl border ${finish.swatchClass} mb-4 transition-transform duration-300 group-hover:scale-[1.01]`}
-                  />
-
-                  <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-100 group-hover:text-primary transition-colors">
-                    {finish.name}
-                  </h3>
-                  <div className="text-xs text-rose-800 dark:text-rose-300 font-medium mt-0.5">
-                    {finish.formula}
-                  </div>
-                  <p className="mt-2 text-xs text-stone-500 dark:text-stone-400 leading-relaxed font-normal">
-                    {finish.description}
-                  </p>
-                </div>
-
-                <div className="mt-4 pt-3 border-t border-rose-100 dark:border-rose-950/80 flex items-center justify-between text-[11px] text-rose-800 dark:text-rose-300 font-medium">
-                  <span>{finish.opacityNote}</span>
-                  <span className="tabular-nums">Atelier Standard</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ========================================================================= */}
-      {/* SECTION 3: THE SERVICE MENU (Clean Haute Atelier Rate Card)               */}
+      {/* SECTION 2: THE SERVICE MENU (Clean Haute Atelier Rate Card)               */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-rose-200/70 dark:border-rose-950/60 bg-gradient-to-b from-transparent via-rose-50/30 to-transparent dark:via-rose-950/20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -502,7 +372,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SECTION 4: LOOKBOOK ARCHIVE & MASTERWORK FINISHES                         */}
+      {/* SECTION 3: LOOKBOOK ARCHIVE & MASTERWORK FINISHES                         */}
       {/* ========================================================================= */}
       <section className="py-20 lg:py-28 border-b border-rose-200/70 dark:border-rose-950/60">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -663,7 +533,7 @@ export default function HomePage() {
       </section>
 
       {/* ========================================================================= */}
-      {/* SECTION 5: FINAL PRIVATE BOOKING INVITATION                               */}
+      {/* SECTION 4: FINAL PRIVATE BOOKING INVITATION                               */}
       {/* ========================================================================= */}
       <section className="relative overflow-hidden py-24 lg:py-36 bg-gradient-to-b from-transparent via-[#FFEBF0]/70 to-[#FFF0F3] dark:via-rose-950/25 dark:to-[#160D12]">
         {/* Soft Ambient Rose Background Glow */}
