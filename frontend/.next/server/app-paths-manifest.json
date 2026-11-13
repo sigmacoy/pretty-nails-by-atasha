@@ -1,22 +1,7 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
-  "/(admin)/admin/gallery/page": "app/(admin)/admin/gallery/page.js",
-  "/(admin)/admin/bookings/page": "app/(admin)/admin/bookings/page.js",
-  "/(admin)/admin/services/page": "app/(admin)/admin/services/page.js",
-  "/(admin)/admin/settings/page": "app/(admin)/admin/settings/page.js",
-  "/(admin)/admin/page": "app/(admin)/admin/page.js",
-  "/(admin)/admin/reports/page": "app/(admin)/admin/reports/page.js",
-  "/(admin)/admin/availability/page": "app/(admin)/admin/availability/page.js",
-  "/(admin)/admin/customers/page": "app/(admin)/admin/customers/page.js",
-  "/(customer)/profile/page": "app/(customer)/profile/page.js",
-  "/(auth)/login/page": "app/(auth)/login/page.js",
-  "/(admin)/admin/loyalty/page": "app/(admin)/admin/loyalty/page.js",
-  "/(auth)/register/page": "app/(auth)/register/page.js",
-  "/(customer)/my-bookings/page": "app/(customer)/my-bookings/page.js",
-  "/(customer)/loyalty/page": "app/(customer)/loyalty/page.js",
-  "/(public)/page": "app/(public)/page.js",
   "/(public)/availability/page": "app/(public)/availability/page.js",
-  "/(public)/booking/page": "app/(public)/booking/page.js",
   "/(public)/services/page": "app/(public)/services/page.js",
+  "/(public)/page": "app/(public)/page.js",
   "/(public)/gallery/page": "app/(public)/gallery/page.js"
 }
