@@ -37,14 +37,14 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8 lg:py-16">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-5">
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2.5" aria-label="Pretty Nails by Atasha">
+            <Link href="/" className="flex items-center gap-2.5 group" aria-label="Pretty Nails by Atasha">
               <StudioMark size="md" />
               <div className="flex flex-col">
-                <span className="font-medium text-base tracking-tight text-stone-900 dark:text-stone-100 leading-tight">
+                <span className="font-serif text-lg font-medium tracking-tight text-stone-900 dark:text-stone-100 leading-tight group-hover:text-primary transition-colors">
                   Pretty Nails
                 </span>
-                <span className="text-[11px] text-stone-500 dark:text-stone-400 leading-tight">
-                  by Atasha
+                <span className="text-[10px] uppercase tracking-[0.22em] text-rose-700 dark:text-rose-400 font-semibold leading-tight">
+                  by Atasha · Cebu
                 </span>
               </div>
             </Link>

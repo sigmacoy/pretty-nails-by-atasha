@@ -10,28 +10,25 @@ import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/lib/auth';
 
 /**
- * Signature Lacquer Drop Studio Mark for Pretty Nails by Atasha
+ * Signature Studio Logo Avatar for Pretty Nails by Atasha
  */
 export function StudioMark({ className, size = 'md' }: { className?: string; size?: 'sm' | 'md' | 'lg' }) {
   const dims = size === 'sm' ? 'h-7 w-7' : size === 'lg' ? 'h-10 w-10' : 'h-8 w-8';
-  const iconDims = size === 'sm' ? 'h-3.5 w-3.5' : size === 'lg' ? 'h-5 w-5' : 'h-4 w-4';
 
   return (
     <div
       className={cn(
-        'relative flex items-center justify-center rounded-lg bg-stone-100 dark:bg-stone-800/90 border border-stone-200/80 dark:border-stone-700/80 text-primary shrink-0 transition-colors',
+        'relative rounded-full overflow-hidden border border-rose-200/90 dark:border-rose-800/80 shrink-0 shadow-xs bg-rose-50 dark:bg-rose-950/40',
         dims,
         className
       )}
       aria-hidden="true"
     >
-      <svg
-        viewBox="0 0 20 20"
-        fill="currentColor"
-        className={iconDims}
-      >
-        <path d="M10 2.5C10 2.5 5 9.2 5 13a5 5 0 0 0 10 0c0-3.8-5-10.5-5-10.5Z" />
-      </svg>
+      <img
+        src="/images/logo.jpg"
+        alt="Pretty Nails by Atasha"
+        className="h-full w-full object-cover"
+      />
     </div>
   );
 }
@@ -62,11 +59,11 @@ export function Header() {
           <Link href="/" className="flex items-center gap-2.5 group" aria-label="Pretty Nails by Atasha">
             <StudioMark size="md" />
             <div className="flex flex-col">
-              <span className="font-medium text-base tracking-tight text-stone-900 dark:text-stone-100 leading-tight group-hover:text-primary transition-colors">
+              <span className="font-serif text-lg font-medium tracking-tight text-stone-900 dark:text-stone-100 leading-tight group-hover:text-primary transition-colors">
                 Pretty Nails
               </span>
-              <span className="text-[11px] text-stone-500 dark:text-stone-400 leading-tight">
-                by Atasha
+              <span className="text-[10px] uppercase tracking-[0.22em] text-rose-700 dark:text-rose-400 font-semibold leading-tight">
+                by Atasha · Cebu
               </span>
             </div>
           </Link>

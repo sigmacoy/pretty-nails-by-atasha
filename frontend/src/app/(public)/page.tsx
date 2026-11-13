@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ArrowUpRight, Sparkles, Check, Clock } from 'lucide-react';
+import { ArrowRight, ArrowUpRight, Check, Clock } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { servicesApi, galleryApi } from '@/lib/api';
@@ -228,7 +228,7 @@ export default function HomePage() {
                   {/* Top Seal Pill */}
                   <div className="absolute top-4 right-4">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-semibold uppercase tracking-[0.16em] bg-white/90 dark:bg-black/80 text-rose-900 dark:text-rose-200 backdrop-blur-md border border-rose-200/70 shadow-xs">
-                      <Sparkles className="h-3 w-3 text-primary" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                       Studio Signature
                     </span>
                   </div>
@@ -616,7 +616,7 @@ export default function HomePage() {
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-semibold uppercase tracking-[0.22em] bg-white/90 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border border-rose-200/90 dark:border-rose-800/60 shadow-xs mb-6">
-            <Sparkles className="h-3 w-3 text-primary" />
+            <span className="h-1.5 w-1.5 rounded-full bg-primary" />
             <span>Private Atelier Booking</span>
           </div>
 
