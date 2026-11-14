@@ -105,14 +105,14 @@ export default function AdminAvailabilityPage() {
     (data: AvailabilityRequest) => availabilityApi.upsert(data),
     {
       onSuccess: () => {
-        toast.success(editingAvailability ? 'Availability updated' : 'Availability saved');
+        toast.success(editingAvailability ? 'Atelier schedule override updated.' : 'Atelier schedule override saved.');
         setModalOpen(false);
         setEditingAvailability(null);
         setSelectedDate(null);
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to save availability');
+        toast.error(error.message || 'Could not save atelier schedule slot. Check inputs and retry.');
       },
     }
   );
@@ -121,11 +121,11 @@ export default function AdminAvailabilityPage() {
     (id: string) => availabilityApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Override removed');
+        toast.success('Schedule override removed from atelier calendar.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to remove override');
+        toast.error(error.message || 'Could not remove schedule override from atelier calendar.');
       },
     }
   );
@@ -189,9 +189,9 @@ export default function AdminAvailabilityPage() {
   const handleSaveWeeklySchedule = () => {
     try {
       localStorage.setItem('pretty_nails_working_hours', JSON.stringify(weeklySchedule));
-      toast.success('Working hours saved');
+      toast.success('Atelier studio operating hours saved.');
     } catch {
-      toast.error('Failed to save working hours');
+      toast.error('Could not save atelier operating hours. Check connection and retry.');
     }
   };
 
@@ -221,7 +221,7 @@ export default function AdminAvailabilityPage() {
         }
       }
 
-      toast.success(`Schedule synced to ${appliedCount} days in ${format(currentMonth, 'MMMM')}`);
+      toast.success(`Atelier schedule synced to ${appliedCount} dates in ${format(currentMonth, 'MMMM')}.`);
       refetch();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sync schedule';
@@ -354,14 +354,14 @@ export default function AdminAvailabilityPage() {
                           type="time"
                           value={day.startTime}
                           onChange={(e) => handleUpdateTime(day.dayOfWeek, 'startTime', e.target.value)}
-                          className="h-8 w-22 rounded-lg border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 px-1.5 text-xs text-stone-900 dark:text-rose-100 focus:outline-none focus:ring-1.5 focus:ring-rose-800"
+                          className="h-8 w-22 rounded-lg border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 px-1.5 text-xs text-stone-900 dark:text-rose-100 focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                         />
                         <span className="text-stone-400">–</span>
                         <input
                           type="time"
                           value={day.endTime}
                           onChange={(e) => handleUpdateTime(day.dayOfWeek, 'endTime', e.target.value)}
-                          className="h-8 w-22 rounded-lg border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 px-1.5 text-xs text-stone-900 dark:text-rose-100 focus:outline-none focus:ring-1.5 focus:ring-rose-800"
+                          className="h-8 w-22 rounded-lg border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 px-1.5 text-xs text-stone-900 dark:text-rose-100 focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                         />
                       </div>
                     ) : (
@@ -550,7 +550,7 @@ export default function AdminAvailabilityPage() {
       </div>
 
       {/* Scheduled Date Overrides Table Card */}
-      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm">
         <CardHeader className="p-6 pb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <CardTitle className="font-serif text-lg text-stone-900 dark:text-rose-50">
@@ -611,20 +611,17 @@ export default function AdminAvailabilityPage() {
             </div>
           ) : filteredAvailabilities.length === 0 ? (
             <div className="p-14 text-center">
-              <div className="h-12 w-12 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center mx-auto mb-3 text-rose-800 dark:text-rose-300">
-                <Lock className="h-5 w-5" strokeWidth={1.5} />
-              </div>
-              <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
+              <h3 className="text-lg font-serif font-normal text-stone-900 dark:text-rose-50 mb-1">
                 No date overrides scheduled
               </h3>
-              <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-5 leading-relaxed">
+              <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm mx-auto mb-5 leading-relaxed font-sans">
                 Add holidays or studio closures to prevent customer bookings on specific dates.
               </p>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleOpenAddBlackout}
-                className="h-10 px-5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium gap-2"
+                className="h-10 px-5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-sans font-medium gap-2"
               >
                 <Plus className="h-4 w-4" strokeWidth={1.5} />
                 <span>Add blackout date</span>

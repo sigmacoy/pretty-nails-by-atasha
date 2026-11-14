@@ -58,10 +58,10 @@ export default function AdminCustomersPage() {
       const next = new Set(prev);
       if (next.has(customer.id)) {
         next.delete(customer.id);
-        toast.success(`${customer.name} unblocked`);
+        toast.success(`${customer.name} reinstated for atelier bookings.`);
       } else {
         next.add(customer.id);
-        toast.success(`${customer.name} marked as blocked`);
+        toast.success(`${customer.name} restricted from atelier bookings.`);
       }
       return next;
     });
@@ -133,16 +133,21 @@ export default function AdminCustomersPage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Search Input: generous luxury touch target */}
         <div className="relative flex-1 max-w-lg">
+          <label htmlFor="customer-search-input" className="sr-only">
+            Search clients by name, email, or telephone
+          </label>
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose-800/70 dark:text-rose-300/70 pointer-events-none stroke-[1.5]" />
           <input
+            id="customer-search-input"
             type="text"
+            aria-label="Search clients by name, email, or telephone"
             placeholder="Search clients by name, email, or telephone..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(0);
             }}
-            className="h-12 sm:h-14 w-full rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 pl-11 pr-11 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-800 focus-visible:border-rose-800 shadow-xs"
+            className="h-12 sm:h-14 w-full rounded-full border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 pl-11 pr-11 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
           />
           {search && (
             <button

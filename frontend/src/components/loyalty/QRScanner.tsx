@@ -196,13 +196,13 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+      <div className="relative w-full max-w-md bg-white dark:bg-[#1A0E15] rounded-2xl overflow-hidden shadow-2xl border border-rose-200/80 dark:border-rose-950/60">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Scan QR Code</h3>
+        <div className="flex items-center justify-between p-4 border-b border-rose-200/80 dark:border-rose-950/60">
+          <h3 className="font-serif text-lg font-medium text-stone-900 dark:text-stone-100">Scan QR Code</h3>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="p-2 rounded-lg text-stone-500 hover:text-stone-700 dark:text-stone-400 dark:hover:text-stone-200 hover:bg-rose-50 dark:hover:bg-stone-800 transition-colors"
             aria-label="Close scanner"
           >
             <X className="h-5 w-5" />
@@ -215,7 +215,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
           {!showManual ? (
             <div className="relative">
               {/* Camera feed */}
-              <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <div className="relative aspect-square rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-900">
                 {hasPermission && videoRef.current ? (
                   <video
                     ref={videoRef}
@@ -224,7 +224,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
                     muted
                   />
                 ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-gray-500 dark:text-gray-400">
+                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-stone-500 dark:text-stone-400">
                     <Camera className="h-12 w-12 opacity-50" />
                     <p className="text-center px-4">
                       {error || 'Starting camera...'}
@@ -268,10 +268,10 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
 
               {/* Instructions */}
               <div className="mt-4 text-center">
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-stone-600 dark:text-stone-400">
                   Position the QR code within the frame
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                   Ask your nail technician for the QR code after your service
                 </p>
               </div>
@@ -288,10 +288,11 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
           ) : (
             /* Manual entry form */
             <div className="space-y-4">
-              <div className="text-center">
-                <Camera className="h-12 w-12 mx-auto text-gray-400 mb-2" />
-                <h4 className="font-medium text-gray-900 dark:text-gray-100">Enter QR Code Manually</h4>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <div className="p-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white/40 dark:bg-stone-900/40 text-center">
+                <h4 className="font-serif text-base font-medium text-stone-900 dark:text-stone-100">
+                  Manual Code Verification
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 font-sans">
                   Type or paste the code from your receipt
                 </p>
               </div>
@@ -348,7 +349,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
           )}
 
           {/* Supported formats info */}
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-500 dark:text-gray-400 pt-2">
+          <div className="flex items-center justify-center gap-2 text-xs text-stone-500 dark:text-stone-400 pt-2">
             <Badge variant="outline" className="text-xs">QR Code</Badge>
             <span>•</span>
             <Badge variant="outline" className="text-xs">Alphanumeric</Badge>

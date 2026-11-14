@@ -445,7 +445,7 @@ export default function HomePage() {
                 <h3 className="mt-4 text-2xl sm:text-3xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-tight">
                   Natural nail health, <span className="italic font-normal text-rose-700 dark:text-rose-300">unrushed patience</span>, & precision.
                 </h3>
-                <blockquote className="mt-6 text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal space-y-4">
+                <blockquote className="mt-6 text-sm font-serif text-stone-600 dark:text-stone-300 leading-relaxed font-normal space-y-4">
                   <p>
                     &ldquo;Every appointment at Pretty Nails is a private, one-on-one session where your
                     natural nail bed is nurtured, never degraded. I specialize in BIAB (Builder in a Bottle)

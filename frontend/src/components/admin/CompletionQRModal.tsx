@@ -42,10 +42,10 @@ export function CompletionQRModal({
     try {
       await navigator.clipboard.writeText(qrPayload);
       setCopied(true);
-      toast.success('QR code payload copied to clipboard');
+      toast.success('Session completion verification QR code copied to clipboard.');
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy payload');
+      toast.error('Unable to copy completion verification payload.');
     }
   };
 
@@ -53,10 +53,10 @@ export function CompletionQRModal({
     try {
       await navigator.clipboard.writeText(bookingId);
       setCopied(true);
-      toast.success('Booking ID copied for manual entry');
+      toast.success('Appointment identifier copied for atelier verification.');
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy booking ID');
+      toast.error('Unable to copy appointment identifier.');
     }
   };
 
@@ -167,7 +167,7 @@ export function CompletionQRModal({
 
         {/* Step-by-Step Scanning Instructions for Customer */}
         <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 p-4 space-y-2.5">
-          <h4 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+          <h4 className="text-[11px] font-serif font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
             <Smartphone className="h-4 w-4 stroke-[1.5]" /> Instructions for client
           </h4>
 

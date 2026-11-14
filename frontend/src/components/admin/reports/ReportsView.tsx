@@ -24,7 +24,6 @@ import {
   Download,
   TrendingUp,
   RefreshCw,
-  BarChart3,
   Award,
 } from 'lucide-react';
 
@@ -411,12 +410,11 @@ export function ReportsView({
               <Skeleton variant="rectangular" className="h-full w-full rounded-xl" />
             </div>
           ) : !reports || chartData.length === 0 ? (
-            <div className="h-72 flex flex-col items-center justify-center text-center p-6 rounded-2xl border border-dashed border-rose-200 dark:border-rose-900/60">
-              <BarChart3 className="w-8 h-8 text-rose-400 dark:text-rose-600 mb-2" strokeWidth={1.5} />
-              <p className="text-sm font-serif font-medium text-stone-800 dark:text-rose-200">
+            <div className="h-72 flex flex-col items-center justify-center text-center p-6 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80">
+              <h4 className="text-base font-serif font-normal text-stone-900 dark:text-rose-50 mb-1">
                 No booking records recorded
-              </p>
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-sm">
+              </h4>
+              <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm font-sans">
                 There are no completed or active appointments recorded for {activePeriodMeta.periodPhrase}.
               </p>
             </div>
@@ -636,8 +634,13 @@ export function ReportsView({
                 ))}
               </div>
             ) : !reports || reports.topServices.length === 0 ? (
-              <div className="py-14 text-center text-xs text-stone-500 dark:text-stone-400">
-                No treatment records found for this period
+              <div className="py-14 text-center px-4">
+                <h4 className="text-base font-serif font-normal text-stone-900 dark:text-rose-50 mb-1">
+                  No treatment records found
+                </h4>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-sans max-w-sm mx-auto">
+                  No services have been recorded for {activePeriodMeta.periodPhrase}.
+                </p>
               </div>
             ) : (
               <div className="overflow-x-auto">

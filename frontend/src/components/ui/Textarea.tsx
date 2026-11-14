@@ -16,7 +16,7 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label htmlFor={textareaId} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+          <label htmlFor={textareaId} className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5 font-sans">
             {label}
           </label>
         )}
@@ -24,8 +24,8 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           ref={ref}
           id={textareaId}
           className={cn(
-            'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-            error && 'border-destructive focus-visible:ring-destructive',
+            'flex min-h-[80px] w-full rounded-md border border-stone-200 dark:border-stone-700 bg-background dark:bg-stone-900/60 px-3 py-2 text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 disabled:cursor-not-allowed disabled:opacity-50 font-sans',
+            error && 'border-destructive focus:ring-destructive/30 focus:border-destructive/40',
             className
           )}
           aria-invalid={error ? 'true' : 'false'}
@@ -33,12 +33,12 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           {...props}
         />
         {error && (
-          <p id={`${textareaId}-error`} className="mt-1.5 text-sm text-destructive" role="alert">
+          <p id={`${textareaId}-error`} className="mt-1.5 text-xs text-destructive font-normal font-sans" role="alert">
             {error}
           </p>
         )}
         {helperText && !error && (
-          <p id={`${textareaId}-helper`} className="mt-1.5 text-sm text-muted-foreground">
+          <p id={`${textareaId}-helper`} className="mt-1.5 text-xs text-stone-500 dark:text-stone-400 font-normal font-sans">
             {helperText}
           </p>
         )}

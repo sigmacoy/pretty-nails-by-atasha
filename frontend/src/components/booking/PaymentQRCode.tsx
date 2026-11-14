@@ -23,10 +23,10 @@ export function PaymentQRCode({ method, amount = 10000, compact = false }: Payme
     try {
       await navigator.clipboard.writeText(rawNumber);
       setCopied(true);
-      toast.success(`${brandName} number copied to clipboard`);
+      toast.success(`Studio ${brandName} account number copied to clipboard.`);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      toast.error('Failed to copy to clipboard');
+      toast.error('Unable to copy studio payment account number.');
     }
   };
 

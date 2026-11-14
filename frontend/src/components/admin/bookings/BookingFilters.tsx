@@ -62,23 +62,29 @@ export function BookingFilters({
     <div className="flex flex-col gap-3">
       {/* Search and Date Range Row */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative sm:col-span-2">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground stroke-[1.5]"
-            aria-hidden="true"
-          />
-          <Input
-            type="search"
-            placeholder="Search by client name, email, or booking ID..."
-            value={search}
-            onChange={(e) => onSearchChange(e.target.value)}
-            className="h-9 pl-9 text-xs rounded-md border-border bg-background"
-            aria-label="Search bookings"
-          />
+        <div className="sm:col-span-2">
+          <label htmlFor="search-bookings" className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1 font-sans">
+            Search bookings
+          </label>
+          <div className="relative">
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground stroke-[1.5]"
+              aria-hidden="true"
+            />
+            <Input
+              id="search-bookings"
+              type="search"
+              placeholder="Search by client name, email, or booking ID..."
+              value={search}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="h-9 pl-9 text-xs rounded-md border-border bg-background"
+              aria-label="Search bookings"
+            />
+          </div>
         </div>
 
         <div>
-          <label htmlFor="start-date" className="sr-only">
+          <label htmlFor="start-date" className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1 font-sans">
             Start date
           </label>
           <div className="relative">
@@ -95,7 +101,7 @@ export function BookingFilters({
         </div>
 
         <div>
-          <label htmlFor="end-date" className="sr-only">
+          <label htmlFor="end-date" className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1 font-sans">
             End date
           </label>
           <div className="relative">
@@ -149,6 +155,9 @@ export function BookingFilters({
         {/* Sort and Clear Row */}
         <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <div className="w-48 sm:w-56">
+            <label htmlFor="sort-by" className="sr-only">
+              Sort bookings
+            </label>
             <Select
               id="sort-by"
               value={sortBy}

@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* Approved Warm Stone Neutral Ramp (Light) */
-    --background: 60 7% 98%; /* #FAFAF9 warm stone */
+    --background: 348 100% 97.1%; /* #FFF0F3 warm stone */
     --foreground: 24 10% 10%; /* #1C1917 stone-900 */
     --card: 0 0% 100%; /* #FFFFFF pure card */
     --card-foreground: 24 10% 10%; /* #1C1917 */
@@ -39,7 +39,7 @@
 
   .dark {
     /* Approved Warm Stone Neutral Ramp (Dark) */
-    --background: 240 3% 8%; /* #141415 warm dark */
+    --background: 327 26% 6.9%; /* #160D12 warm dark */
     --foreground: 38 33% 90%; /* #EFE9DE warm linen */
     --card: 30 5% 10%; /* #1A1918 warm charcoal card */
     --card-foreground: 38 33% 90%;
@@ -107,5 +107,13 @@
 
 /* Accessible focus visible */
 :focus-visible {
-  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  @apply outline-none ring-1 ring-rose-800/30 border-rose-800/40;
+}
+
+@layer base {
+  input:focus,
+  textarea:focus,
+  select:focus {
+    @apply outline-none ring-1 ring-rose-800/30 border-rose-800/40;
+  }
 }

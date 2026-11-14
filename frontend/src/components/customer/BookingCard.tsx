@@ -157,10 +157,10 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
     (bookingId: string) => bookingsApi.cancelBooking(bookingId),
     {
       onSuccess: () => {
-        toast.success('Booking cancelled successfully');
+        toast.success('Appointment reservation cancelled and slot released.');
       },
       onError: (error) => {
-        toast.error(error.message || 'Failed to cancel booking');
+        toast.error(error.message || 'Unable to cancel appointment reservation. Please contact the studio.');
       },
     }
   );
@@ -175,7 +175,7 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
     e.preventDefault();
     const trimmed = reference.trim();
     if (!trimmed) {
-      toast.error('Please enter the transaction reference number');
+      toast.error('Please provide the GCash or Maya deposit reference number.');
       return;
     }
 
@@ -188,14 +188,14 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
         reference: trimmed,
       });
 
-      toast.success('Payment reference submitted. Studio will review deposit manually.');
+      toast.success('Deposit submitted for studio review.');
       setShowPaymentModal(false);
       if (onPaymentSubmitted) {
         onPaymentSubmitted();
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Failed to submit payment reference');
+      toast.error(axiosError.response?.data?.message || 'Unable to submit deposit reference. Please verify and retry.');
     } finally {
       setIsSubmittingPayment(false);
     }
@@ -221,7 +221,7 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
               <button
                 type="button"
                 onClick={() => setShowInspirationModal(true)}
-                className="relative h-14 w-14 rounded-xl overflow-hidden border border-rose-200/80 dark:border-rose-950/60 bg-stone-100 dark:bg-stone-800 shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400"
+                className="relative h-14 w-14 rounded-xl overflow-hidden border border-rose-200/80 dark:border-rose-950/60 bg-stone-100 dark:bg-stone-800 shrink-0 group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-rose-800/30 focus-visible:border-rose-800/40"
                 title="View inspiration reference"
                 aria-label="View inspiration photo"
               >
@@ -407,7 +407,7 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
                 value={reference}
                 onChange={(e) => setReference(e.target.value)}
                 placeholder="e.g. 1002 9384 1928 or Ref #"
-                className="w-full pl-10 pr-4 h-11 border border-rose-200/80 dark:border-rose-950/60 rounded-xl bg-white dark:bg-stone-900 text-foreground text-sm font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-500 focus:border-rose-500"
+                className="w-full pl-10 pr-4 h-11 border border-rose-200/80 dark:border-rose-950/60 rounded-xl bg-white dark:bg-stone-900 text-foreground text-sm font-mono tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                 required
                 autoFocus
               />

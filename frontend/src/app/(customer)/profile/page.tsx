@@ -46,10 +46,7 @@ export default function ProfilePage() {
   if (!userData) {
     return (
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-        <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 p-10 text-center shadow-card backdrop-blur-sm">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-950/60">
-            <User className="h-5 w-5" strokeWidth={1.5} />
-          </div>
+        <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-10 text-center shadow-card backdrop-blur-sm">
           <h2 className="text-xl font-serif text-stone-900 dark:text-rose-50 font-normal">
             Unable to Load Profile
           </h2>

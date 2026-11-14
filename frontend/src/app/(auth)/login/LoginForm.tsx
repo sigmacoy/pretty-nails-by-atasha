@@ -45,16 +45,16 @@ export function LoginForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Welcome back');
+      toast.success('Signed in to your Pretty Nails atelier account.');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      const message = axiosError.response?.data?.message || 'Invalid email or password';
+      const message = axiosError.response?.data?.message || 'Authentication failed. Please verify your credentials.';
 
-      if (message.includes('Invalid') || message.includes('incorrect')) {
-        setError('password', { type: 'manual', message: 'Invalid email or password' });
-        setError('email', { type: 'manual', message: 'Invalid email or password' });
+      if (message.includes('Invalid') || message.includes('incorrect') || message.includes('Authentication failed')) {
+        setError('password', { type: 'manual', message: 'Authentication failed. Please verify your credentials.' });
+        setError('email', { type: 'manual', message: 'Authentication failed. Please verify your credentials.' });
       } else {
         toast.error(message);
       }
@@ -69,12 +69,12 @@ export function LoginForm() {
       <div className="flex flex-col items-center text-center mb-6">
         <Link
           href="/"
-          className="inline-flex items-center justify-center mb-4 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-opacity duration-150 hover:opacity-85"
+          className="inline-flex items-center justify-center mb-4 rounded-lg focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-opacity duration-150 hover:opacity-85"
           aria-label="Pretty Nails home"
         >
           <StudioMark size="lg" />
         </Link>
-        <h1 className="text-xl sm:text-2xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+        <h1 className="text-xl sm:text-2xl font-serif font-medium tracking-tight text-stone-900 dark:text-stone-100">
           Welcome back
         </h1>
         <p className="mt-1.5 text-xs sm:text-sm text-stone-500 dark:text-stone-400">
@@ -83,7 +83,7 @@ export function LoginForm() {
       </div>
 
       {/* Porcelain Card Form */}
-      <Card className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card shadow-sm">
+      <Card className="rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-card shadow-sm">
         <CardContent className="p-6 sm:p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <Input
@@ -109,7 +109,7 @@ export function LoginForm() {
               />
               <button
                 type="button"
-                className="absolute right-2.5 top-[28px] p-1 rounded text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary/40"
+                className="absolute right-2.5 top-[28px] p-1 rounded text-stone-400 hover:text-stone-600 dark:text-stone-500 dark:hover:text-stone-300 transition-colors duration-150 focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -125,7 +125,7 @@ export function LoginForm() {
               <label className="flex items-center gap-2 cursor-pointer select-none">
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-stone-300 dark:border-stone-700 text-primary accent-primary focus:ring-1.5 focus:ring-primary/30 transition-colors"
+                  className="h-4 w-4 rounded border-rose-300 dark:border-rose-800 text-rose-900 accent-rose-900 focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-colors"
                 />
                 <span className="text-xs text-stone-600 dark:text-stone-400">Remember me</span>
               </label>

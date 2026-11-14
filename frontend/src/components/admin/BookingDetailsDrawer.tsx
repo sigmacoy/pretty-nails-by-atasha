@@ -158,10 +158,10 @@ export function BookingDetailsDrawer({
     try {
       await navigator.clipboard.writeText(paymentRef);
       setCopiedRef(true);
-      toast.success('Reference number copied to clipboard');
+      toast.success('Deposit reference number copied to clipboard.');
       setTimeout(() => setCopiedRef(false), 2000);
     } catch {
-      toast.error('Failed to copy reference number');
+      toast.error('Unable to copy deposit reference number.');
     }
   };
 
@@ -170,7 +170,7 @@ export function BookingDetailsDrawer({
     setIsUpdating(true);
     try {
       await transitionBookingStatus(booking.id, newStatus, reason);
-      toast.success(`Booking status updated to ${getSentenceStatusLabel(newStatus)}`);
+      toast.success(`Appointment status updated to ${getSentenceStatusLabel(newStatus)}.`);
       onStatusUpdated?.(booking.id, newStatus);
 
       // If marked COMPLETED and completion QR callback is provided, trigger it
@@ -185,7 +185,7 @@ export function BookingDetailsDrawer({
       setCustomReason('');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      const msg = error.response?.data?.message || error.message || 'Failed to update booking status';
+      const msg = error.response?.data?.message || error.message || 'Unable to update appointment status';
       toast.error(msg);
     } finally {
       setIsUpdating(false);
@@ -359,7 +359,7 @@ export function BookingDetailsDrawer({
 
           {/* Section 2: Appointment Schedule */}
           <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm space-y-3.5 shadow-xs">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+            <h4 className="text-[11px] font-serif font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
               <Calendar className="h-4 w-4 stroke-[1.5]" /> Appointment schedule
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -386,7 +386,7 @@ export function BookingDetailsDrawer({
           {/* Section 3: Services & Price Breakdown */}
           <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm space-y-3.5 shadow-xs">
             <div className="flex items-center justify-between">
-              <h4 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+              <h4 className="text-[11px] font-serif font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
                 <Tag className="h-4 w-4 stroke-[1.5]" /> Selected services ({booking.services?.length || 0})
               </h4>
             </div>
@@ -448,7 +448,7 @@ export function BookingDetailsDrawer({
 
           {/* Section 4: Payment & Downpayment Verification */}
           <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm space-y-3.5 shadow-xs">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+            <h4 className="text-[11px] font-serif font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
               <CreditCard className="h-4 w-4 stroke-[1.5]" /> Deposit and payment verification
             </h4>
 
@@ -536,7 +536,7 @@ export function BookingDetailsDrawer({
 
           {/* Section 5: Inspiration Photo Preview */}
           <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm space-y-3.5 shadow-xs">
-            <h4 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+            <h4 className="text-[11px] font-serif font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
               <Tag className="h-4 w-4 stroke-[1.5]" /> Client inspiration reference
             </h4>
 
@@ -568,9 +568,13 @@ export function BookingDetailsDrawer({
                 </div>
               </div>
             ) : (
-              <div className="p-6 rounded-xl border border-dashed border-rose-200/80 dark:border-rose-900/60 text-center text-stone-500 dark:text-stone-400">
-                <FileText className="h-5 w-5 mx-auto mb-1 text-stone-400 dark:text-stone-600 stroke-[1.5]" />
-                <p className="text-xs">No inspiration photo was uploaded for this booking.</p>
+              <div className="p-6 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white/40 dark:bg-stone-900/40 text-center">
+                <p className="font-serif text-sm font-medium text-stone-900 dark:text-rose-100">
+                  No inspiration reference
+                </p>
+                <p className="mt-1 font-sans text-xs text-stone-500 dark:text-stone-400">
+                  No inspiration photo was uploaded for this booking.
+                </p>
               </div>
             )}
           </div>

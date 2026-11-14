@@ -91,13 +91,13 @@ export function StatusAction({ bookingId, currentStatus, onStatusChange }: Statu
     setIsUpdating(true);
     try {
       await transitionBookingStatus(bookingId, status, reason);
-      toast.success(`Booking status updated to ${getSentenceLabel(status)}`);
+      toast.success(`Appointment status updated to ${getSentenceLabel(status)}`);
       onStatusChange(bookingId, status);
       setReasonModalOpen(false);
       setTargetStatus(null);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } }; message?: string };
-      const msg = error.response?.data?.message || error.message || 'Failed to update status';
+      const msg = error.response?.data?.message || error.message || 'Unable to update appointment status';
       toast.error(msg);
     } finally {
       setIsUpdating(false);

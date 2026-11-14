@@ -51,12 +51,12 @@ export function RegisterForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Account created successfully');
+      toast.success('Atelier client account registered successfully.');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      const message = axiosError.response?.data?.message || 'Registration failed. Please try again.';
+      const message = axiosError.response?.data?.message || 'Unable to complete registration. Please verify details.';
 
       if (message.includes('Email already registered')) {
         setError('email', { type: 'manual', message });
@@ -73,16 +73,16 @@ export function RegisterForm() {
       <div className="flex justify-center mb-6">
         <Link
           href="/"
-          className="inline-flex items-center justify-center rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors duration-150"
+          className="inline-flex items-center justify-center rounded-lg focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-colors duration-150"
           aria-label="Pretty Nails Home"
         >
           <StudioMark size="lg" />
         </Link>
       </div>
 
-      <Card className="border border-stone-200/80 dark:border-stone-800/80 bg-card shadow-card rounded-xl">
+      <Card className="border border-rose-200/80 dark:border-rose-950/60 bg-card shadow-card rounded-xl">
         <CardHeader className="p-6 sm:p-8 pb-0 space-y-1 text-center">
-          <CardTitle className="text-xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
+          <CardTitle className="text-xl font-serif font-medium tracking-tight text-stone-900 dark:text-stone-100">
             Create your account
           </CardTitle>
           <CardDescription className="text-sm text-stone-500 dark:text-stone-400 font-normal">
@@ -134,7 +134,7 @@ export function RegisterForm() {
               />
               <button
                 type="button"
-                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary"
+                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
@@ -159,7 +159,7 @@ export function RegisterForm() {
               />
               <button
                 type="button"
-                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary"
+                className="absolute right-2.5 top-[26px] h-7 w-7 inline-flex items-center justify-center text-stone-400 hover:text-stone-600 dark:hover:text-stone-300 rounded transition-colors duration-150 focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
               >

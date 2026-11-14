@@ -80,7 +80,7 @@ export function getStatusLabel(status: string): string {
 export function getCategoryColor(category: string): string {
   switch (category) {
     case 'GEL':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200';
+      return 'bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-200';
     case 'EXTENSION':
       return 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200';
     case 'PEDICURE':

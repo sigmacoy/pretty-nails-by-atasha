@@ -55,11 +55,11 @@ export default function AdminSettingsPage() {
     (data: LoyaltySettingsDto) => adminApi.updateSettings(data),
     {
       onSuccess: () => {
-        toast.success('Settings saved successfully');
+        toast.success('Atelier studio configuration updated.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to save settings');
+        toast.error(error.message || 'Could not save atelier settings. Check connection and retry.');
       },
     }
   );
@@ -83,7 +83,7 @@ export default function AdminSettingsPage() {
   const handleReset = () => {
     if (settingsData?.data) {
       setFormData(settingsData.data);
-      toast.info('Changes reset to saved values');
+      toast.info('Atelier configuration changes reset to saved values.');
     } else {
       setFormData(INITIAL_DEFAULTS);
     }

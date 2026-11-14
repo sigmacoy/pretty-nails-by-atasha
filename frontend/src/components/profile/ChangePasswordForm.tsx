@@ -38,14 +38,14 @@ export function ChangePasswordForm() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success('Password changed successfully');
+      toast.success('Atelier account password updated successfully.');
       reset();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      const message = axiosError.response?.data?.message || 'Failed to change password. Please try again.';
+      const message = axiosError.response?.data?.message || 'Unable to update password. Please check your credentials.';
 
-      if (message.includes('Current password is incorrect')) {
-        toast.error('Current password is incorrect');
+      if (message.includes('Current password is incorrect') || message.includes('does not match atelier records')) {
+        toast.error('Current password does not match atelier records.');
       } else {
         toast.error(message);
       }

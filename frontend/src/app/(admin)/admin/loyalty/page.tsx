@@ -93,13 +93,13 @@ export default function AdminLoyaltyPage() {
           ? `Extended validity by ${amount} month${amount > 1 ? 's' : ''}`
           : 'Loyalty card reset';
 
-      toast.success(`${readableAction} for ${targetCard.userName}`);
+      toast.success(`Loyalty card ${readableAction.toLowerCase()} for ${targetCard.userName}.`);
       setQuickIssueOpen(false);
       setAdjustModalOpen(false);
       refetch();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Loyalty action failed');
+      toast.error(axiosError.response?.data?.message || 'Unable to update atelier loyalty card.');
     } finally {
       setIsActionLoading(false);
     }
@@ -224,11 +224,16 @@ export default function AdminLoyaltyPage() {
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="relative w-full max-w-md">
+            <label htmlFor="admin-loyalty-search" className="sr-only">
+              Search by customer name, email, or card ID
+            </label>
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-rose-400 dark:text-rose-500"
               strokeWidth={1.5}
             />
             <Input
+              id="admin-loyalty-search"
+              aria-label="Search by customer name, email, or card ID"
               placeholder="Search by customer name, email, or card ID..."
               value={search}
               onChange={(e) => {
@@ -245,7 +250,7 @@ export default function AdminLoyaltyPage() {
         </div>
 
         {/* Quiet Porcelain Table Surface with Rose Hairlines */}
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
@@ -297,14 +302,11 @@ export default function AdminLoyaltyPage() {
                 ) : paginatedCards.length === 0 ? (
                   <tr>
                     <td colSpan={6} className="py-16 px-5 text-center">
-                      <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300">
-                          <Award className="w-6 h-6" strokeWidth={1.5} />
-                        </div>
-                        <p className="text-base font-serif font-medium text-stone-900 dark:text-rose-50">
+                      <div className="flex flex-col items-center justify-center space-y-1.5">
+                        <h3 className="text-lg font-serif font-normal text-stone-900 dark:text-rose-50">
                           No loyalty cards found
-                        </p>
-                        <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm">
+                        </h3>
+                        <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm font-sans">
                           {search
                             ? 'No member cards match your search parameters.'
                             : 'No customer loyalty cards registered in the atelier yet.'}

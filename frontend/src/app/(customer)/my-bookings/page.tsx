@@ -45,10 +45,10 @@ export default function MyBookingsPage() {
   const handleCancel = async (bookingId: string) => {
     try {
       await bookingsApi.cancelBooking(bookingId);
-      toast.success('Booking cancelled successfully');
+      toast.success('Reservation cancelled and slot released');
       refetch();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to cancel booking');
+      toast.error(err instanceof Error ? err.message : 'Could not cancel this reservation. Retry or contact the studio.');
     }
   };
 
@@ -72,8 +72,7 @@ export default function MyBookingsPage() {
     return (
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-5xl mx-auto">
-          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 p-10 sm:p-14 text-center shadow-card backdrop-blur-sm">
-            <AlertCircle className="h-10 w-10 text-rose-600 dark:text-rose-400 mx-auto mb-4 stroke-[1.5]" />
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-10 sm:p-14 text-center shadow-card backdrop-blur-sm">
             <h2 className="text-xl sm:text-2xl font-serif text-stone-900 dark:text-rose-50 font-normal mb-2">
               Unable to Retrieve Appointments
             </h2>
@@ -223,8 +222,7 @@ export default function MyBookingsPage() {
             ) : (
               <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 shadow-card">
                 <CardContent className="p-8 sm:p-10 text-center font-sans">
-                  <Archive className="h-8 w-8 stroke-[1.5] text-stone-400 dark:text-stone-500 mx-auto mb-3" />
-                  <h3 className="text-base font-serif text-stone-900 dark:text-rose-50 font-normal mb-1">
+                  <h3 className="text-lg font-serif text-stone-900 dark:text-rose-50 font-normal mb-1">
                     No past visits recorded
                   </h3>
                   <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
@@ -238,10 +236,9 @@ export default function MyBookingsPage() {
 
         {/* Empty State when zero total filtered appointments */}
         {filteredBookings.length === 0 && !isLoading && (
-          <div className="rounded-3xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 shadow-card p-10 sm:p-14 text-center backdrop-blur-sm">
-            <Calendar className="h-12 w-12 stroke-[1.5] text-rose-800/80 dark:text-rose-300/80 mx-auto mb-4" />
+          <div className="rounded-3xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 shadow-card p-10 sm:p-14 text-center backdrop-blur-sm">
             <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 dark:text-rose-50 font-normal mb-2">
-              No Appointments Found
+              No Appointments Scheduled
             </h2>
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-8 max-w-md mx-auto font-sans leading-relaxed">
               {activeFilter !== 'all'

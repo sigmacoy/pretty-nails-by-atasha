@@ -229,15 +229,20 @@ export default function GalleryPage() {
           {/* Search input */}
           <div className="flex items-center gap-2 w-full md:w-80 shrink-0">
             <div className="relative flex-1">
+              <label htmlFor="gallery-search-input" className="sr-only">
+                Search lookbook designs
+              </label>
               <Search
                 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 dark:text-stone-500 pointer-events-none"
                 strokeWidth={1.5}
               />
               <Input
+                id="gallery-search-input"
+                aria-label="Search lookbook designs"
                 placeholder="Search lookbook designs..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 h-11 text-xs sm:text-sm bg-white/90 dark:bg-stone-900/90 border-rose-200/80 dark:border-rose-950/60 rounded-full focus:ring-rose-800"
+                className="pl-10 h-11 text-xs sm:text-sm bg-white/90 dark:bg-stone-900/90 border-rose-200/80 dark:border-rose-950/60 rounded-full focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
               />
             </div>
             {hasFilters && (
@@ -268,14 +273,11 @@ export default function GalleryPage() {
             ))}
           </div>
         ) : gallery.length === 0 ? (
-          <div className="text-center py-20 px-6 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 shadow-card max-w-md mx-auto my-12">
-            <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center mx-auto mb-4 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60">
-              <Search className="w-5 h-5" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mb-1.5">
-              No lookbook designs found
+          <div className="text-center py-16 px-6 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 shadow-card max-w-md mx-auto my-12">
+            <h2 className="text-2xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
+              No lookbook entries found in this category
             </h2>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-sm mx-auto mb-6 font-normal leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-sm mx-auto mb-6 font-sans leading-relaxed">
               {hasFilters
                 ? 'No studio finishes match your current search or category filter. Reset filters to view all archive sets.'
                 : 'No studio lookbook finishes are published currently.'}
@@ -283,7 +285,7 @@ export default function GalleryPage() {
             {hasFilters && (
               <button
                 type="button"
-                className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-xs font-medium transition-colors"
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-xs font-sans font-medium transition-colors"
                 onClick={handleClearFilters}
               >
                 Reset Filter Settings

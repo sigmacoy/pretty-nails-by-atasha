@@ -63,11 +63,11 @@ export default function AdminGalleryPage() {
     (formData: GalleryRequest) => galleryApi.create(formData),
     {
       onSuccess: () => {
-        toast.success('Gallery design uploaded successfully');
+        toast.success('Nail art design added to atelier lookbook.');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to upload gallery design');
+        toast.error(err.message || 'Could not upload nail art design. Check image format and retry.');
       },
     }
   );
@@ -77,11 +77,11 @@ export default function AdminGalleryPage() {
       galleryApi.update(id, updateData),
     {
       onSuccess: () => {
-        toast.success('Gallery design updated successfully');
+        toast.success('Atelier lookbook design updated.');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to update gallery design');
+        toast.error(err.message || 'Could not update lookbook design. Check connection and retry.');
       },
     }
   );
@@ -90,11 +90,11 @@ export default function AdminGalleryPage() {
     (id: string) => galleryApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Gallery design deleted successfully');
+        toast.success('Design removed from atelier lookbook.');
         refetch();
       },
       onError: (err) => {
-        toast.error(err.message || 'Failed to delete gallery design');
+        toast.error(err.message || 'Could not remove lookbook design. Check connection and retry.');
       },
     }
   );
@@ -245,15 +245,19 @@ export default function AdminGalleryPage() {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-4">
         <div className="grid gap-4 md:grid-cols-3">
           <div className="relative md:col-span-2">
+            <label htmlFor="admin-gallery-search" className="sr-only">
+              Search gallery items
+            </label>
             <Search
               className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose-400 dark:text-rose-500"
               strokeWidth={1.5}
               aria-hidden="true"
             />
             <Input
+              id="admin-gallery-search"
               type="search"
               placeholder="Search designs by title, technique, or shade..."
               value={search}
@@ -263,6 +267,9 @@ export default function AdminGalleryPage() {
             />
           </div>
           <div>
+            <label htmlFor="category-filter" className="sr-only">
+              Filter by atelier discipline
+            </label>
             <Select
               id="category-filter"
               value={category}

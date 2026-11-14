@@ -11,7 +11,6 @@ import {
   CheckCircle,
   Phone,
   Mail,
-  Users,
 } from 'lucide-react';
 
 export interface CustomersTableProps {
@@ -95,15 +94,12 @@ export function CustomersTable({
 
   if (customers.length === 0) {
     return (
-      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-10 text-center shadow-card">
-        <div className="mx-auto w-10 h-10 rounded-full bg-stone-100 dark:bg-stone-800 flex items-center justify-center text-stone-400 mb-3">
-          <Users className="h-5 w-5" strokeWidth={1.5} />
-        </div>
-        <h3 className="text-sm font-medium text-stone-900 dark:text-stone-100 mb-1">
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-12 text-center shadow-card">
+        <h3 className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
           {emptyMessage}
         </h3>
-        <p className="text-xs text-stone-500 dark:text-stone-400 max-w-sm mx-auto">
-          No customer accounts match your search or filter criteria.
+        <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto font-sans leading-relaxed">
+          No customer accounts match your current search or filter criteria.
         </p>
       </div>
     );
@@ -111,11 +107,11 @@ export function CustomersTable({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card overflow-hidden shadow-card">
+      <div className="rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-card overflow-hidden shadow-card">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="h-10 border-b border-stone-200/80 dark:border-stone-800/80 bg-stone-50/70 dark:bg-stone-900/60">
+              <tr className="h-10 border-b border-rose-200/80 dark:border-rose-950/60 bg-stone-50/70 dark:bg-stone-900/60">
                 <th className="px-4 text-xs font-medium text-stone-500 dark:text-stone-400">Customer</th>
                 <th className="px-4 text-xs font-medium text-stone-500 dark:text-stone-400 hidden sm:table-cell">Contact</th>
                 <th className="px-4 text-xs font-medium text-stone-500 dark:text-stone-400">Status</th>
@@ -125,7 +121,7 @@ export function CustomersTable({
                 <th className="px-4 text-right text-xs font-medium text-stone-500 dark:text-stone-400">Owner notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
+            <tbody className="divide-y divide-rose-200/60 dark:divide-rose-950/50">
               {customers.map((row) => {
                 const isBlocked = blockedCustomerIds
                   ? blockedCustomerIds.has(row.id)

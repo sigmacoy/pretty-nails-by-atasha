@@ -86,18 +86,20 @@ export function RevenueChart({
 
   if (chartData.length === 0) {
     return (
-      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-6 shadow-card h-full flex flex-col justify-between">
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-6 shadow-card h-full flex flex-col justify-between">
         <div className="flex items-start justify-between pb-6">
           <div>
-            <h3 className="text-base font-medium text-foreground tracking-tight">{title}</h3>
-            {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
+            <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 tracking-tight">{title}</h3>
+            {description && <p className="text-xs text-stone-500 dark:text-stone-400 font-sans mt-0.5">{description}</p>}
           </div>
           {action}
         </div>
-        <div className="h-64 flex flex-col items-center justify-center border border-dashed border-stone-200 dark:border-stone-800 rounded-lg text-center p-6">
-          <p className="text-sm font-medium text-muted-foreground">No revenue data available</p>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">
-            Data will populate as appointments are completed
+        <div className="h-64 flex flex-col items-center justify-center border border-rose-200/80 dark:border-rose-950/60 rounded-xl text-center p-6 bg-white/80 dark:bg-black/80">
+          <h4 className="text-base font-serif font-normal text-stone-900 dark:text-rose-50 mb-1">
+            No revenue data recorded
+          </h4>
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-sans max-w-xs">
+            Revenue figures populate automatically as appointments are marked completed in the atelier queue.
           </p>
         </div>
       </div>
@@ -114,11 +116,11 @@ export function RevenueChart({
     : chartData.length - 1;
 
   return (
-    <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-6 shadow-card h-full flex flex-col justify-between">
+    <div className="rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-card p-6 shadow-card h-full flex flex-col justify-between">
       {/* Header */}
       <div className="flex items-start justify-between pb-4">
         <div>
-          <h3 className="text-base font-medium text-foreground tracking-tight">{title}</h3>
+          <h3 className="text-base font-serif font-medium text-foreground tracking-tight">{title}</h3>
           {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
         </div>
         {action}

@@ -130,7 +130,7 @@ export function useBooking() {
 
   const submitBooking = useCallback(async (): Promise<BookingDto | null> => {
     if (state.services.length === 0 || !state.appointmentDate || !state.startTime) {
-      toast.error('Please complete all required steps');
+      toast.error('Please select your nail treatment, date, and appointment slot.');
       return null;
     }
 
@@ -149,12 +149,12 @@ export function useBooking() {
       };
 
       const response = await bookingsApi.create(bookingData);
-      toast.success('Booking confirmed!');
+      toast.success('Reservation request received; staff will confirm shortly.');
       reset();
       return response.data;
     } catch (error) {
       console.error('Booking failed:', error);
-      toast.error('Failed to create booking. Please try again.');
+      toast.error('Unable to submit reservation request. Please check your connection and retry.');
       return null;
     } finally {
       setIsSubmitting(false);

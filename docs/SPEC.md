@@ -145,7 +145,6 @@ interface CustomerNoteDto { id: string; userId: string; adminId: string; content
   - Warning: Amber (#f59e0b)
   - Error: Red (#ef4444)
   - Background: White/light gray
-- **Typography**: Inter font family
 - **Spacing**: 4px base unit (Tailwind default)
 - **Border Radius**: 8px (md), 12px (lg), 16px (xl), full (pill)
 - **Shadows**: Subtle elevation system

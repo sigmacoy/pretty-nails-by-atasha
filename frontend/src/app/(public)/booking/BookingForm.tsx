@@ -300,7 +300,7 @@ export function BookingForm() {
 
     const trimmedRef = paymentReference.trim();
     if (paymentMethod !== 'CASH' && !trimmedRef) {
-      toast.error(`Please provide your ${paymentMethod === 'GCASH' ? 'GCash' : 'Maya'} reference number after sending your downpayment.`);
+      toast.error(`Please provide your ${paymentMethod === 'GCASH' ? 'GCash' : 'Maya'} reference number after sending your reservation deposit.`);
       return;
     }
 
@@ -348,7 +348,7 @@ export function BookingForm() {
       router.refresh();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Failed to create booking. Please try again.');
+      toast.error(axiosError.response?.data?.message || 'Could not submit reservation request. Check your details and retry.');
     } finally {
       setIsSubmitting(false);
     }
@@ -852,9 +852,13 @@ function BookingStep1({
       </div>
 
       {selectedServices.length === 0 && (
-        <div className="text-center py-12 rounded-2xl border border-dashed border-rose-200 dark:border-rose-950/60 bg-rose-50/30 dark:bg-stone-900/30 text-stone-500 dark:text-stone-400">
-          <ShoppingBag className="h-8 w-8 mx-auto mb-2 text-rose-400 stroke-[1.5]" />
-          <p className="text-xs sm:text-sm font-normal">Select at least one treatment to proceed to scheduling</p>
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-6 text-center">
+          <h3 className="font-serif text-base sm:text-lg text-stone-900 dark:text-stone-100 font-medium">
+            No treatments selected
+          </h3>
+          <p className="font-sans text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
+            Select at least one treatment to proceed to scheduling
+          </p>
         </div>
       )}
 
@@ -1028,7 +1032,7 @@ function BookingStep2({
               form.setValue('appointmentDate', date);
               fetchAvailableSlots(date);
             }}
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 font-mono tabular-nums shadow-xs"
+            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 font-mono tabular-nums shadow-xs"
           />
           <p className="text-[11px] text-stone-500 dark:text-stone-400 font-normal">
             Reservations are accepted up to 90 days in advance
@@ -1048,14 +1052,22 @@ function BookingStep2({
               ))}
             </div>
           ) : !appointmentDate ? (
-            <div className="p-8 rounded-2xl border border-dashed border-rose-200 dark:border-rose-950/60 bg-rose-50/30 dark:bg-stone-900/30 text-center text-xs text-stone-500 dark:text-stone-400">
-              <Calendar className="h-6 w-6 mx-auto mb-2 text-rose-400 stroke-[1.5]" />
-              Select a date on the calendar to inspect open time slots
+            <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-6 text-center">
+              <h4 className="font-serif text-sm sm:text-base text-stone-900 dark:text-stone-100 font-medium">
+                No appointment date selected
+              </h4>
+              <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-1">
+                Select a date on the calendar to inspect open time slots
+              </p>
             </div>
           ) : availableSlots.length === 0 ? (
-            <div className="p-8 rounded-2xl border border-dashed border-rose-200 dark:border-rose-950/60 bg-rose-50/30 dark:bg-stone-900/30 text-center text-xs text-stone-500 dark:text-stone-400">
-              <Calendar className="h-6 w-6 mx-auto mb-2 text-rose-400 stroke-[1.5]" />
-              No available slots for this date. Please select another date.
+            <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-6 text-center">
+              <h4 className="font-serif text-sm sm:text-base text-stone-900 dark:text-stone-100 font-medium">
+                No appointments scheduled for this date
+              </h4>
+              <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-1">
+                No appointment slots remain open for this date. Please select another date.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
@@ -1144,7 +1156,7 @@ function BookingStep3({
             type="text"
             {...form.register('name')}
             placeholder="e.g. Maria Santos"
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 shadow-xs"
+            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
           />
           {form.formState.errors.name && (
             <p className="text-xs text-rose-700 dark:text-rose-400">
@@ -1162,7 +1174,7 @@ function BookingStep3({
             type="tel"
             {...form.register('phone')}
             placeholder="e.g. 0917 123 4567"
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 shadow-xs"
+            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
           />
           {form.formState.errors.phone && (
             <p className="text-xs text-rose-700 dark:text-rose-400">
@@ -1180,7 +1192,7 @@ function BookingStep3({
             {...form.register('notes')}
             rows={3}
             placeholder="Share details about current nail condition, previous gel sets, sensitivities, or shape preferences..."
-            className="w-full p-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 shadow-xs resize-none"
+            className="w-full p-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs resize-none"
           />
         </div>
 
@@ -1193,7 +1205,7 @@ function BookingStep3({
             type="url"
             {...form.register('inspirationImg')}
             placeholder="https://..."
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 shadow-xs"
+            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
           />
         </div>
       </div>
@@ -1304,7 +1316,7 @@ function BookingStep4({
               type="checkbox"
               checked={redeemLoyaltyReward}
               onChange={(e) => setRedeemLoyaltyReward(e.target.checked)}
-              className="rounded-full border-rose-300 text-rose-900 focus:ring-rose-800 h-4 w-4"
+              className="rounded-full border-rose-300 text-rose-900 focus:ring-rose-800/30 h-4 w-4"
             />
             <span>Redeem free service</span>
           </label>
@@ -1414,7 +1426,7 @@ function BookingStep4({
                 value={paymentReference}
                 onChange={(e) => setPaymentReference(e.target.value)}
                 placeholder="e.g. 1002 9384 1928"
-                className="w-full pl-10 pr-4 h-12 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800 focus:border-rose-800 shadow-xs"
+                className="w-full pl-10 pr-4 h-12 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
                 required
               />
             </div>
@@ -1423,47 +1435,97 @@ function BookingStep4({
             </p>
           </div>
 
-          {/* Receipt Screenshot Upload Zone */}
+          {/* Structured Atelier Receipt Card */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-medium text-stone-800 dark:text-stone-200">
+            <label className="block text-xs font-medium text-stone-800 dark:text-stone-200 font-sans">
               Payment Receipt Screenshot <span className="text-stone-400 font-normal">(optional attachment)</span>
             </label>
             {!receiptPreview ? (
-              <label className="rounded-2xl border border-dashed border-rose-300 dark:border-rose-900 hover:border-rose-400 p-6 flex flex-col items-center justify-center cursor-pointer transition-colors bg-white/60 dark:bg-stone-900/40">
-                <Upload className="h-5 w-5 text-rose-500 mb-1.5 stroke-[1.5]" />
-                <span className="text-xs font-medium text-stone-800 dark:text-stone-200">
+              <label className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 hover:border-rose-400 dark:hover:border-rose-800 p-6 flex flex-col items-center justify-center cursor-pointer transition-colors bg-[#FFF0F3] dark:bg-[#160D12] shadow-xs">
+                <div className="rounded-xl border border-rose-200/80 dark:border-rose-900/60 bg-rose-50/80 dark:bg-stone-800/80 p-3 text-rose-800 dark:text-rose-300 mb-2">
+                  <Upload className="h-5 w-5 stroke-[1.5]" />
+                </div>
+                <span className="text-xs font-medium text-stone-800 dark:text-stone-200 font-sans">
                   Upload transaction receipt screenshot
                 </span>
-                <span className="text-[10px] text-stone-400 mt-0.5">PNG, JPG or WebP up to 5MB</span>
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5 font-sans">
+                  JPG or PNG, maximum 5MB
+                </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept="image/jpeg,image/png"
                   className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) {
-                      setReceiptFile(file);
-                      const objectUrl = URL.createObjectURL(file);
-                      setReceiptPreview(objectUrl);
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast.error('Receipt file size exceeds the 5MB limit');
+                      return;
                     }
+                    if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+                      toast.error('Only JPG and PNG receipt images are allowed');
+                      return;
+                    }
+                    setReceiptFile(file);
+                    const objectUrl = URL.createObjectURL(file);
+                    setReceiptPreview(objectUrl);
                   }}
                 />
               </label>
             ) : (
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900">
-                <img
-                  src={receiptPreview}
-                  alt="Payment receipt preview"
-                  className="h-14 w-14 object-cover rounded-xl border border-rose-200/80 dark:border-rose-900"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-stone-900 dark:text-stone-100 truncate">
+              <div className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-[#FFF0F3] dark:bg-[#160D12] shadow-xs">
+                <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded-xl border border-rose-200/80 dark:border-rose-900 bg-stone-100 dark:bg-stone-800">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={receiptPreview}
+                    alt="Payment receipt preview"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0 font-sans">
+                  <p className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
                     {receiptFile?.name || 'receipt-attachment.jpg'}
                   </p>
-                  <p className="text-[11px] text-rose-800 dark:text-rose-300 flex items-center gap-1 mt-0.5 font-medium">
+                  <p className="text-[11px] text-rose-800 dark:text-rose-300 flex items-center gap-1 mt-1 font-medium">
                     <CheckCircle2 className="h-3.5 w-3.5 text-rose-600 stroke-[1.5]" />
                     Receipt attached for manual verification by Atasha
                   </p>
+                  <div className="mt-2.5 flex items-center space-x-3 text-xs">
+                    <label className="font-medium text-rose-900 dark:text-rose-300 hover:underline cursor-pointer">
+                      Replace receipt
+                      <input
+                        type="file"
+                        accept="image/jpeg,image/png"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 5 * 1024 * 1024) {
+                            toast.error('Receipt file size exceeds the 5MB limit');
+                            return;
+                          }
+                          if (file.type !== 'image/jpeg' && file.type !== 'image/png') {
+                            toast.error('Only JPG and PNG receipt images are allowed');
+                            return;
+                          }
+                          setReceiptFile(file);
+                          const objectUrl = URL.createObjectURL(file);
+                          setReceiptPreview(objectUrl);
+                        }}
+                      />
+                    </label>
+                    <span className="text-stone-300 dark:text-stone-700">•</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setReceiptFile(null);
+                        setReceiptPreview(null);
+                      }}
+                      className="font-medium text-stone-500 dark:text-stone-400 hover:text-rose-900 dark:hover:text-rose-300 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -1471,7 +1533,7 @@ function BookingStep4({
                     setReceiptFile(null);
                     setReceiptPreview(null);
                   }}
-                  className="p-1.5 rounded-full text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
+                  className="p-1.5 rounded-full text-stone-400 hover:bg-rose-50 dark:hover:bg-stone-800 hover:text-stone-700 dark:hover:text-stone-200 transition-colors"
                   aria-label="Remove receipt attachment"
                 >
                   <X className="h-4 w-4 stroke-[1.5]" />
@@ -1501,7 +1563,7 @@ function BookingStep4({
           <input
             type="checkbox"
             {...form.register('confirmed')}
-            className="mt-1 h-4 w-4 rounded-md border-rose-300 text-rose-900 focus:ring-rose-800"
+            className="mt-1 h-4 w-4 rounded-md border-rose-300 text-rose-900 focus:ring-rose-800/30"
             required
           />
           <span className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-normal">

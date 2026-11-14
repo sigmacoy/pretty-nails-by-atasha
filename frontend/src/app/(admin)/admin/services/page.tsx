@@ -251,7 +251,7 @@ export function ServiceForm({
             <div className="flex items-center gap-2">
               <SlidersHorizontal className="h-4 w-4 stroke-[1.5] text-rose-800 dark:text-rose-300" />
               <div>
-                <h3 className="text-xs font-semibold text-rose-950 dark:text-rose-100 uppercase tracking-wide">
+                <h3 className="text-xs font-serif font-semibold text-rose-950 dark:text-rose-100 uppercase tracking-wide">
                   Length tiers
                 </h3>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
@@ -289,6 +289,7 @@ export function ServiceForm({
                 >
                   <div className="w-full sm:w-44 shrink-0">
                     <Select
+                      aria-label={`Tier variant length for tier ${index + 1}`}
                       options={VARIANT_OPTIONS}
                       {...register(`variants.${index}.name` as const)}
                       error={errors.variants?.[index]?.name?.message}
@@ -298,6 +299,7 @@ export function ServiceForm({
 
                   <div className="flex-1 min-w-0">
                     <Input
+                      aria-label={`Tier rate in centavos for tier ${index + 1}`}
                       type="number"
                       step={100}
                       min={0}
@@ -397,12 +399,12 @@ export default function AdminServicesPage() {
     (data: ServiceRequest) => servicesApi.create(data),
     {
       onSuccess: () => {
-        toast.success('Service created');
+        toast.success('Nail treatment service added to atelier menu.');
         setModalOpen(false);
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to create service');
+        toast.error(error.message || 'Could not add nail service to atelier menu.');
       },
       onSettled: () => setIsSubmitting(false),
     }
@@ -412,13 +414,13 @@ export default function AdminServicesPage() {
     ({ id, data }: { id: string; data: ServiceRequest }) => servicesApi.update(id, data),
     {
       onSuccess: () => {
-        toast.success('Service updated');
+        toast.success('Nail treatment service updated.');
         setModalOpen(false);
         setEditingService(null);
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to update service');
+        toast.error(error.message || 'Could not update nail service entry.');
       },
       onSettled: () => setIsSubmitting(false),
     }
@@ -428,11 +430,11 @@ export default function AdminServicesPage() {
     (id: string) => servicesApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Service deleted');
+        toast.success('Nail treatment service removed from atelier menu.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Failed to delete service');
+        toast.error(error.message || 'Could not remove nail service from atelier menu.');
       },
     }
   );
@@ -626,16 +628,21 @@ export default function AdminServicesPage() {
 
         {/* Search Input */}
         <div className="relative w-full sm:w-72 shrink-0">
+          <label htmlFor="services-search-input" className="sr-only">
+            Search treatments
+          </label>
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 stroke-[1.5] text-rose-800/70 dark:text-rose-300/70 pointer-events-none" />
           <input
+            id="services-search-input"
             type="text"
+            aria-label="Search treatments"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(0);
             }}
             placeholder="Search treatments..."
-            className="h-11 w-full rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 pl-10 pr-9 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-800 focus-visible:border-rose-800 transition-colors shadow-xs"
+            className="h-11 w-full rounded-full border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 pl-10 pr-9 text-xs text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-colors shadow-xs"
           />
           {search && (
             <button
@@ -653,7 +660,7 @@ export default function AdminServicesPage() {
       </div>
 
       {/* Main Table Card */}
-      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)] overflow-hidden">
+      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)] overflow-hidden">
         <CardContent className="p-0">
           {isLoading ? (
             <div className="p-8">
@@ -666,18 +673,15 @@ export default function AdminServicesPage() {
             </div>
           ) : services.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="h-12 w-12 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-300 flex items-center justify-center mx-auto mb-3">
-                <Tag className="h-5 w-5 stroke-[1.5]" />
-              </div>
-              <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
+              <h3 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
                 No services cataloged
               </h3>
-              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-5 max-w-sm mx-auto font-normal">
+              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-5 max-w-sm mx-auto font-sans">
                 Create your first salon service to define treatment durations, base prices, and length tier options.
               </p>
               <Button
                 onClick={openCreateModal}
-                className="h-12 px-6 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-xs shadow-sm gap-2"
+                className="h-12 px-6 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-sans font-medium text-xs shadow-sm gap-2"
               >
                 <Plus className="h-4 w-4 stroke-[1.5]" />
                 Add service
@@ -685,13 +689,10 @@ export default function AdminServicesPage() {
             </div>
           ) : filteredServices.length === 0 ? (
             <div className="p-12 text-center">
-              <div className="h-12 w-12 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-300 flex items-center justify-center mx-auto mb-3">
-                <Search className="h-5 w-5 stroke-[1.5]" />
-              </div>
-              <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
+              <h3 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
                 No matching treatments
               </h3>
-              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4 max-w-sm mx-auto font-normal">
+              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4 max-w-sm mx-auto font-sans">
                 No treatments found matching &ldquo;{search}&rdquo; in {CATEGORY_NAMES[selectedCategory] || 'selected category'}.
               </p>
               <Button
@@ -701,9 +702,9 @@ export default function AdminServicesPage() {
                   setSearch('');
                   setSelectedCategory('ALL');
                 }}
-                className="h-10 px-5 rounded-full text-xs gap-2"
+                className="h-10 px-5 rounded-full text-xs font-sans gap-2"
               >
-                Clear filters
+                Reset search filter
               </Button>
             </div>
           ) : (

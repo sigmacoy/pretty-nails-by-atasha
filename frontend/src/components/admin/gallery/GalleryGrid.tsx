@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Image as ImageIcon, Trash2, Edit2, Eye, Plus, Tag } from 'lucide-react';
+import { Trash2, Edit2, Eye, Plus, Tag } from 'lucide-react';
 import { GalleryDto } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -58,20 +58,17 @@ export function GalleryGrid({
 
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-8 sm:p-12 text-center shadow-sm">
-        <div className="mx-auto w-14 h-14 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center mb-4 text-rose-800 dark:text-rose-300">
-          <ImageIcon className="h-6 w-6" strokeWidth={1.5} aria-hidden="true" />
-        </div>
-        <h3 className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm p-8 sm:p-12 text-center shadow-sm">
+        <h3 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
           {emptyMessage}
         </h3>
-        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal max-w-sm mx-auto mb-6 leading-relaxed">
+        <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans max-w-sm mx-auto mb-6 leading-relaxed">
           Upload portfolio photography with style discipline tags and descriptions for atelier clients to discover.
         </p>
         {onAdd && (
           <Button
             onClick={onAdd}
-            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] flex items-center gap-2 mx-auto"
+            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-sans font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] flex items-center gap-2 mx-auto"
           >
             <Plus className="h-4 w-4" strokeWidth={1.5} />
             <span>Upload design</span>
@@ -94,16 +91,17 @@ export function GalleryGrid({
           <button
             type="button"
             onClick={onAdd}
-            className="group relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-rose-200/80 dark:border-rose-900/60 hover:border-rose-400 dark:hover:border-rose-700 bg-white/40 dark:bg-[#1A0E15]/40 hover:bg-white/80 dark:hover:bg-[#1A0E15]/80 p-6 min-h-[300px] transition-colors duration-200 text-center"
+            className="group relative flex flex-col items-center justify-center rounded-2xl border border-rose-200/80 dark:border-rose-950/60 hover:border-rose-300 dark:hover:border-rose-800 bg-white/40 dark:bg-[#1A0E15]/40 hover:bg-white/80 dark:hover:bg-[#1A0E15]/80 p-6 min-h-[300px] transition-all duration-200 text-center focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
           >
-            <div className="w-12 h-12 rounded-full bg-rose-100/70 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-900/60 group-hover:bg-rose-900 group-hover:text-white text-rose-900 dark:text-rose-200 flex items-center justify-center mb-3 transition-colors duration-200">
-              <Plus className="w-5 h-5" strokeWidth={1.5} />
-            </div>
-            <span className="text-sm font-medium text-stone-900 dark:text-rose-100">
+            <span className="font-serif text-lg font-medium text-stone-900 dark:text-rose-100 group-hover:text-rose-900 dark:group-hover:text-rose-200 transition-colors">
               Upload design
             </span>
             <span className="text-xs text-stone-500 dark:text-stone-400 mt-1 font-normal max-w-[180px] leading-relaxed">
               Add new photography to the atelier portfolio
+            </span>
+            <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-rose-900 dark:text-rose-300">
+              <Plus className="w-3.5 h-3.5 stroke-[1.5]" />
+              New lookbook entry
             </span>
           </button>
         )}

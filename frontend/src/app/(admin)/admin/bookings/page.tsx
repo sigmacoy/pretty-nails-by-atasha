@@ -244,7 +244,7 @@ export default function AdminBookingsPage() {
   // Export Bookings to CSV
   const handleExportCSV = () => {
     if (allRawBookings.length === 0) {
-      toast.info('No bookings available to export');
+      toast.info('No atelier appointments available to export.');
       return;
     }
 
@@ -271,7 +271,7 @@ export default function AdminBookingsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Bookings exported to CSV');
+    toast.success('Atelier appointments exported to CSV.');
   };
 
   if (isError) {
@@ -296,7 +296,7 @@ export default function AdminBookingsPage() {
               <p className="text-xs text-muted-foreground mt-1 mb-4">
                 {error?.message || 'Unable to retrieve booking records from server.'}
               </p>
-              <Button onClick={() => refetch()} variant="outline" size="sm" className="h-10 px-5 rounded-full gap-2 text-xs">
+              <Button onClick={() => refetch()} variant="outline" size="sm" className="h-14 px-8 rounded-full gap-2 text-xs">
                 <RefreshCw className="h-4 w-4 stroke-[1.5]" />
                 Retry
               </Button>

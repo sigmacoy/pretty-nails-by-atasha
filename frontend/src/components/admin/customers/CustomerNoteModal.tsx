@@ -44,14 +44,14 @@ export function CustomerNoteModal({
     setIsSubmitting(true);
     try {
       await adminApi.addCustomerNote(customer.id, { content: note.trim() });
-      toast.success('Note saved successfully');
+      toast.success('Client consultation note recorded in atelier records.');
       onSaveSuccess?.(customer, nickname.trim() || undefined);
       setNote('');
       setNickname('');
       onClose();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Failed to save customer note');
+      toast.error(axiosError.response?.data?.message || 'Unable to record client consultation note.');
     } finally {
       setIsSubmitting(false);
     }

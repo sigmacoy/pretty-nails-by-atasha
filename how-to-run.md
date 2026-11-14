@@ -9,7 +9,7 @@ A complete, step-by-step guide to run the **Pretty Nails by Atasha** full-stack 
 ```
 ┌─────────────────────────────────┐           ┌──────────────────────────────────┐
 │      Next.js Frontend           │           │       Spring Boot Backend        │
-│   http://localhost:3000         │ ────────▶ │      http://localhost:8080       │
+│   http://localhost:3000         │ ────────> │      http://localhost:8080       │
 │  (Pages, Booking, Admin UI)     │           │  (REST API, JWT Auth, Seeder)    │
 └─────────────────────────────────┘           └──────────────────────────────────┘
                                                                │
@@ -191,8 +191,8 @@ You can run the backend either via the **Terminal** or via **IntelliJ IDEA**.
      - Local:        http://localhost:3000
      - Environments: .env.local
 
-    ✓ Starting...
-    ✓ Ready in 1.8s
+    Starting...
+    Ready in 1.8s
    ```
 
 ---
@@ -200,7 +200,7 @@ You can run the backend either via the **Terminal** or via **IntelliJ IDEA**.
 ## Step 4: Go to Website & Complete Walkthrough ("Typeshi" Flow Guide)
 
 Open your web browser (Safari or Chrome) and navigate to:
-👉 **[http://localhost:3000](http://localhost:3000)**
+**[http://localhost:3000](http://localhost:3000)**
 
 Here is how each area of the website works:
 
@@ -311,8 +311,8 @@ Here is how each area of the website works:
    - URL: [http://localhost:3000/admin/bookings](http://localhost:3000/admin/bookings)
    - Filter bookings by date, customer, or status.
    - One-click actions to change status:
-     - `PENDING` ➔ `CONFIRMED`
-     - `CONFIRMED` ➔ `COMPLETED` *(automatically stamps the customer's loyalty card!)*
+     - `PENDING` -> `CONFIRMED`
+     - `CONFIRMED` -> `COMPLETED` *(automatically stamps the customer's loyalty card!)*
      - `CANCELLED`
 
 4. **Service Catalog & Pricing Editor (`/admin/services`)**:

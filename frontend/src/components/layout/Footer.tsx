@@ -74,7 +74,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
               Services
             </h3>
             <ul className="mt-3 space-y-2.5" role="list">
@@ -92,7 +92,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
               Studio
             </h3>
             <ul className="mt-3 space-y-2.5" role="list">
@@ -110,7 +110,7 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
+            <h3 className="font-serif font-medium text-xs tracking-tight text-stone-900 dark:text-stone-100">
               Visit & hours
             </h3>
             <address className="mt-3 not-italic text-sm text-stone-600 dark:text-stone-400 space-y-2.5">

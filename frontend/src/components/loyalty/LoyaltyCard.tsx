@@ -53,13 +53,13 @@ export function LoyaltyCard({
     <div className="relative rounded-2xl border border-stone-200/90 dark:border-stone-800/80 bg-[#FDFBF7] dark:bg-[#1E1C1A] text-stone-900 dark:text-stone-100 shadow-[0_1px_3px_rgba(28,25,23,0.04)] overflow-hidden">
       <div className="p-6 sm:p-8 space-y-6">
         {/* Studio Card Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-5 border-b border-stone-200/80 dark:border-stone-800/80">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-5 border-b border-rose-200/80 dark:border-rose-950/60">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-medium text-stone-500 dark:text-stone-400">
               <LacquerDropMark className="h-3.5 w-3.5 text-primary shrink-0" />
               <span>Pretty Nails by Atasha</span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
+            <h2 className="text-xl sm:text-2xl font-serif font-semibold tracking-tight text-stone-900 dark:text-stone-100">
               Loyalty Stamp Card
             </h2>
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400">

@@ -7,7 +7,7 @@
 
 ---
 
-## 📋 Task Categories
+## Task Categories
 
 | Priority | Category | Tasks |
 |----------|----------|-------|
@@ -25,7 +25,7 @@
 
 ---
 
-## 🔴 P0 — Critical (Blockers for Real Operations)
+## P0 - Critical (Blockers for Real Operations)
 
 ### 1. NextAuth + Google/Facebook Social Login
 - [ ] Add NextAuth v5 to frontend (`frontend/`)
@@ -76,7 +76,7 @@
 
 ---
 
-## 🟠 P1 — High (Core Business Rules)
+## P1 - High (Core Business Rules)
 
 ### 4. Hard Limits: Max 4 Clients/Day, 8AM–10PM
 - [ ] Add `MAX_CLIENTS_PER_DAY = 4` constant (configurable via settings)
@@ -175,7 +175,7 @@ ELSE → 0 stamps
 
 ---
 
-## 🟡 P2 — Medium (UX Polish)
+## P2 - Medium (UX Polish)
 
 ### 10. Inspiration Photo Upload at Booking
 - [ ] Add `inspirationPhotos` array field to `Booking` (max 3, max 5MB each)
@@ -214,7 +214,7 @@ ELSE → 0 stamps
 
 ---
 
-## 📦 Suggested Implementation Order
+## Suggested Implementation Order
 
 | Sprint | Focus | Tasks |
 |--------|-------|-------|
@@ -226,7 +226,7 @@ ELSE → 0 stamps
 
 ---
 
-## 🔗 Related Files
+## Related Files
 
 - `README.md` — Project overview
 - `how-to-run.md` — Local setup guide
@@ -235,7 +235,7 @@ ELSE → 0 stamps
 
 ---
 
-## ✅ Completion Criteria
+## Completion Criteria
 
 A task is **Done** when:
 1. Backend implementation + unit test exists

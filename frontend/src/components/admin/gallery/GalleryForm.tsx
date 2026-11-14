@@ -257,6 +257,7 @@ export function GalleryForm({
               {showUrlInput && (
                 <div className="pt-1">
                   <Input
+                    label="Direct image link"
                     name="imageUrl"
                     type="url"
                     value={formData.imageUrl}
@@ -295,7 +296,7 @@ export function GalleryForm({
             name="isActive"
             checked={formData.isActive}
             onChange={handleChange}
-            className="h-4 w-4 mt-0.5 rounded border-rose-300 text-rose-900 focus:ring-rose-800 accent-rose-900"
+            className="h-4 w-4 mt-0.5 rounded border-rose-300 text-rose-900 focus:ring-rose-800/30 accent-rose-900"
           />
           <div>
             <label

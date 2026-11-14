@@ -79,18 +79,23 @@ export function Table<T>({
 
   if (data.length === 0) {
     return (
-      <div className={cn('rounded-xl border border-stone-200/80 dark:border-stone-800/80 p-8 text-center bg-card', className)}>
-        <p className="text-sm text-stone-500 dark:text-stone-400 font-normal">{emptyMessage}</p>
+      <div className={cn('rounded-2xl border border-rose-200/80 dark:border-rose-950/60 p-12 text-center bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-card', className)}>
+        <h3 className="font-serif text-lg font-medium text-stone-900 dark:text-rose-50 mb-1">
+          {emptyMessage}
+        </h3>
+        <p className="font-sans text-xs sm:text-sm text-stone-500 dark:text-stone-400 max-w-sm mx-auto font-normal">
+          No records are currently cataloged in this table view.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className={cn('rounded-xl border border-stone-200/80 dark:border-stone-800/80 overflow-hidden bg-card', className)}>
+    <div className={cn('rounded-xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-card', className)}>
       <div className="overflow-x-auto">
         <table className="w-full text-left">
           <thead>
-            <tr className="border-b border-stone-200/80 dark:border-stone-800/80 bg-stone-50/80 dark:bg-stone-900/60">
+            <tr className="border-b border-rose-200/80 dark:border-rose-950/60 bg-stone-50/80 dark:bg-stone-900/60">
               {columns.map((col) => (
                 <th
                   key={col.key}

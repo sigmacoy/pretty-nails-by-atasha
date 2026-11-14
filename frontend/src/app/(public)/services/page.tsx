@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, ChevronDown, ChevronUp, Layers, AlertCircle, Check, ShieldCheck } from 'lucide-react';
+import { Clock, ChevronDown, ChevronUp, Check, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@/hooks/useApi';
 import { servicesApi } from '@/lib/api';
@@ -198,13 +198,10 @@ export default function ServicesPage() {
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-10 sm:p-12 text-center max-w-md mx-auto shadow-card">
-            <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 flex items-center justify-center mx-auto mb-4 border border-rose-200/80 dark:border-rose-900/60">
-              <AlertCircle className="h-6 w-6" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mb-2">
+            <h2 className="text-2xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
               Unable to load services
             </h2>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-6 font-normal leading-relaxed">
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-6 font-sans leading-relaxed">
               We could not retrieve live updates from the service catalog. You can reload or continue to booking.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -291,15 +288,12 @@ export default function ServicesPage() {
 
         {/* Services Grid */}
         {filteredServices.length === 0 ? (
-          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-12 text-center max-w-md mx-auto shadow-card my-12">
-            <div className="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 flex items-center justify-center mx-auto mb-4 border border-rose-200/80 dark:border-rose-900/60">
-              <Layers className="h-6 w-6" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50 mb-1.5">
-              No services found
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-12 text-center max-w-md mx-auto shadow-card my-12">
+            <h2 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
+              No services found in this category
             </h2>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 font-normal">
-              No treatments are currently available under this specific category.
+            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 font-sans leading-relaxed">
+              No treatments are currently available under this specific category. Select another category above to view services.
             </p>
           </div>
         ) : (

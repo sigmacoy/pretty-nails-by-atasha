@@ -44,7 +44,7 @@ export function Modal({
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
         <div
           className={cn(
-            'relative w-full rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card text-card-foreground shadow-float my-8',
+            'relative w-full rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-card text-card-foreground shadow-float my-8',
             sizeClasses[size]
           )}
           role="dialog"
@@ -53,10 +53,10 @@ export function Modal({
           aria-describedby={description ? 'modal-description' : undefined}
         >
           {(title || showClose) && (
-            <div className="flex items-start justify-between p-5 sm:p-6 border-b border-stone-200/60 dark:border-stone-800/60">
+            <div className="flex items-start justify-between p-5 sm:p-6 border-b border-rose-200/80 dark:border-rose-950/60">
               <div>
                 {title && (
-                  <h2 id="modal-title" className="text-base sm:text-lg font-medium text-stone-900 dark:text-stone-100">
+                  <h2 id="modal-title" className="text-base sm:text-lg font-serif font-medium text-stone-900 dark:text-stone-100">
                     {title}
                   </h2>
                 )}

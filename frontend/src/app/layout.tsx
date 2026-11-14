@@ -20,11 +20,11 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Pretty Nails by Atasha - Premier Nail Salon',
-    template: '%s | Pretty Nails by Atasha',
+    default: 'Pretty Nails by Atasha · Cebu City',
+    template: '%s | Pretty Nails by Atasha · Cebu City',
   },
-  description: 'Professional nail salon services including gel nails, extensions, pedicure, and nail art. Book your appointment online.',
-  keywords: ['nail salon', 'gel nails', 'nail extensions', 'pedicure', 'nail art', 'manila', 'philippines'],
+  description: 'Private 1-on-1 atelier specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
+  keywords: ['nail salon', 'biab', 'russian manicure', 'structured gel', 'nail art', 'cebu city', 'philippines'],
   authors: [{ name: 'Pretty Nails by Atasha' }],
   creator: 'Pretty Nails by Atasha',
   publisher: 'Pretty Nails by Atasha',
@@ -34,21 +34,21 @@ export const metadata: Metadata = {
     locale: 'en_PH',
     url: 'https://prettynails.ph',
     siteName: 'Pretty Nails by Atasha',
-    title: 'Pretty Nails by Atasha - Premier Nail Salon',
-    description: 'Professional nail salon services including gel nails, extensions, pedicure, and nail art.',
+    title: 'Pretty Nails by Atasha · Cebu City',
+    description: 'Private 1-on-1 atelier specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
     images: [
       {
         url: '/images/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'Pretty Nails by Atasha',
+        alt: 'Pretty Nails by Atasha · Cebu City',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Pretty Nails by Atasha',
-    description: 'Professional nail salon services in Manila.',
+    title: 'Pretty Nails by Atasha · Cebu City',
+    description: 'Private 1-on-1 atelier specializing in structured BIAB overlays and Russian manicure in Cebu City.',
     images: ['/images/og-image.jpg'],
   },
   icons: {
@@ -61,8 +61,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
+    { media: '(prefers-color-scheme: light)', color: '#FFF0F3' },
+    { media: '(prefers-color-scheme: dark)', color: '#160D12' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -87,10 +87,16 @@ export default function RootLayout({
             position="top-right"
             toastOptions={{
               classNames: {
-                toast: 'bg-background text-foreground border shadow-lg',
-                description: 'text-muted-foreground',
-                actionButton: 'bg-primary text-primary-foreground',
-                cancelButton: 'bg-muted text-muted-foreground',
+                toast:
+                  'bg-[#FFF0F3] dark:bg-[#160D12] text-stone-900 dark:text-stone-100 border border-rose-200/80 dark:border-rose-950/60 shadow-md font-sans rounded-xl text-xs sm:text-sm',
+                description: 'text-stone-600 dark:text-stone-400 text-xs',
+                actionButton:
+                  'bg-rose-900 hover:bg-rose-950 text-white rounded-lg text-xs font-medium px-3 py-1.5 transition-colors',
+                cancelButton:
+                  'bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300 rounded-lg text-xs font-medium px-3 py-1.5 transition-colors',
+                success: 'border-rose-200/80 dark:border-rose-950/60 text-stone-900 dark:text-stone-100',
+                error: 'border-rose-300 dark:border-rose-900 text-stone-900 dark:text-stone-100',
+                info: 'border-rose-200/80 dark:border-rose-950/60 text-stone-900 dark:text-stone-100',
               },
             }}
           />

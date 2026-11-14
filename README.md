@@ -126,7 +126,7 @@ A comprehensive nail salon booking and management system built with Spring Boot 
 
 ```
 ┌────────────────────────┐     ┌──────────────────────────┐     ┌────────────────────────┐
-│    Next.js Frontend    │────▶│     Spring Boot API      │────▶│      PostgreSQL        │
+│    Next.js Frontend    │────>│     Spring Boot API      │────>│      PostgreSQL        │
 │    http://localhost:3000     │   http://localhost:8080    │   │   localhost:5432       │
 │  (Pages, Booking, UI)  │     │ (REST, JWT, Seeder)      │   │   or Supabase Cloud    │
 └────────────────────────┘     └──────────────────────────┘     └────────────────────────┘

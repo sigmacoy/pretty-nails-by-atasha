@@ -15,7 +15,7 @@ import {
   isToday,
   isSameDay,
 } from 'date-fns';
-import { Calendar, Clock, ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@/hooks/useApi';
 import { availabilityApi } from '@/lib/api';
 import { AvailabilityDto } from '@/types';
@@ -257,14 +257,11 @@ export default function AvailabilityPage() {
                   </div>
 
                   {timeSlots.length === 0 ? (
-                    <div className="text-center py-14 px-4">
-                      <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center mx-auto mb-3 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60">
-                        <Clock className="h-5 w-5" strokeWidth={1.5} />
-                      </div>
-                      <h4 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
-                        No slots open
+                    <div className="text-center py-14 px-4 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80">
+                      <h4 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
+                        No appointments scheduled for this date
                       </h4>
-                      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xs mx-auto leading-relaxed font-normal">
+                      <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xs mx-auto leading-relaxed font-sans">
                         {isPast(format(selectedDate, 'yyyy-MM-dd'))
                           ? 'This date has passed. Please choose a future appointment date from the calendar.'
                           : 'No 30-minute studio windows are open for this date. Please choose another date.'}
@@ -305,14 +302,11 @@ export default function AvailabilityPage() {
                   )}
                 </div>
               ) : (
-                <div className="text-center py-20 px-4">
-                  <div className="h-12 w-12 rounded-full bg-rose-100 dark:bg-rose-950/60 flex items-center justify-center mx-auto mb-3 text-rose-800 dark:text-rose-300 border border-rose-200/80 dark:border-rose-900/60">
-                    <Calendar className="h-5 w-5" strokeWidth={1.5} />
-                  </div>
-                  <h4 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 mb-1">
+                <div className="text-center py-14 px-4 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/60 dark:bg-stone-900/40">
+                  <h4 className="text-xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
                     Select an appointment date
                   </h4>
-                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xs mx-auto leading-relaxed font-normal">
+                  <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xs mx-auto leading-relaxed font-sans">
                     Choose an active day from the calendar to inspect open private 1-on-1 atelier time slots.
                   </p>
                 </div>

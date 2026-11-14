@@ -48,11 +48,11 @@ export function ProfileForm() {
         phone: data.phone,
         nickname: data.nickname,
       });
-      toast.success('Profile updated successfully');
+      toast.success('Client profile preferences updated in atelier records.');
       await refreshUser();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      const message = axiosError.response?.data?.message || 'Failed to update profile. Please try again.';
+      const message = axiosError.response?.data?.message || 'Unable to update profile details. Please try again.';
       toast.error(message);
     } finally {
       setIsSubmitting(false);

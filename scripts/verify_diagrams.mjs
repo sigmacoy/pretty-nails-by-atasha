@@ -113,7 +113,7 @@ function suite(name, fn) {
   try {
     fn();
   } catch (err) {
-    console.error(`💥 Unhandled Suite Exception in "${name}":`, err.message);
+    console.error(`[ERROR] Unhandled Suite Exception in "${name}":`, err.message);
     currentSuite.failed++;
     stats.failed++;
     currentSuite.errors.push(`Suite Exception: ${err.message}`);
@@ -138,7 +138,7 @@ async function asyncSuite(name, fn) {
   try {
     await fn();
   } catch (err) {
-    console.error(`💥 Unhandled Suite Exception in "${name}":`, err.message);
+    console.error(`[ERROR] Unhandled Suite Exception in "${name}":`, err.message);
     currentSuite.failed++;
     stats.failed++;
     currentSuite.errors.push(`Suite Exception: ${err.message}`);
@@ -667,20 +667,20 @@ async function main() {
 
   for (const s of stats.suites) {
     const status = s.failed === 0 ? 'PASS' : 'FAIL';
-    const indicator = s.failed === 0 ? '✅' : '❌';
+    const indicator = s.failed === 0 ? '[PASS]' : '[FAIL]';
     console.log(`${indicator} [${status}] ${s.name} (${s.passed}/${s.total} passed in ${s.duration}ms)`);
     if (s.errors.length > 0) {
       for (const err of s.errors) {
-        console.log(`      ⚠️  ${err}`);
+        console.log(`      [WARN]  ${err}`);
       }
     }
   }
 
   if (stats.failed === 0) {
-    console.log(`\n🎉 ALL ARCHITECTURE DIAGRAM VERIFICATION CHECKS PASSED WITH 0 ERRORS! 🎉\n`);
+    console.log(`\n[PASS] ALL ARCHITECTURE DIAGRAM VERIFICATION CHECKS PASSED WITH 0 ERRORS!\n`);
     process.exit(0);
   } else {
-    console.error(`\n💥 VERIFICATION FAILED: ${stats.failed} assertion(s) failed across ${stats.suites.length} suites.\n`);
+    console.error(`\n[FAIL] VERIFICATION FAILED: ${stats.failed} assertion(s) failed across ${stats.suites.length} suites.\n`);
     process.exit(1);
   }
 }

@@ -38,7 +38,7 @@ export default function LoyaltyPage() {
     if (!voucherCode) return;
     navigator.clipboard.writeText(voucherCode);
     setHasCopiedVoucher(true);
-    toast.success('Voucher code copied to clipboard');
+    toast.success('Atelier reward voucher code copied to clipboard.');
     setTimeout(() => setHasCopiedVoucher(false), 2000);
   };
 
@@ -49,14 +49,14 @@ export default function LoyaltyPage() {
       const result = response.data as StampResponse;
 
       if (result.success) {
-        toast.success(result.message || 'Stamp recorded successfully');
+        toast.success(result.message || 'Loyalty stamp recorded for your atelier card.');
         refetch();
       } else {
-        toast.error(result.message || 'Unable to record stamp. Please try again.');
+        toast.error(result.message || 'Unable to record loyalty stamp. Please present your code to atelier staff.');
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Unable to record stamp. Please try again.');
+      toast.error(axiosError.response?.data?.message || 'Unable to record loyalty stamp. Please present your code to atelier staff.');
     } finally {
       setIsAddingStamp(false);
     }
@@ -65,10 +65,7 @@ export default function LoyaltyPage() {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors selection:bg-rose-200 selection:text-rose-950">
-        <div className="max-w-md w-full rounded-3xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 p-8 sm:p-10 text-center space-y-6 shadow-card backdrop-blur-sm">
-          <div className="w-14 h-14 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-950/60 flex items-center justify-center mx-auto text-rose-800 dark:text-rose-300">
-            <Gift className="h-6 w-6 stroke-[1.5]" />
-          </div>
+        <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-8 sm:p-10 text-center space-y-6 shadow-card backdrop-blur-sm">
           <div className="space-y-2">
             <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold block">
               Pretty Nails by Atasha · Cebu City
@@ -125,10 +122,7 @@ export default function LoyaltyPage() {
   if (error || !loyaltyCard) {
     return (
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors selection:bg-rose-200 selection:text-rose-950">
-        <div className="max-w-md w-full rounded-3xl border border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/95 p-8 sm:p-10 text-center space-y-4 shadow-card backdrop-blur-sm">
-          <div className="w-14 h-14 rounded-full bg-rose-50 dark:bg-rose-950/60 border border-rose-200/80 dark:border-rose-950/60 flex items-center justify-center mx-auto text-rose-600 dark:text-rose-400">
-            <AlertCircle className="h-6 w-6 stroke-[1.5]" />
-          </div>
+        <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-8 sm:p-10 text-center space-y-4 shadow-card backdrop-blur-sm">
           <div className="space-y-1">
             <h2 className="text-xl font-serif text-stone-900 dark:text-rose-50 font-normal">
               Unable to Load Loyalty Card

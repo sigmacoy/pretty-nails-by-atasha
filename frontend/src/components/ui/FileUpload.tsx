@@ -4,11 +4,12 @@ import { useState, useRef, useCallback, useEffect, FC, DragEvent, ChangeEvent, M
 import { Upload, X, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { uploadFile, validateImageFile } from '@/lib/upload';
+import { uploadFile } from '@/lib/upload';
 
 export interface FileUploadProps {
   value?: string;
   onChange?: (url: string) => void;
+  onFileSelect?: (file: File) => void;
   onRemove?: () => void;
   label?: string;
   helperText?: string;
@@ -24,15 +25,16 @@ export interface FileUploadProps {
 export const FileUpload: FC<FileUploadProps> = ({
   value,
   onChange,
+  onFileSelect,
   onRemove,
   label,
   helperText,
   error: externalError,
   disabled = false,
   className,
-  accept = 'image/jpeg,image/png,image/webp',
+  accept = 'image/jpeg,image/png',
   maxSizeMB = 5,
-  placeholder = 'Click or drag & drop an image here',
+  placeholder = 'Select or drop GCash / Maya deposit receipt',
   showPreview = true,
 }) => {
   const [isDragging, setIsDragging] = useState(false);
@@ -55,13 +57,43 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       setInternalError(null);
 
-      // Client validation
-      const validation = validateImageFile(file);
-      if (!validation.valid) {
-        const errorMsg = validation.error || `File must be JPEG, PNG, or WebP and under ${maxSizeMB}MB`;
+      // Client-side validation for file size (5MB maximum)
+      if (file.size > maxSizeMB * 1024 * 1024) {
+        const errorMsg = `Receipt file size exceeds the ${maxSizeMB}MB limit`;
         setInternalError(errorMsg);
         toast.error(errorMsg);
         return;
+      }
+
+      // Client-side validation for file MIME type
+      const acceptedList = accept
+        .split(',')
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean);
+
+      const isValidType = acceptedList.some((accepted) => {
+        if (accepted.endsWith('/*')) {
+          const typePrefix = accepted.replace('/*', '');
+          return file.type.toLowerCase().startsWith(typePrefix);
+        }
+        if (accepted.startsWith('.')) {
+          return file.name.toLowerCase().endsWith(accepted);
+        }
+        return file.type.toLowerCase() === accepted;
+      });
+
+      if (!isValidType) {
+        const errorMsg =
+          accept === 'image/jpeg,image/png'
+            ? 'Only JPG and PNG receipt images are allowed'
+            : 'File type is not supported. Please select a valid image.';
+        setInternalError(errorMsg);
+        toast.error(errorMsg);
+        return;
+      }
+
+      if (onFileSelect) {
+        onFileSelect(file);
       }
 
       // Generate local object URL for instant preview feedback
@@ -83,9 +115,12 @@ export const FileUpload: FC<FileUploadProps> = ({
         if (onChange) {
           onChange(result.url);
         }
-        toast.success('Image uploaded successfully');
+        toast.success('Deposit submitted for studio review.');
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Failed to upload image. Please try again.';
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'Unable to upload receipt. Please select valid JPG or PNG.';
         setInternalError(message);
         toast.error(message);
         // Revert to initial value preview
@@ -99,16 +134,19 @@ export const FileUpload: FC<FileUploadProps> = ({
         }
       }
     },
-    [disabled, isUploading, maxSizeMB, onChange, value]
+    [accept, disabled, isUploading, maxSizeMB, onChange, onFileSelect, value]
   );
 
-  const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (!disabled && !isUploading) {
-      setIsDragging(true);
-    }
-  }, [disabled, isUploading]);
+  const handleDragOver = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!disabled && !isUploading) {
+        setIsDragging(true);
+      }
+    },
+    [disabled, isUploading]
+  );
 
   const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -116,42 +154,53 @@ export const FileUpload: FC<FileUploadProps> = ({
     setIsDragging(false);
   }, []);
 
-  const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+  const handleDrop = useCallback(
+    (e: DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragging(false);
 
-    if (disabled || isUploading) return;
+      if (disabled || isUploading) return;
 
-    const files = e.dataTransfer.files;
-    if (files && files.length > 0) {
-      handleProcessFile(files[0]);
-    }
-  }, [disabled, isUploading, handleProcessFile]);
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        handleProcessFile(files[0]);
+      }
+    },
+    [disabled, isUploading, handleProcessFile]
+  );
 
-  const handleFileChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files.length > 0) {
-      handleProcessFile(files[0]);
-    }
-  }, [handleProcessFile]);
+  const handleFileChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        handleProcessFile(files[0]);
+      }
+    },
+    [handleProcessFile]
+  );
 
-  const handleClear = useCallback((e: MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setPreviewUrl(null);
-    setInternalError(null);
-    setUploadProgress(0);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    if (onRemove) {
-      onRemove();
-    }
-    if (onChange) {
-      onChange('');
-    }
-  }, [onChange, onRemove]);
+  const handleClear = useCallback(
+    (e?: MouseEvent<HTMLButtonElement>) => {
+      if (e) {
+        e.stopPropagation();
+        e.preventDefault();
+      }
+      setPreviewUrl(null);
+      setInternalError(null);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      if (onRemove) {
+        onRemove();
+      }
+      if (onChange) {
+        onChange('');
+      }
+    },
+    [onChange, onRemove]
+  );
 
   const triggerSelect = useCallback(() => {
     if (!disabled && !isUploading && fileInputRef.current) {
@@ -162,7 +211,7 @@ export const FileUpload: FC<FileUploadProps> = ({
   return (
     <div className={cn('w-full space-y-1.5', className)}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="block text-xs sm:text-sm font-medium text-stone-800 dark:text-stone-200 font-sans">
           {label}
         </label>
       )}
@@ -181,62 +230,62 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       {/* Preview mode or Dropzone mode */}
       {showPreview && previewUrl ? (
-        <div className="relative rounded-lg border border-border bg-card p-3 shadow-sm transition-all">
+        <div className="relative rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-[#FFF0F3] dark:bg-[#160D12] p-4 sm:p-5 shadow-xs transition-all">
           <div className="flex items-center space-x-4">
-            <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md border border-border bg-muted">
+            <div className="relative h-20 w-20 sm:h-24 sm:w-24 flex-shrink-0 overflow-hidden rounded-xl border border-rose-200/80 dark:border-rose-900 bg-stone-100 dark:bg-stone-800">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={previewUrl}
-                alt="Uploaded preview"
+                alt="Deposit receipt preview"
                 className="h-full w-full object-cover"
               />
               {isUploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/50 text-white">
+                <div className="absolute inset-0 flex items-center justify-center bg-stone-950/60 backdrop-blur-xs text-rose-200">
                   <Loader2 className="h-5 w-5 animate-spin" />
                 </div>
               )}
             </div>
 
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 font-sans">
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium text-foreground truncate">
-                  {isUploading ? 'Uploading image...' : 'Image ready'}
+                <span className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
+                  {isUploading ? 'Uploading deposit proof...' : 'Deposit proof attached'}
                 </span>
               </div>
 
               {isUploading ? (
                 <div className="mt-2 w-full">
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <div className="flex justify-between text-xs text-stone-500 dark:text-stone-400 mb-1">
                     <span>Uploading</span>
-                    <span>{uploadProgress}%</span>
+                    <span className="font-mono tabular-nums">{uploadProgress}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-primary transition-all duration-200"
+                      className="h-full bg-rose-800 dark:bg-rose-400 transition-all duration-200"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
                 </div>
               ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Click change to select a different photo.
+                <p className="mt-1 text-[11px] text-stone-500 dark:text-stone-400">
+                  Receipt attached for studio manual review
                 </p>
               )}
 
               {!isUploading && !disabled && (
-                <div className="mt-2 flex space-x-2">
+                <div className="mt-2.5 flex items-center space-x-3 text-xs">
                   <button
                     type="button"
                     onClick={triggerSelect}
-                    className="text-xs font-medium text-primary hover:underline focus:outline-none"
+                    className="font-medium text-rose-900 dark:text-rose-300 hover:underline focus:outline-none"
                   >
-                    Change photo
+                    Replace receipt
                   </button>
-                  <span className="text-muted-foreground text-xs">•</span>
+                  <span className="text-stone-300 dark:text-stone-700">•</span>
                   <button
                     type="button"
                     onClick={handleClear}
-                    className="text-xs font-medium text-destructive hover:underline focus:outline-none"
+                    className="font-medium text-stone-500 dark:text-stone-400 hover:text-rose-900 dark:hover:text-rose-300 hover:underline focus:outline-none"
                   >
                     Remove
                   </button>
@@ -248,10 +297,10 @@ export const FileUpload: FC<FileUploadProps> = ({
               <button
                 type="button"
                 onClick={handleClear}
-                aria-label="Remove image"
-                className="rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                aria-label="Remove receipt attachment"
+                className="rounded-full p-1.5 text-stone-400 hover:bg-rose-50 dark:hover:bg-stone-800 hover:text-stone-800 dark:hover:text-stone-200 transition-colors"
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 stroke-[1.5]" />
               </button>
             )}
           </div>
@@ -272,48 +321,50 @@ export const FileUpload: FC<FileUploadProps> = ({
           onDrop={handleDrop}
           aria-disabled={disabled || isUploading}
           className={cn(
-            'group relative flex flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition-all cursor-pointer select-none',
-            'border-muted-foreground/30 hover:border-primary/70 hover:bg-muted/40 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-            isDragging && 'border-primary bg-primary/5 ring-2 ring-primary/20',
-            activeError && 'border-destructive bg-destructive/5 hover:border-destructive',
+            'group relative flex flex-col items-center justify-center rounded-2xl border border-rose-200/80 dark:border-rose-950/60 p-5 text-center transition-all cursor-pointer select-none bg-[#FFF0F3] dark:bg-[#160D12] shadow-xs',
+            'hover:border-rose-400 dark:hover:border-rose-800 hover:bg-rose-50/30 dark:hover:bg-stone-900/80 focus:outline-none focus-visible:ring-1 focus-visible:ring-rose-800/30',
+            isDragging && 'border-rose-500 bg-rose-50/50 dark:bg-rose-950/30 ring-1 ring-rose-500/20',
+            activeError && 'border-rose-500 bg-rose-50/20',
             (disabled || isUploading) && 'opacity-60 cursor-not-allowed pointer-events-none'
           )}
         >
           {isUploading ? (
-            <div className="flex flex-col items-center py-2 space-y-2">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <div className="w-48 space-y-1">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>Uploading...</span>
-                  <span>{uploadProgress}%</span>
+            <div className="flex flex-col items-center py-3 space-y-3">
+              <Loader2 className="h-6 w-6 animate-spin text-rose-800 dark:text-rose-300" />
+              <div className="w-52 space-y-1.5">
+                <div className="flex justify-between text-xs text-stone-600 dark:text-stone-400 font-sans">
+                  <span>Uploading receipt...</span>
+                  <span className="font-mono tabular-nums">{uploadProgress}%</span>
                 </div>
-                <div className="h-1.5 w-full bg-secondary rounded-full overflow-hidden">
+                <div className="h-1.5 w-full bg-stone-200 dark:bg-stone-800 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-primary transition-all duration-200"
+                    className="h-full bg-rose-800 dark:bg-rose-400 transition-all duration-200"
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
               </div>
             </div>
           ) : (
-            <>
-              <div className="rounded-full bg-muted p-3 text-muted-foreground group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                <Upload className="h-6 w-6" />
+            <div className="flex flex-col items-center space-y-2.5">
+              <div className="rounded-xl border border-rose-200/80 dark:border-rose-900/60 bg-rose-50/80 dark:bg-stone-800/80 p-3 text-rose-800 dark:text-rose-300 transition-colors">
+                <Upload className="h-5 w-5 stroke-[1.5]" />
               </div>
-              <div className="mt-3 space-y-1">
-                <p className="text-sm font-medium text-foreground">{placeholder}</p>
-                <p className="text-xs text-muted-foreground">
-                  Supports JPEG, PNG, and WebP (up to {maxSizeMB}MB)
+              <div className="space-y-1">
+                <p className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 font-sans">
+                  {placeholder}
+                </p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400 font-sans">
+                  JPG or PNG, maximum {maxSizeMB}MB
                 </p>
               </div>
-            </>
+            </div>
           )}
         </div>
       )}
 
       {/* Error message */}
       {activeError && (
-        <div className="flex items-center space-x-1.5 text-xs text-destructive mt-1.5">
+        <div className="flex items-center space-x-1.5 text-xs text-rose-600 dark:text-rose-400 mt-1.5 font-sans">
           <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           <span>{activeError}</span>
         </div>
@@ -321,7 +372,7 @@ export const FileUpload: FC<FileUploadProps> = ({
 
       {/* Helper text */}
       {helperText && !activeError && (
-        <p className="text-xs text-muted-foreground mt-1.5">{helperText}</p>
+        <p className="text-xs text-stone-500 dark:text-stone-400 mt-1.5 font-sans">{helperText}</p>
       )}
     </div>
   );
