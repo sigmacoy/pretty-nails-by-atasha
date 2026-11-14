@@ -5,7 +5,7 @@ import { useQuery } from '@/hooks/useApi';
 import { adminApi } from '@/lib/api';
 import { CustomerListDto } from '@/types';
 import { CustomersTable, CustomerNoteModal } from '@/components/admin/customers';
-import { Search, X, Users, CheckCircle, Ban, Calendar } from 'lucide-react';
+import { Search, X, CheckCircle, Ban, Calendar, Users } from 'lucide-react';
 import { toast } from 'sonner';
 
 type StatusFilter = 'all' | 'active' | 'blocked';
@@ -88,36 +88,41 @@ export default function AdminCustomersPage() {
   };
 
   return (
-    <div className="container-padding py-8 space-y-6">
-      {/* Header with Title and Overview Metrics */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950 transition-colors pb-16">
+      {/* Standard Header Block */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-              Customer directory
-            </h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700/80 tabular-nums">
-              {customersList.length} total
-            </span>
-          </div>
-          <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
-            Directory of registered salon clients, visit counts, and private owner notes.
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+            Pretty Nails by Atasha · Cebu City
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+            Client Atelier Directory
+          </h1>
+          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+            Client treatment history, visit logs, structured BIAB overlay notes, and private atelier client records.
           </p>
         </div>
 
-        {/* Directory Stat Chips */}
-        <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-stone-200/80 dark:border-stone-800/80 bg-card text-xs">
-            <Calendar className="h-3.5 w-3.5 text-stone-400" strokeWidth={1.5} />
+        {/* Directory Stat Pills */}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-stone-900/80 text-xs shadow-xs">
+            <Users className="h-4 w-4 text-rose-800 dark:text-rose-300 stroke-[1.5]" />
+            <span className="text-stone-500 dark:text-stone-400">Total registered:</span>
+            <span className="font-semibold text-stone-900 dark:text-rose-100 tabular-nums font-mono">
+              {customersList.length}
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-stone-900/80 text-xs shadow-xs">
+            <Calendar className="h-4 w-4 text-rose-800 dark:text-rose-300 stroke-[1.5]" />
             <span className="text-stone-500 dark:text-stone-400">Total visits:</span>
-            <span className="font-semibold text-stone-900 dark:text-stone-100 tabular-nums">
+            <span className="font-semibold text-stone-900 dark:text-rose-100 tabular-nums font-mono">
               {totalVisits}
             </span>
           </div>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border border-stone-200/80 dark:border-stone-800/80 bg-card text-xs">
-            <CheckCircle className="h-3.5 w-3.5 text-stone-500" strokeWidth={1.5} />
-            <span className="text-stone-500 dark:text-stone-400">Active:</span>
-            <span className="font-semibold text-stone-900 dark:text-stone-100 tabular-nums">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-stone-900/80 text-xs shadow-xs">
+            <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400 stroke-[1.5]" />
+            <span className="text-stone-500 dark:text-stone-400">Active clients:</span>
+            <span className="font-semibold text-stone-900 dark:text-rose-100 tabular-nums font-mono">
               {activeCount}
             </span>
           </div>
@@ -125,19 +130,19 @@ export default function AdminCustomersPage() {
       </div>
 
       {/* Search and Filters Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Search Input: exactly 36px height (h-9) */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 pointer-events-none" strokeWidth={1.5} />
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        {/* Search Input: generous luxury touch target */}
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose-800/70 dark:text-rose-300/70 pointer-events-none stroke-[1.5]" />
           <input
             type="text"
-            placeholder="Search customers by name, email, or phone..."
+            placeholder="Search clients by name, email, or telephone..."
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
               setCurrentPage(0);
             }}
-            className="h-9 w-full rounded-md border border-stone-200 dark:border-stone-700 bg-background dark:bg-stone-900/60 pl-9 pr-9 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors focus-visible:outline-none focus-visible:ring-1.5 focus-visible:ring-primary focus-visible:border-primary"
+            className="h-12 sm:h-14 w-full rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 pl-11 pr-11 text-xs sm:text-sm text-stone-900 dark:text-stone-100 placeholder:text-stone-400 dark:placeholder:text-stone-500 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-800 focus-visible:border-rose-800 shadow-xs"
           />
           {search && (
             <button
@@ -146,29 +151,29 @@ export default function AdminCustomersPage() {
                 setSearch('');
                 setCurrentPage(0);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-0.5 rounded"
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 p-1 rounded-full"
               aria-label="Clear search"
             >
-              <X className="h-3.5 w-3.5" strokeWidth={1.5} />
+              <X className="h-4 w-4 stroke-[1.5]" />
             </button>
           )}
         </div>
 
         {/* Status Filter Tabs */}
-        <div className="flex items-center gap-1 rounded-lg border border-stone-200/80 dark:border-stone-800/80 bg-stone-100/70 dark:bg-stone-900/60 p-0.5">
+        <div className="flex items-center gap-1.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-stone-900/80 p-1.5 shadow-xs">
           <button
             type="button"
             onClick={() => {
               setStatusFilter('all');
               setCurrentPage(0);
             }}
-            className={`h-7 px-3 rounded-md text-xs font-medium transition-colors ${
+            className={`h-11 px-5 rounded-full text-xs font-medium transition-colors ${
               statusFilter === 'all'
-                ? 'bg-card text-stone-900 dark:text-stone-100 shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                ? 'bg-rose-900 text-white shadow-sm'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
-            All
+            All clients
           </button>
           <button
             type="button"
@@ -176,13 +181,13 @@ export default function AdminCustomersPage() {
               setStatusFilter('active');
               setCurrentPage(0);
             }}
-            className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors inline-flex items-center gap-1.5 ${
+            className={`h-11 px-4 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1.5 ${
               statusFilter === 'active'
-                ? 'bg-card text-stone-900 dark:text-stone-100 shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                ? 'bg-rose-900 text-white shadow-sm'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
-            <CheckCircle className="h-3 w-3 text-stone-500" strokeWidth={1.5} />
+            <CheckCircle className="h-3.5 w-3.5 stroke-[1.5]" />
             <span>Active</span>
           </button>
           <button
@@ -191,16 +196,16 @@ export default function AdminCustomersPage() {
               setStatusFilter('blocked');
               setCurrentPage(0);
             }}
-            className={`h-7 px-2.5 rounded-md text-xs font-medium transition-colors inline-flex items-center gap-1.5 ${
+            className={`h-11 px-4 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1.5 ${
               statusFilter === 'blocked'
-                ? 'bg-card text-stone-900 dark:text-stone-100 shadow-[0_1px_2px_rgba(0,0,0,0.06)]'
+                ? 'bg-rose-900 text-white shadow-sm'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
             }`}
           >
-            <Ban className="h-3 w-3 text-rose-600 dark:text-rose-400" strokeWidth={1.5} />
+            <Ban className="h-3.5 w-3.5 stroke-[1.5]" />
             <span>Blocked</span>
             {blockedCount > 0 && (
-              <span className="tabular-nums text-[10px] bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 px-1 rounded-full">
+              <span className="tabular-nums font-mono text-[10px] bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 px-1.5 py-0.2 rounded-full">
                 {blockedCount}
               </span>
             )}
@@ -208,25 +213,27 @@ export default function AdminCustomersPage() {
         </div>
       </div>
 
-      {/* Directory Table */}
-      <CustomersTable
-        customers={paginatedCustomers}
-        isLoading={isLoading}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        onAddNote={handleOpenNoteModal}
-        blockedCustomerIds={blockedCustomers}
-        onToggleBlock={handleToggleBlock}
-        customerNicknames={customerNicknames}
-        emptyMessage={
-          search
-            ? 'No customer accounts match your search'
-            : statusFilter !== 'all'
-            ? `No ${statusFilter} customers found`
-            : 'No registered customers found'
-        }
-      />
+      {/* Directory Table Card */}
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)] overflow-hidden">
+        <CustomersTable
+          customers={paginatedCustomers}
+          isLoading={isLoading}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+          onAddNote={handleOpenNoteModal}
+          blockedCustomerIds={blockedCustomers}
+          onToggleBlock={handleToggleBlock}
+          customerNicknames={customerNicknames}
+          emptyMessage={
+            search
+              ? 'No client accounts match your search query'
+              : statusFilter !== 'all'
+              ? `No ${statusFilter} client accounts found`
+              : 'No registered atelier clients found'
+          }
+        />
+      </div>
 
       {/* Customer Note Modal */}
       <CustomerNoteModal

@@ -14,10 +14,12 @@ import {
   Award,
   Clock,
   DollarSign,
-  Shield,
+  ShieldCheck,
   Save,
   RotateCcw,
-  Info,
+  Building2,
+  CreditCard,
+  HeartPulse,
 } from 'lucide-react';
 
 const INITIAL_DEFAULTS: LoyaltySettingsDto = {
@@ -91,30 +93,30 @@ export default function AdminSettingsPage() {
   const isDirty = JSON.stringify(formData) !== JSON.stringify(activeSaved);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-stone-200/80 dark:border-stone-800/80">
+    <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950 transition-colors pb-16">
+      {/* Standard Header Block */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary" aria-hidden="true" />
-              Studio administration
-            </span>
-            {isDirty && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-                Unsaved changes
-              </span>
-            )}
-          </div>
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-            Loyalty settings
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+            Pretty Nails by Atasha · Cebu City
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+            Studio Configuration & Policies
           </h1>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
-            Configure stamp rules, reward definitions, and card expiration periods for Pretty Nails by Atasha.
+          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+            Manage studio identity parameters, reservation deposit guidelines, dry autoclave sterilization protocols, and loyalty stamp rules.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center px-4 py-1.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-stone-900/80 text-xs font-medium text-rose-900 dark:text-rose-200 shadow-xs">
+            Studio Administration
+          </span>
+          {isDirty && (
+            <span className="inline-flex items-center px-4 py-1.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800/60">
+              Unsaved changes
+            </span>
+          )}
           {isDirty && (
             <Button
               type="button"
@@ -122,35 +124,196 @@ export default function AdminSettingsPage() {
               size="sm"
               onClick={handleReset}
               disabled={updateMutation.isPending}
-              className="gap-1.5"
+              className="h-12 px-6 rounded-full border-rose-300/80 dark:border-rose-800/80 text-xs font-medium gap-2"
             >
-              <RotateCcw className="h-3.5 w-3.5 text-stone-500 dark:text-stone-400" strokeWidth={1.5} />
+              <RotateCcw className="h-4 w-4 stroke-[1.5]" />
               Reset changes
             </Button>
           )}
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Domain 1: Loyalty rules */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
-                <Sliders className="h-4 w-4 text-stone-600 dark:text-stone-400" strokeWidth={1.5} />
+      <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl">
+        {/* Domain 1: Atelier Identity & Location */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+                <Building2 className="h-5 w-5 stroke-[1.5]" />
               </div>
               <div>
-                <CardTitle>Loyalty rules</CardTitle>
-                <CardDescription>
-                  Rules governing how clients earn digital stamps on each appointment visit
+                <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                  1. Atelier Identity & Location
+                </CardTitle>
+                <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  Private sanctuary profile, physical atelier address, and 1-on-1 booking model
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Official Studio Name</span>
+                <p className="font-serif font-medium text-base text-stone-900 dark:text-rose-100">
+                  Pretty Nails by Atasha · Cebu City
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Private 1-on-1 nail atelier sanctuary
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Location & Sanctuary Notice</span>
+                <p className="font-sans font-medium text-xs text-stone-900 dark:text-rose-100">
+                  Cebu City, Central Visayas, Philippines
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400">
+                  Private residence atelier, exact address provided upon deposit verification
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-white/70 dark:bg-stone-900/50 text-xs text-stone-600 dark:text-stone-300 leading-relaxed space-y-1">
+              <p className="font-semibold text-stone-900 dark:text-rose-100">Private 1-on-1 Atelier Model:</p>
+              <p className="text-stone-600 dark:text-stone-300 font-sans">
+                Each appointment is booked exclusively for one client at a time. No double-booking or walk-in queue overlaps are allowed. A mandatory 15-minute buffer is scheduled between clients for room sanitation and tool sterilization.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domain 2: Reservation & Deposit Policy */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+                <CreditCard className="h-5 w-5 stroke-[1.5]" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                  2. Reservation & Deposit Policy
+                </CardTitle>
+                <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  Manual GCash & Maya transfer verification workflow and deposit terms
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Standard Reservation Deposit</span>
+                <p className="font-mono font-semibold text-lg text-stone-900 dark:text-rose-100 tabular-nums">
+                  ₱100.00
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
+                  Credited toward final counter balance
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Confirmation Mode</span>
+                <p className="font-sans font-semibold text-xs text-rose-900 dark:text-rose-200 uppercase tracking-wide">
+                  Manual Verification Only
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
+                  Instant automatic slot confirmation is permanently disabled
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl border border-rose-200/70 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30 text-xs text-stone-700 dark:text-stone-300 leading-relaxed space-y-2">
+              <p className="font-semibold text-rose-950 dark:text-rose-100">Manual Verification Protocol:</p>
+              <ul className="list-disc list-inside space-y-1 text-stone-600 dark:text-stone-300 font-sans">
+                <li>Clients submit a GCash or Maya payment transaction reference upon checkout.</li>
+                <li>Studio staff reviews payment references manually against transaction statements before changing status from Pending to Confirmed.</li>
+                <li>Clients may reschedule up to 24 hours prior to appointment without forfeiting their reservation deposit.</li>
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domain 3: Hygiene & Sanitation Protocol */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+                <HeartPulse className="h-5 w-5 stroke-[1.5]" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                  3. Hygiene & Sanitation Protocol
+                </CardTitle>
+                <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  Hospital-grade dry autoclave sterilization standards and single-use tool policies
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Metal Implements</span>
+                <p className="font-sans font-semibold text-xs text-stone-900 dark:text-rose-100">
+                  Dry Autoclave Cycle
+                </p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  160°C medical sterilization with chemical indicator verification
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Client Pouch Unsealing</span>
+                <p className="font-sans font-semibold text-xs text-stone-900 dark:text-rose-100">
+                  Unsealed In Client Presence
+                </p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  Sterilized pouch opened only at beginning of appointment
+                </p>
+              </div>
+
+              <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-1">
+                <span className="text-[11px] text-stone-500 dark:text-stone-400 block font-sans">Abrasives & Buffers</span>
+                <p className="font-sans font-semibold text-xs text-stone-900 dark:text-rose-100">
+                  Single-Use Disposable
+                </p>
+                <p className="text-[11px] text-stone-500 dark:text-stone-400">
+                  Never reused between clients; client may take home or discard
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-white/70 dark:bg-stone-900/50 text-xs text-stone-600 dark:text-stone-300 flex items-start gap-3">
+              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5 stroke-[1.5]" />
+              <p className="leading-relaxed font-sans">
+                Sanitation records and autoclave test strips are logged weekly. Non-metal implements (nail files, orange wood sticks, lint-free wipes) are never shared between clients.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domain 4: Loyalty Stamp Program Parameters */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+                <Sliders className="h-5 w-5 stroke-[1.5]" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                  4. Loyalty Stamp Program Parameters
+                </CardTitle>
+                <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                  Configure digital stamp earning rates, threshold spend triggers, and complimentary rewards
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <Input
-                label="Stamps per service"
+                label="Stamps per completed service"
                 type="number"
                 value={formData.stampsPerService}
                 onChange={(e) => handleChange('stampsPerService', parseInt(e.target.value, 10) || 0)}
@@ -169,7 +332,7 @@ export default function AdminSettingsPage() {
               />
             </div>
 
-            <div className="space-y-2 pt-1">
+            <div className="space-y-3 pt-1">
               <Input
                 label="Amount threshold (centavos)"
                 type="number"
@@ -181,16 +344,16 @@ export default function AdminSettingsPage() {
                 helperText="Spending amount in centavos required to trigger additional bonus stamps"
               />
 
-              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                <div className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                <div className="text-xs text-stone-500 dark:text-stone-400 flex items-center gap-1.5 font-sans">
                   <span>Equivalent threshold:</span>
-                  <span className="font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                  <span className="font-mono font-medium text-stone-900 dark:text-rose-100 tabular-nums">
                     ₱{(formData.amountThreshold / 100).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-stone-400 dark:text-stone-500 mr-1">Presets:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-400 dark:text-stone-500 mr-1 font-sans">Presets:</span>
                   {AMOUNT_PRESETS.map((preset) => {
                     const isSelected = formData.amountThreshold === preset.value;
                     return (
@@ -198,10 +361,10 @@ export default function AdminSettingsPage() {
                         key={preset.value}
                         type="button"
                         onClick={() => handleChange('amountThreshold', preset.value)}
-                        className={`text-xs px-2 py-1 rounded-md transition-colors duration-150 tabular-nums ${
+                        className={`text-xs h-10 px-4 rounded-full transition-colors tabular-nums border font-medium ${
                           isSelected
-                            ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-medium'
-                            : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
+                            ? 'bg-rose-900 text-white border-rose-800 shadow-sm'
+                            : 'bg-white/80 dark:bg-stone-900/80 text-stone-700 dark:text-rose-200 border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                         }`}
                       >
                         {preset.label}
@@ -211,61 +374,27 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Domain 2: Reward definitions */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
-                <Award className="h-4 w-4 text-stone-600 dark:text-stone-400" strokeWidth={1.5} />
-              </div>
-              <div>
-                <CardTitle>Reward definitions</CardTitle>
-                <CardDescription>
-                  Complimentary service granted when a client completes their stamp card
-                </CardDescription>
+            <div className="space-y-4 pt-4 border-t border-rose-200/60 dark:border-rose-950/50">
+              <Input
+                label="Complimentary service reward"
+                type="text"
+                value={formData.freeServiceReward}
+                onChange={(e) => handleChange('freeServiceReward', e.target.value)}
+                placeholder="e.g. Free Gel Manicure"
+                helperText="Name of the salon service awarded when the customer fills their 10-stamp loyalty card"
+              />
+
+              <div className="rounded-2xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 p-4 flex items-start gap-3">
+                <Award className="h-5 w-5 text-rose-800 dark:text-rose-300 shrink-0 mt-0.5 stroke-[1.5]" />
+                <div className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans">
+                  <p className="font-semibold text-stone-900 dark:text-rose-100 mb-0.5">Physical Stamp Card Aesthetic Policy:</p>
+                  The standard atelier loyalty card targets <span className="font-mono font-semibold text-rose-900 dark:text-rose-300 tabular-nums">10 stamps</span>. Upon reaching 10 stamps, the customer can redeem this complimentary service during their appointment check-out.
+                </div>
               </div>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Input
-              label="Complimentary service reward"
-              type="text"
-              value={formData.freeServiceReward}
-              onChange={(e) => handleChange('freeServiceReward', e.target.value)}
-              placeholder="e.g. Free Gel Manicure"
-              helperText="Name of the salon service awarded when the customer fills their 10-stamp loyalty card"
-            />
 
-            <div className="rounded-lg border border-stone-200/70 dark:border-stone-800/70 bg-stone-50/60 dark:bg-stone-900/30 p-3.5 flex items-start gap-3">
-              <Info className="h-4 w-4 text-stone-500 dark:text-stone-400 shrink-0 mt-0.5" strokeWidth={1.5} />
-              <div className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                <p className="font-medium text-stone-800 dark:text-stone-200 mb-0.5">Stamp target policy</p>
-                The standard salon stamp card targets <span className="font-medium text-stone-800 dark:text-stone-200 tabular-nums">10 stamps</span>. Upon reaching 10 stamps, the customer can redeem this complimentary service during their appointment check-out.
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Domain 3: System preferences */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2.5">
-              <div className="h-7 w-7 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
-                <Clock className="h-4 w-4 text-stone-600 dark:text-stone-400" strokeWidth={1.5} />
-              </div>
-              <div>
-                <CardTitle>System preferences</CardTitle>
-                <CardDescription>
-                  Card validity periods, audit protections, and expiration rules
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-3 pt-4 border-t border-rose-200/60 dark:border-rose-950/50">
               <Input
                 label="Card expiration period (months)"
                 type="number"
@@ -276,8 +405,8 @@ export default function AdminSettingsPage() {
                 helperText="Number of months of inactivity after last visit before loyalty stamps expire"
               />
 
-              <div className="flex items-center gap-1.5 pt-1">
-                <span className="text-xs text-stone-400 dark:text-stone-500 mr-1">Presets:</span>
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-xs text-stone-400 dark:text-stone-500 mr-1 font-sans">Presets:</span>
                 {EXPIRY_PRESETS.map((preset) => {
                   const isSelected = formData.cardExpiryMonths === preset.value;
                   return (
@@ -285,10 +414,10 @@ export default function AdminSettingsPage() {
                       key={preset.value}
                       type="button"
                       onClick={() => handleChange('cardExpiryMonths', preset.value)}
-                      className={`text-xs px-2.5 py-1 rounded-md transition-colors duration-150 tabular-nums ${
+                      className={`text-xs h-10 px-4 rounded-full transition-colors tabular-nums border font-medium ${
                         isSelected
-                          ? 'bg-stone-900 text-stone-50 dark:bg-stone-100 dark:text-stone-900 font-medium'
-                          : 'bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 hover:bg-stone-200 dark:hover:bg-stone-700'
+                          ? 'bg-rose-900 text-white border-rose-800 shadow-sm'
+                          : 'bg-white/80 dark:bg-stone-900/80 text-stone-700 dark:text-rose-200 border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40'
                       }`}
                     >
                       {preset.label}
@@ -297,23 +426,15 @@ export default function AdminSettingsPage() {
                 })}
               </div>
             </div>
-
-            <div className="rounded-lg border border-stone-200/70 dark:border-stone-800/70 bg-stone-50/60 dark:bg-stone-900/30 p-3.5 flex items-start gap-3">
-              <Shield className="h-4 w-4 text-stone-500 dark:text-stone-400 shrink-0 mt-0.5" strokeWidth={1.5} />
-              <div className="text-xs text-stone-600 dark:text-stone-400 leading-relaxed">
-                <p className="font-medium text-stone-800 dark:text-stone-200 mb-0.5">Audit and verification</p>
-                All stamp additions and reward redemptions require salon cashier authorization via QR scanner. Expirations are evaluated automatically based on the last recorded stamp timestamp.
-              </div>
-            </div>
           </CardContent>
         </Card>
 
-        {/* Action Bar */}
-        <div className="p-4 rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-card">
-          <p className="text-xs text-stone-500 dark:text-stone-400">
-            Saved changes take effect immediately across all customer loyalty profiles.
+        {/* Save Action Bar */}
+        <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
+            Saved changes apply immediately across all client accounts and atelier booking policies.
           </p>
-          <div className="flex items-center gap-2 self-end sm:self-auto">
+          <div className="flex items-center gap-3 self-end sm:self-auto">
             {isDirty && (
               <Button
                 type="button"
@@ -321,6 +442,7 @@ export default function AdminSettingsPage() {
                 size="md"
                 onClick={handleReset}
                 disabled={updateMutation.isPending}
+                className="h-14 px-8 rounded-full border-rose-300/80 dark:border-rose-800/80 text-rose-950 dark:text-rose-100 font-medium text-xs sm:text-sm"
               >
                 Cancel
               </Button>
@@ -330,35 +452,37 @@ export default function AdminSettingsPage() {
               variant="primary"
               size="md"
               isLoading={updateMutation.isPending}
-              className="gap-2"
+              className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] transition-all gap-2"
             >
-              <Save className="h-4 w-4 text-primary-foreground" strokeWidth={1.5} />
+              <Save className="h-4 w-4" strokeWidth={1.5} />
               Save settings
             </Button>
           </div>
         </div>
       </form>
 
-      {/* Domain 4: Current Configuration Overview */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded-md bg-stone-100 dark:bg-stone-800 flex items-center justify-center shrink-0">
-              <DollarSign className="h-4 w-4 text-stone-600 dark:text-stone-400" strokeWidth={1.5} />
+      {/* Current Configuration Overview */}
+      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)] max-w-5xl">
+        <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+              <DollarSign className="h-5 w-5 stroke-[1.5]" />
             </div>
             <div>
-              <CardTitle>Current configuration overview</CardTitle>
-              <CardDescription>
-                Live summary of active parameters currently applied to customer stamp cards
+              <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                Active Policy Overview
+              </CardTitle>
+              <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+                Live summary of active parameters currently applied to client loyalty cards
               </CardDescription>
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="p-4 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/40 dark:bg-stone-900/20 space-y-2">
+                <div key={i} className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20 space-y-2">
                   <Skeleton variant="text" width="60%" className="h-3" />
                   <Skeleton variant="text" width="40%" className="h-6" />
                   <Skeleton variant="text" width="75%" className="h-3" />
@@ -366,39 +490,39 @@ export default function AdminSettingsPage() {
               ))}
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <div className="p-4 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/50 dark:bg-stone-900/30">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Stamps per service</p>
-                <p className="text-xl sm:text-2xl font-medium tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-5 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 font-sans">Stamps per service</p>
+                <p className="text-2xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
                   {formData.stampsPerService}
                 </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">base earning</p>
+                <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-1 font-sans">base earning</p>
               </div>
 
-              <div className="p-4 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/50 dark:bg-stone-900/30">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Spend bonus</p>
-                <p className="text-xl sm:text-2xl font-medium tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
+              <div className="p-5 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 font-sans">Spend bonus</p>
+                <p className="text-2xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
                   {formData.stampsPerAmount > 0 ? `+${formData.stampsPerAmount}` : '0'}
                 </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">
+                <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-1 font-sans">
                   at ₱{(formData.amountThreshold / 100).toLocaleString('en-PH', { minimumFractionDigits: 0 })} spend
                 </p>
               </div>
 
-              <div className="p-4 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/50 dark:bg-stone-900/30">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Card expiration</p>
-                <p className="text-xl sm:text-2xl font-medium tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
-                  {formData.cardExpiryMonths} <span className="text-sm font-normal text-stone-500 dark:text-stone-400">mo</span>
+              <div className="p-5 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 font-sans">Card expiration</p>
+                <p className="text-2xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
+                  {formData.cardExpiryMonths} <span className="text-sm font-sans font-normal text-stone-500 dark:text-stone-400">mo</span>
                 </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">validity period</p>
+                <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-1 font-sans">validity window</p>
               </div>
 
-              <div className="p-4 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/50 dark:bg-stone-900/30">
-                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1">Reward service</p>
-                <p className="text-sm sm:text-base font-medium text-stone-900 dark:text-stone-100 truncate" title={formData.freeServiceReward}>
+              <div className="p-5 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/40 dark:bg-rose-950/20">
+                <p className="text-xs text-stone-500 dark:text-stone-400 mb-1 font-sans">Reward service</p>
+                <p className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 truncate" title={formData.freeServiceReward}>
                   {formData.freeServiceReward || 'None'}
                 </p>
-                <p className="text-xs text-stone-400 dark:text-stone-500 mt-1">at 10 stamps target</p>
+                <p className="text-xs text-rose-800/80 dark:text-rose-300/80 mt-1 font-sans">at 10 stamps target</p>
               </div>
             </div>
           )}

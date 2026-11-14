@@ -3,18 +3,13 @@
 import { useState, useCallback } from 'react';
 import {
   Upload,
-  Plus,
   Search,
   FilterX,
   Image as ImageIcon,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
   RotateCcw,
 } from 'lucide-react';
 import { galleryApi } from '@/lib/api';
-import { GalleryDto, GalleryRequest, GALLERY_CATEGORIES } from '@/types';
+import { GalleryDto, GalleryRequest } from '@/types';
 import { useQuery, useMutation } from '@/hooks/useApi';
 import { toast } from 'sonner';
 import { GalleryGrid, GalleryForm } from '@/components/admin/gallery';
@@ -22,15 +17,18 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 const DEFAULT_PAGE_SIZE = 12;
 
 const categoryOptions: SelectOption[] = [
-  { value: '', label: 'All style tags' },
-  ...GALLERY_CATEGORIES.map((cat) => ({
-    value: cat,
-    label: cat.charAt(0) + cat.slice(1).toLowerCase().replace(/_/g, ' '),
-  })),
+  { value: '', label: 'All atelier disciplines' },
+  { value: 'GEL', label: 'Structured BIAB Overlay' },
+  { value: 'EXTENSION', label: 'Japanese Soft Gel Extension' },
+  { value: 'VELVET_CAT_EYE', label: 'Velvet Cat-Eye Finish' },
+  { value: 'NAIL_ART', label: 'Bespoke Hand-Painted Art' },
+  { value: 'FRENCH_CONTOUR', label: 'French Hairline Contour' },
+  { value: 'PEDICURE', label: 'Dry Cuticle Hygiene Care' },
 ];
 
 export default function AdminGalleryPage() {
@@ -151,7 +149,7 @@ export default function AdminGalleryPage() {
   };
 
   // Handle view
-  const handleView = (item: GalleryDto) => {
+  const handleView = () => {
     // Handled by GalleryGrid preview modal
   };
 
@@ -163,41 +161,47 @@ export default function AdminGalleryPage() {
 
   if (isError) {
     return (
-      <div className="space-y-6 sm:space-y-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="space-y-8 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground min-h-screen p-6 sm:p-8 lg:p-10 transition-colors selection:bg-rose-200 selection:text-rose-950">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-stone-100 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 text-stone-600 dark:text-stone-400 text-xs font-normal mb-2.5">
-              <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" strokeWidth={1.5} />
-              <span>Studio portfolio</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
-              Nail design gallery
+            <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+              Pretty Nails by Atasha · Cebu City
+            </span>
+            <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+              Lookbook & Portfolio Curation
             </h1>
-            <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
-              Manage, categorize, and upload portfolio designs showcased to studio clients
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+              Curate high-resolution atelier photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
             </p>
           </div>
-          <Button onClick={handleCreate} className="gap-2 shrink-0">
+          <Button
+            onClick={handleCreate}
+            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] transition-all flex items-center gap-2.5 shrink-0"
+          >
             <Upload className="h-4 w-4" strokeWidth={1.5} />
             <span>Upload design</span>
           </Button>
         </div>
 
-        <Card>
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm">
           <CardContent className="py-12 text-center">
-            <div className="max-w-md mx-auto space-y-3">
-              <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 text-destructive mx-auto flex items-center justify-center">
+            <div className="max-w-md mx-auto space-y-4">
+              <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-destructive mx-auto flex items-center justify-center border border-rose-200/60 dark:border-rose-900/60">
                 <RotateCcw className="h-5 w-5" strokeWidth={1.5} />
               </div>
-              <h3 className="text-base font-medium text-stone-900 dark:text-stone-100">
-                Failed to load gallery designs
+              <h3 className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+                Failed to load portfolio works
               </h3>
-              <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
+              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal leading-relaxed">
                 {error?.message || 'A network error occurred while loading portfolio items.'}
               </p>
-              <Button onClick={() => refetch()} variant="outline" size="sm" className="mt-2 gap-1.5">
+              <Button
+                onClick={() => refetch()}
+                variant="outline"
+                className="mt-2 h-10 px-5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium gap-2"
+              >
                 <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
-                <span>Retry</span>
+                <span>Retry connection</span>
               </Button>
             </div>
           </CardContent>
@@ -215,42 +219,46 @@ export default function AdminGalleryPage() {
   }
 
   return (
-    <div className="space-y-6 sm:space-y-8">
-      {/* Page Header (Pass 4 & 5: sentence case, font-medium title, quiet porcelain tokens) */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-8 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground min-h-screen p-6 sm:p-8 lg:p-10 transition-colors selection:bg-rose-200 selection:text-rose-950">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-[6px] bg-stone-100 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 text-stone-600 dark:text-stone-400 text-xs font-normal mb-2.5">
-            <Sparkles className="w-3.5 h-3.5 text-primary shrink-0" strokeWidth={1.5} />
-            <span>Studio portfolio</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-stone-900 dark:text-stone-100">
-            Nail design gallery
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+            Pretty Nails by Atasha · Cebu City
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+            Lookbook & Portfolio Curation
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-stone-500 dark:text-stone-400 font-normal">
-            Manage, categorize, and upload portfolio designs showcased to studio clients
+          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+            Curate high-resolution atelier photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
           </p>
         </div>
-        <Button onClick={handleCreate} className="gap-2 shrink-0">
-          <Upload className="h-4 w-4" strokeWidth={1.5} />
-          <span>Upload design</span>
-        </Button>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleCreate}
+            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] transition-all flex items-center gap-2.5 shrink-0"
+          >
+            <Upload className="h-4 w-4" strokeWidth={1.5} />
+            <span>Upload design</span>
+          </Button>
+        </div>
       </div>
 
-      {/* Filters Toolbar (Pass 1 & 2: 4px grid, porcelain surface, warm 8% hairlines) */}
-      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-4 sm:p-5 shadow-card space-y-4">
+      {/* Filters Toolbar */}
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-4">
         <div className="grid gap-4 md:grid-cols-3">
           <div className="relative md:col-span-2">
             <Search
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400 dark:text-stone-500"
+              className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-rose-400 dark:text-rose-500"
               strokeWidth={1.5}
               aria-hidden="true"
             />
             <Input
               type="search"
-              placeholder="Search designs by title or style..."
+              placeholder="Search designs by title, technique, or shade..."
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10"
+              className="pl-11 h-12 rounded-full border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90 text-sm"
               aria-label="Search gallery items"
             />
           </div>
@@ -260,21 +268,21 @@ export default function AdminGalleryPage() {
               value={category}
               onChange={(e) => handleCategoryChange(e.target.value)}
               options={categoryOptions}
-              placeholder="All style tags"
-              aria-label="Filter by style tag"
+              placeholder="All atelier disciplines"
+              aria-label="Filter by atelier discipline"
             />
           </div>
         </div>
 
         {/* Clear Filters Row */}
         {hasActiveFilters && (
-          <div className="flex items-center justify-between pt-3 border-t border-stone-100 dark:border-stone-800/60 text-xs text-stone-500 dark:text-stone-400">
-            <span>Filtering active designs</span>
+          <div className="flex items-center justify-between pt-3 border-t border-rose-100 dark:border-rose-950/60 text-xs text-stone-500 dark:text-stone-400">
+            <span>Filtering active portfolio designs</span>
             <Button
               variant="ghost"
               size="sm"
               onClick={handleClearFilters}
-              className="gap-1.5 h-7 px-2.5 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100"
+              className="gap-1.5 h-9 px-4 rounded-full text-stone-700 dark:text-stone-300 hover:bg-rose-100/60 dark:hover:bg-rose-950/50"
             >
               <FilterX className="h-3.5 w-3.5" strokeWidth={1.5} aria-hidden="true" />
               <span>Clear filters</span>
@@ -284,16 +292,16 @@ export default function AdminGalleryPage() {
       </div>
 
       {/* Gallery Section */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ImageIcon className="h-4 w-4 text-stone-500 dark:text-stone-400" strokeWidth={1.5} aria-hidden="true" />
-            <h2 className="text-sm sm:text-base font-medium text-stone-900 dark:text-stone-100">
-              All designs
+          <div className="flex items-center gap-2.5">
+            <ImageIcon className="h-4 w-4 text-rose-800 dark:text-rose-300" strokeWidth={1.5} aria-hidden="true" />
+            <h2 className="text-base sm:text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
+              Curated portfolio works
             </h2>
             {data && (
-              <span className="font-mono text-[11px] text-stone-500 dark:text-stone-400 bg-stone-100 dark:bg-stone-800 px-2 py-0.5 rounded-[6px] border border-stone-200/60 dark:border-stone-700/60">
-                {totalItems} {totalItems === 1 ? 'design' : 'designs'}
+              <span className="font-mono text-xs text-rose-900 dark:text-rose-200 bg-rose-100/70 dark:bg-rose-950/60 px-3 py-0.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 tabular-nums">
+                {totalItems} {totalItems === 1 ? 'curated piece' : 'curated pieces'}
               </span>
             )}
           </div>
@@ -311,20 +319,20 @@ export default function AdminGalleryPage() {
 
         {/* Pagination Bar */}
         {totalPages > 1 && (
-          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-stone-100 dark:border-stone-800/60">
-            <div className="text-xs text-stone-500 dark:text-stone-400 font-normal">
+          <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-rose-200/80 dark:border-rose-950/60">
+            <div className="text-xs font-mono text-stone-500 dark:text-stone-400 tabular-nums">
               Page {currentPage + 1} of {totalPages}
             </div>
-            <nav className="flex items-center gap-1.5" aria-label="Pagination">
+            <nav className="flex items-center gap-2" aria-label="Pagination">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 0}
                 aria-label="Previous page"
-                className="h-8 w-8 p-0"
+                className="h-10 px-4 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium"
               >
-                <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
+                Previous
               </Button>
               {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
                 let pageNum = i;
@@ -345,7 +353,12 @@ export default function AdminGalleryPage() {
                     onClick={() => setCurrentPage(pageNum)}
                     aria-current={currentPage === pageNum ? 'page' : undefined}
                     aria-label={`Page ${pageNum + 1}`}
-                    className="h-8 w-8 p-0 text-xs font-normal"
+                    className={cn(
+                      'h-10 w-10 p-0 rounded-full text-xs font-mono tabular-nums',
+                      currentPage === pageNum
+                        ? 'bg-rose-900 text-white border-rose-800'
+                        : 'border-rose-200/80 dark:border-rose-800/60'
+                    )}
                   >
                     {pageNum + 1}
                   </Button>
@@ -357,9 +370,9 @@ export default function AdminGalleryPage() {
                 onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages - 1}
                 aria-label="Next page"
-                className="h-8 w-8 p-0"
+                className="h-10 px-4 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium"
               >
-                <ChevronRight className="h-4 w-4" strokeWidth={1.5} />
+                Next
               </Button>
             </nav>
           </div>

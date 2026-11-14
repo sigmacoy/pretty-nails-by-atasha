@@ -13,8 +13,7 @@ import {
   Scissors,
   Users,
   BarChart2,
-  ArrowUpRight,
-  Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -59,56 +58,56 @@ export default function AdminDashboard() {
   const quickActions = [
     {
       href: '/admin/bookings',
-      title: 'Manage queue',
-      description: 'Review and confirm appointments',
+      title: 'Appointments queue',
+      description: 'Review and verify manual deposits',
       icon: Clock,
     },
     {
       href: '/admin/services',
-      title: 'Service catalog',
-      description: 'Update prices, durations, and tiers',
+      title: 'Treatment catalog',
+      description: 'BIAB overlays, soft gels, and tiers',
       icon: Scissors,
     },
     {
       href: '/admin/customers',
       title: 'Client directory',
-      description: 'View customer history and notes',
+      description: 'Client records, notes, and visit history',
       icon: Users,
     },
     {
       href: '/admin/reports',
       title: 'Revenue & analytics',
-      description: 'Performance insights and trends',
+      description: 'Tabular earnings and treatment volume',
       icon: BarChart2,
     },
   ];
 
   return (
-    <div className="space-y-6">
-      {/* Dashboard Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950 transition-colors">
+      {/* Standard Header Block */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-medium tracking-tight text-foreground">
-              Dashboard
-            </h1>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-sm border border-stone-200/80 dark:border-stone-800/80 bg-stone-100/60 dark:bg-stone-800/40 text-[11px] font-mono text-muted-foreground">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              Live overview
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground mt-1">
-            Overview of your salon&apos;s appointments, revenue, and client activity
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+            Pretty Nails by Atasha · Cebu City
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+            Atelier Command Hub
+          </h1>
+          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+            Real-time studio oversight across private 1-on-1 bookings, manual deposit reviews, service catalog rates, and loyalty cards.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-[#1A0E15]/80 text-xs font-medium text-rose-900 dark:text-rose-200 shadow-xs">
+            Private Atelier Active
+          </span>
           <Link
             href="/admin/bookings"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-stone-200/80 dark:border-stone-800/80 bg-card text-xs font-medium text-foreground hover:bg-stone-50 dark:hover:bg-stone-800/60 transition-colors shadow-card"
+            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] transition-all inline-flex items-center gap-2"
           >
-            <Calendar className="h-3.5 w-3.5 text-muted-foreground" strokeWidth={1.5} />
-            View schedule
+            <Calendar className="h-4 w-4 stroke-[1.5]" />
+            <span>Manage Queue</span>
           </Link>
         </div>
       </div>
@@ -116,34 +115,37 @@ export default function AdminDashboard() {
       {/* 4 Stat Cards in a row */}
       <DashboardStats stats={stats} reports={reports} isLoading={isLoading} />
 
-      {/* Middle Grid: Wide Revenue Chart (2 cols) + Quick Actions (1 col) */}
+      {/* Middle Grid: Revenue Visualization + Atelier Shortcuts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <RevenueChart
-            data={dailyRevenueData}
-            isLoading={isLoading}
-            title="Revenue this week"
-            description="Daily salon earnings across current week"
-            action={
-              <Link
-                href="/admin/reports"
-                className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                Full report
-                <ArrowUpRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-foreground transition-colors" />
-              </Link>
-            }
-          />
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 sm:p-7 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+            <RevenueChart
+              data={dailyRevenueData}
+              isLoading={isLoading}
+              title="Revenue this week"
+              description="Daily salon earnings across current week in tabular figures"
+              action={
+                <Link
+                  href="/admin/reports"
+                  className="h-9 px-4 rounded-full border border-rose-200/80 dark:border-rose-800/60 text-stone-800 dark:text-rose-200 hover:bg-rose-100/60 dark:hover:bg-rose-950/50 text-xs font-medium transition-colors inline-flex items-center"
+                >
+                  Full report
+                </Link>
+              }
+            />
+          </div>
         </div>
 
         <div className="lg:col-span-1">
-          <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-6 shadow-card h-full flex flex-col justify-between">
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 sm:p-7 shadow-[0_4px_24px_rgba(26,14,21,0.04)] h-full flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between pb-4">
-                <h3 className="text-base font-medium text-foreground tracking-tight">
-                  Quick actions
+              <div className="flex items-center justify-between pb-4 border-b border-rose-200/60 dark:border-rose-950/50 mb-4">
+                <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 tracking-tight">
+                  Atelier Actions
                 </h3>
-                <span className="text-xs font-mono text-muted-foreground">Shortcuts</span>
+                <span className="text-[11px] uppercase tracking-[0.16em] text-rose-800/80 dark:text-rose-300/80 font-semibold">
+                  Shortcuts
+                </span>
               </div>
 
               <div className="space-y-2.5">
@@ -153,33 +155,32 @@ export default function AdminDashboard() {
                     <Link
                       key={action.href}
                       href={action.href}
-                      className="p-3 rounded-lg border border-stone-200/60 dark:border-stone-800/60 bg-stone-50/50 dark:bg-stone-900/30 hover:bg-stone-100/70 dark:hover:bg-stone-800/50 transition-colors duration-150 flex items-center justify-between group"
+                      className="p-3.5 rounded-xl border border-rose-200/60 dark:border-rose-950/50 bg-rose-50/40 dark:bg-rose-950/20 hover:bg-rose-100/60 dark:hover:bg-rose-950/40 transition-colors flex items-center justify-between group"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-md bg-card border border-stone-200/60 dark:border-stone-800/60 flex items-center justify-center text-muted-foreground group-hover:text-foreground transition-colors flex-shrink-0">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-white dark:bg-stone-900 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 group-hover:bg-rose-900 group-hover:text-white transition-colors flex-shrink-0">
                           <Icon className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
                         </div>
                         <div className="min-w-0">
-                          <p className="text-xs font-medium text-foreground group-hover:text-primary transition-colors truncate">
+                          <p className="text-xs font-semibold text-stone-900 dark:text-rose-100 group-hover:text-rose-900 dark:group-hover:text-rose-200 transition-colors truncate">
                             {action.title}
                           </p>
-                          <p className="text-[11px] text-muted-foreground truncate">
+                          <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate mt-0.5">
                             {action.description}
                           </p>
                         </div>
                       </div>
-                      <ArrowUpRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-foreground transition-colors flex-shrink-0 ml-2" />
                     </Link>
                   );
                 })}
               </div>
             </div>
 
-            <div className="pt-4 mt-4 border-t border-stone-200/60 dark:border-stone-800/60 flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+            <div className="pt-4 mt-4 border-t border-rose-200/60 dark:border-rose-950/50 flex items-center justify-between text-[11px] text-stone-500 dark:text-stone-400">
               <span>Admin studio panel</span>
-              <span className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-primary" />
-                Ready
+              <span className="flex items-center gap-1.5 text-stone-600 dark:text-rose-300 font-medium">
+                <ShieldCheck className="h-3.5 w-3.5 text-rose-800 dark:text-rose-400 stroke-[1.5]" />
+                Hospital-grade autoclave sterilization verified
               </span>
             </div>
           </div>
@@ -187,7 +188,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Recent Bookings Queue */}
-      <div className="rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-6 shadow-card">
+      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 sm:p-8 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
         <RecentBookings
           bookings={recentBookings?.content || null}
           isLoading={isLoading}

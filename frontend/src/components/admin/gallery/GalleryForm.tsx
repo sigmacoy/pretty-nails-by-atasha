@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Tag, Trash2, Link as LinkIcon, AlertCircle } from 'lucide-react';
-import { GalleryDto, GalleryRequest, GalleryCategory, GALLERY_CATEGORIES } from '@/types';
+import { Upload, Tag, Trash2, Link as LinkIcon, AlertCircle } from 'lucide-react';
+import { GalleryDto, GalleryRequest } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
@@ -18,20 +18,14 @@ export interface GalleryFormProps {
   isPending: boolean;
 }
 
-const CATEGORY_DISPLAY_NAMES: Record<string, string> = {
-  GEL: 'Gel nails',
-  EXTENSION: 'Extensions',
-  PEDICURE: 'Pedicure',
-  NAIL_ART: 'Nail art',
-  ADDON: 'Add-on',
-};
-
-function formatCategory(category: string): string {
-  return (
-    CATEGORY_DISPLAY_NAMES[category] ||
-    category.charAt(0) + category.slice(1).toLowerCase().replace(/_/g, ' ')
-  );
-}
+export const ATELIER_CATEGORIES = [
+  { value: 'GEL', label: 'Structured BIAB Overlay' },
+  { value: 'EXTENSION', label: 'Japanese Soft Gel Extension' },
+  { value: 'VELVET_CAT_EYE', label: 'Velvet Cat-Eye Finish' },
+  { value: 'NAIL_ART', label: 'Bespoke Hand-Painted Art' },
+  { value: 'FRENCH_CONTOUR', label: 'French Hairline Contour' },
+  { value: 'PEDICURE', label: 'Dry Cuticle Hygiene Care' },
+] as const;
 
 export function GalleryForm({
   isOpen,
@@ -101,7 +95,6 @@ export function GalleryForm({
       try {
         new URL(formData.imageUrl);
       } catch {
-        // If it's a relative path starting with / or an uploaded url, it is still valid
         if (!formData.imageUrl.startsWith('/')) {
           newErrors.imageUrl = 'Please provide a valid image URL or upload a file';
         }
@@ -109,7 +102,7 @@ export function GalleryForm({
     }
 
     if (!formData.category) {
-      newErrors.category = 'Category is required';
+      newErrors.category = 'Atelier discipline category is required';
     }
 
     setErrors(newErrors);
@@ -147,12 +140,12 @@ export function GalleryForm({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? 'Edit design' : 'Upload design'}
-      description="Provide design details and category tagging for the studio portfolio"
+      title={initialData ? 'Edit design' : 'Upload lookbook design'}
+      description="Curate portfolio design details and atelier discipline tagging for the public lookbook"
       size="lg"
       showClose={!isPending}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6 pt-2">
         {/* Title Field */}
         <div>
           <Input
@@ -160,63 +153,64 @@ export function GalleryForm({
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="e.g. Chrome French tips with micro pearls"
+            placeholder="e.g. Japanese Apex Nude with Velvet Cat-Eye Accent"
             error={errors.title}
             required
             maxLength={100}
+            className="rounded-xl border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90"
           />
         </div>
 
-        {/* Style Tags (Pass 2 & 4: lacquer rose accent on selected, sentence case) */}
+        {/* Discipline Tags */}
         <div>
-          <label className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">
-            Style tags
+          <label className="block text-xs font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 mb-2">
+            Atelier discipline
           </label>
           <div className="flex flex-wrap gap-2">
-            {GALLERY_CATEGORIES.map((cat) => {
-              const isSelected = formData.category === cat;
+            {ATELIER_CATEGORIES.map((cat) => {
+              const isSelected = formData.category === cat.value;
               return (
                 <button
-                  key={cat}
+                  key={cat.value}
                   type="button"
-                  onClick={() => handleSelectCategory(cat)}
+                  onClick={() => handleSelectCategory(cat.value)}
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-xs font-normal transition-colors duration-150',
+                    'inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium transition-all duration-150',
                     isSelected
-                      ? 'bg-primary text-primary-foreground border border-primary shadow-sm'
-                      : 'bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 border border-stone-200/80 dark:border-stone-700/80 hover:bg-stone-200/70 dark:hover:bg-stone-700/70'
+                      ? 'bg-rose-900 text-white border border-rose-800 shadow-sm'
+                      : 'bg-white/80 dark:bg-stone-900/80 text-stone-700 dark:text-rose-200 border border-rose-200/80 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/50'
                   )}
                 >
                   <Tag className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  <span>{formatCategory(cat)}</span>
+                  <span>{cat.label}</span>
                 </button>
               );
             })}
           </div>
           {errors.category && (
-            <p className="mt-1 text-xs text-destructive flex items-center gap-1">
+            <p className="mt-2 text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="w-3.5 h-3.5" />
               <span>{errors.category}</span>
             </p>
           )}
         </div>
 
-        {/* Photo Upload Zone (Pass 6, 8, 9: clean image upload card, nested radius 12px, smooth transition-opacity) */}
-        <div>
-          <label className="block text-xs font-medium text-stone-700 dark:text-stone-300 mb-1.5">
+        {/* Photo Upload Zone: Editorial Framed Card */}
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 p-5 bg-white/60 dark:bg-[#1A0E15]/60 space-y-3">
+          <label className="block text-xs font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 mb-1">
             Design photography
           </label>
 
           {imagePreview ? (
-            <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-stone-200/80 dark:border-stone-800/80 bg-stone-950 group transition-opacity duration-200">
+            <div className="relative aspect-[16/10] rounded-xl overflow-hidden border border-rose-200/80 dark:border-rose-950/60 bg-stone-950 group transition-opacity duration-200">
               <img
                 src={imagePreview}
                 alt="Upload preview"
                 className="w-full h-full object-cover transition-opacity duration-200"
               />
-              <div className="absolute top-2.5 left-2.5">
-                <span className="inline-flex items-center rounded-[6px] bg-stone-950/80 backdrop-blur-sm text-stone-300 text-[11px] font-normal px-2.5 py-1 border border-stone-700/60">
-                  Portfolio preview
+              <div className="absolute top-3 left-3">
+                <span className="inline-flex items-center rounded-full bg-stone-950/85 backdrop-blur-sm text-rose-200 text-[11px] font-mono px-3 py-1 border border-rose-900/60">
+                  Lookbook preview
                 </span>
               </div>
               <button
@@ -225,10 +219,10 @@ export function GalleryForm({
                   setFormData((prev) => ({ ...prev, imageUrl: '' }));
                   setImagePreview(null);
                 }}
-                className="absolute top-2.5 right-2.5 inline-flex items-center gap-1.5 rounded-md bg-stone-950/80 hover:bg-stone-950 text-stone-200 border border-stone-700/80 backdrop-blur-sm px-2.5 py-1 text-xs transition-colors duration-150"
+                className="absolute top-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-stone-950/85 hover:bg-stone-950 text-rose-200 border border-rose-800/80 backdrop-blur-sm px-3.5 py-1.5 text-xs font-medium transition-colors duration-150"
               >
                 <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-                <span>Replace photo</span>
+                <span>Replace photography</span>
               </button>
             </div>
           ) : (
@@ -243,8 +237,8 @@ export function GalleryForm({
                   setFormData((prev) => ({ ...prev, imageUrl: '' }));
                   setImagePreview(null);
                 }}
-                helperText="JPEG, PNG, or WebP up to 5MB"
-                placeholder="Click or drag design photography here"
+                helperText="JPEG, PNG, or WebP up to 5MB · High resolution private atelier photography"
+                placeholder="Click or drag atelier photography here"
                 error={errors.imageUrl}
                 showPreview={false}
               />
@@ -253,10 +247,10 @@ export function GalleryForm({
                 <button
                   type="button"
                   onClick={() => setShowUrlInput(!showUrlInput)}
-                  className="inline-flex items-center gap-1 text-primary hover:underline font-normal"
+                  className="inline-flex items-center gap-1.5 text-rose-900 dark:text-rose-300 hover:underline font-medium"
                 >
                   <LinkIcon className="w-3.5 h-3.5" strokeWidth={1.5} />
-                  <span>{showUrlInput ? 'Hide image URL field' : 'Or enter direct image link'}</span>
+                  <span>{showUrlInput ? 'Hide direct image URL field' : 'Or enter direct image link'}</span>
                 </button>
               </div>
 
@@ -267,9 +261,10 @@ export function GalleryForm({
                     type="url"
                     value={formData.imageUrl}
                     onChange={handleChange}
-                    placeholder="https://example.com/nail-photo.jpg"
+                    placeholder="https://example.com/atelier-design.jpg"
                     error={errors.imageUrl}
-                    helperText="Direct URL to external image file"
+                    helperText="Direct URL to external image asset"
+                    className="rounded-xl border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90"
                   />
                 </div>
               )}
@@ -280,59 +275,59 @@ export function GalleryForm({
         {/* Description Field */}
         <div>
           <Textarea
-            label="Description"
+            label="Technique, shades & application notes"
             name="description"
             value={formData.description}
             onChange={handleChange}
-            placeholder="Details about shade, gel technique, accent art, or length..."
+            placeholder="Details on structured overlay viscosity, builder brand, French tip hairline thickness, or curing technique..."
             rows={3}
             maxLength={500}
-            helperText="Optional notes displayed when clients open the design."
+            helperText="Optional technical notes displayed when clients open the lookbook design."
+            className="rounded-xl border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90"
           />
         </div>
 
         {/* Visibility Toggle */}
-        <div className="rounded-lg border border-stone-200/80 dark:border-stone-800/80 p-3.5 bg-stone-50/50 dark:bg-stone-900/30 flex items-start gap-3">
+        <div className="rounded-xl border border-rose-200/80 dark:border-rose-950/60 p-4 bg-white/60 dark:bg-[#1A0E15]/60 flex items-start gap-3.5">
           <input
             type="checkbox"
             id="isActive"
             name="isActive"
             checked={formData.isActive}
             onChange={handleChange}
-            className="h-4 w-4 mt-0.5 rounded border-stone-300 text-primary focus:ring-primary accent-primary"
+            className="h-4 w-4 mt-0.5 rounded border-rose-300 text-rose-900 focus:ring-rose-800 accent-rose-900"
           />
           <div>
             <label
               htmlFor="isActive"
-              className="text-xs font-medium text-stone-900 dark:text-stone-100 block cursor-pointer"
+              className="text-xs font-medium text-stone-900 dark:text-rose-100 block cursor-pointer"
             >
-              Publish to public gallery
+              Publish to public atelier lookbook
             </label>
-            <p className="text-xs text-stone-500 dark:text-stone-400 font-normal mt-0.5 leading-relaxed">
-              When enabled, clients can browse this design in the studio portfolio.
+            <p className="text-xs text-stone-600 dark:text-stone-400 font-normal mt-0.5 leading-relaxed">
+              When enabled, clients can browse this design in the Pretty Nails by Atasha public lookbook.
             </p>
           </div>
         </div>
 
-        {/* Action Buttons (Pass 2 & 7: 8px button radius, single lacquer rose accent) */}
-        <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-stone-200/60 dark:border-stone-800/60 mt-4">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-end gap-3 pt-4 border-t border-rose-200/60 dark:border-rose-950/60">
           <Button
             type="button"
             variant="outline"
-            size="sm"
             onClick={onClose}
             disabled={isPending}
+            className="h-12 px-6 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium text-stone-700 dark:text-rose-200"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            size="sm"
             isLoading={isPending}
-            className="gap-1.5"
+            className="h-12 px-8 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-xs font-medium gap-2 border border-rose-800/80 shadow-[0_4px_16px_rgba(76,5,25,0.2)]"
           >
             <Upload className="h-4 w-4" strokeWidth={1.5} />
-            <span>{initialData ? 'Save changes' : 'Upload design'}</span>
+            <span>{initialData ? 'Save changes' : 'Upload lookbook design'}</span>
           </Button>
         </div>
       </form>

@@ -1,5 +1,10 @@
 'use client';
 
+/**
+ * Pretty Nails by Atasha · Cebu City
+ * Admin Reports & Analytics (Editorial Newsreader font-serif styling)
+ */
+
 import { useState } from 'react';
 import { useQuery } from '@/hooks/useApi';
 import { adminApi } from '@/lib/api';

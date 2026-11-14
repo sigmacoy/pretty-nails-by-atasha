@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Skeleton } from '@/components/ui/Skeleton';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { formatPrice } from '@/lib/utils';
+import { formatPrice, cn } from '@/lib/utils';
 import { AdminReportsDto } from '@/types';
 import {
   DollarSign,
@@ -26,7 +26,6 @@ import {
   RefreshCw,
   BarChart3,
   Award,
-  Sparkles,
 } from 'lucide-react';
 
 export type ReportPeriod = 'today' | 'this-week' | 'this-month' | 'last-month' | 'this-year';
@@ -47,13 +46,13 @@ const PERIOD_OPTIONS: { value: ReportPeriod; label: string; periodPhrase: string
   { value: 'this-year', label: 'This year', periodPhrase: 'this year' },
 ];
 
-// Quiet stone steps for secondary series (single leading accent for rank 0)
-const SECONDARY_STONE_STEPS = [
-  '#78716c', // stone-500
-  '#a8a29e', // stone-400
-  '#c7c2be', // stone-350
-  '#d6d3d1', // stone-300
-  '#e7e5e4', // stone-200
+const ROSE_PALETTE_STEPS = [
+  '#881337', // rose-900 (lead item)
+  '#9f1239', // rose-800
+  '#be123c', // rose-700
+  '#e11d48', // rose-600
+  '#f43f5e', // rose-500
+  '#fb7185', // rose-400
 ];
 
 export function ReportsView({
@@ -97,29 +96,27 @@ export function ReportsView({
         : 0;
 
     const rows: (string | number)[][] = [
-      ['Pretty Nails by Atasha - Business Report', ''],
+      ['Pretty Nails by Atasha - Atelier Business Report', ''],
       ['Period', periodLabel],
       ['Generated date', nowStr],
       [''],
-      ['Summary KPI', 'Value'],
-      ['Period earnings (PHP)', (reports.revenue / 100).toFixed(2)],
-      ['Total bookings', reports.bookingsCount],
-      ['Stamps issued', reports.loyaltyStats.issued],
-      ['Rewards redeemed', reports.loyaltyStats.redeemed],
-      ['Redemption rate (%)', `${redemptionRate}%`],
-      ['Active stamp balance', reports.loyaltyStats.issued - reports.loyaltyStats.redeemed],
+      ['Revenue & Attendance Summary Table', 'Volume', 'Value (PHP)', 'Share of Revenue'],
+      ['Gross Treatment Bookings', reports.bookingsCount, (reports.revenue / 100).toFixed(2), '100.0%'],
+      ['Stamps issued', reports.loyaltyStats.issued, '—', '—'],
+      ['Rewards redeemed', reports.loyaltyStats.redeemed, '—', `${redemptionRate}%`],
+      ['Active stamp balance', reports.loyaltyStats.issued - reports.loyaltyStats.redeemed, '—', '—'],
       [''],
-      ['Top Services Breakdown', 'Bookings', 'Est. Revenue (PHP)', 'Share of Volume'],
+      ['Top Treatments Attendance Table', 'Rank', 'Appointment Count', 'Estimated Revenue (PHP)', 'Volume Share'],
     ];
 
-    reports.topServices.forEach((s) => {
+    reports.topServices.forEach((s, idx) => {
       const share =
         reports.bookingsCount > 0 ? ((s.count / reports.bookingsCount) * 100).toFixed(1) : '0.0';
       const estRev =
         reports.bookingsCount > 0
           ? ((s.count / reports.bookingsCount) * (reports.revenue / 100)).toFixed(2)
           : '0.00';
-      rows.push([s.serviceName, s.count, estRev, `${share}%`]);
+      rows.push([s.serviceName, idx + 1, s.count, estRev, `${share}%`]);
     });
 
     const csvContent =
@@ -129,13 +126,13 @@ export function ReportsView({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `pretty-nails-report-${period}-${nowStr}.csv`);
+    link.setAttribute('download', `pretty-nails-atelier-report-${period}-${nowStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // Mapped chart data with calculated volume and estimated revenue
+  // Mapped chart data
   const chartData = useMemo(() => {
     if (!reports || !reports.topServices.length) return [];
     const totalBookings = reports.bookingsCount || 1;
@@ -169,31 +166,28 @@ export function ReportsView({
   }, [reports]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground min-h-screen p-6 sm:p-8 lg:p-10 transition-colors selection:bg-rose-200 selection:text-rose-950">
       {/* Header and Controls */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-1">
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100">
-              Reports & analytics
-            </h1>
-            <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-primary/70" />
-            <span className="hidden sm:inline-block text-xs font-mono text-stone-500 dark:text-stone-400 tabular-nums">
-              {activePeriodMeta.label.toLowerCase()}
-            </span>
-          </div>
-          <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1 font-normal">
-            Performance overview and business metrics for {activePeriodMeta.periodPhrase}
+          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
+            Pretty Nails by Atasha · Cebu City
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+            Atelier Revenue & Attendance Reports
+          </h1>
+          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+            Comprehensive earnings reports, service attendance breakdown, and loyalty program retention metrics.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           {/* Segmented Period Selector */}
           {onPeriodChange ? (
             <div
               role="tablist"
               aria-label="Report period selection"
-              className="inline-flex items-center p-1 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 shadow-card"
+              className="inline-flex items-center p-1.5 rounded-full bg-white/90 dark:bg-stone-900/90 border border-rose-200/80 dark:border-rose-950/60 shadow-sm"
             >
               {PERIOD_OPTIONS.map((opt) => {
                 const isActive = period === opt.value;
@@ -204,11 +198,12 @@ export function ReportsView({
                     type="button"
                     aria-selected={isActive}
                     onClick={() => onPeriodChange(opt.value)}
-                    className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all duration-150 ease-[cubic-bezier(0.22,1,0.36,1)] select-none whitespace-nowrap ${
+                    className={cn(
+                      'px-4 py-2 text-xs font-medium rounded-full transition-all duration-150 select-none whitespace-nowrap',
                       isActive
-                        ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm border border-stone-200/60 dark:border-stone-700/60'
-                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 hover:bg-stone-200/40 dark:hover:bg-stone-800/40 border border-transparent'
-                    }`}
+                        ? 'bg-rose-900 text-white shadow-xs'
+                        : 'text-stone-600 dark:text-rose-200 hover:text-stone-950 dark:hover:text-white'
+                    )}
                   >
                     {opt.label}
                   </button>
@@ -216,14 +211,14 @@ export function ReportsView({
               })}
             </div>
           ) : (
-            <Badge variant="secondary" className="px-3 py-1 font-mono text-xs">
-              <Calendar className="w-3.5 h-3.5 mr-1.5 opacity-60" strokeWidth={1.5} />
+            <Badge variant="secondary" className="px-4 py-1.5 rounded-full font-mono text-xs border border-rose-200/80 dark:border-rose-900/60">
+              <Calendar className="w-3.5 h-3.5 mr-1.5 text-rose-700 dark:text-rose-400" strokeWidth={1.5} />
               {activePeriodMeta.label}
             </Badge>
           )}
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             {onRefresh && (
               <Button
                 variant="outline"
@@ -231,10 +226,10 @@ export function ReportsView({
                 onClick={handleRefresh}
                 disabled={isLoading || isRefreshing}
                 aria-label="Refresh report data"
-                className="h-8 px-2.5 text-xs font-normal"
+                className="h-12 w-12 rounded-full border-rose-200/80 dark:border-rose-800/60 p-0 text-stone-700 dark:text-rose-200 hover:bg-rose-50 dark:hover:bg-rose-950/50"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 ${isRefreshing || isLoading ? 'animate-spin' : ''}`}
+                  className={`w-4 h-4 ${isRefreshing || isLoading ? 'animate-spin' : ''}`}
                   strokeWidth={1.5}
                 />
               </Button>
@@ -245,9 +240,9 @@ export function ReportsView({
               size="sm"
               onClick={handleExportCsv}
               disabled={isLoading || !reports}
-              className="h-8 px-3 text-xs gap-1.5 font-normal"
+              className="h-12 px-6 rounded-full border border-rose-300/80 dark:border-rose-800/80 text-rose-950 dark:text-rose-100 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs font-medium gap-2 shadow-2xs"
             >
-              <Download className="w-3.5 h-3.5 opacity-70" strokeWidth={1.5} />
+              <Download className="w-4 h-4 text-rose-800 dark:text-rose-300" strokeWidth={1.5} />
               <span>Export CSV</span>
             </Button>
           </div>
@@ -256,107 +251,107 @@ export function ReportsView({
 
       {/* KPI Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Total Revenue / Monthly earnings */}
-        <Card className="p-5">
+        {/* Card 1: Period Earnings */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
+              <p className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
                 Period earnings
               </p>
               {isLoading ? (
-                <Skeleton variant="text" width={110} className="h-7 mt-1" />
+                <Skeleton variant="text" width={110} className="h-8 mt-1" />
               ) : (
-                <p className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
+                <p className="text-2xl sm:text-3xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
                   {reports ? formatPrice(reports.revenue) : '—'}
                 </p>
               )}
             </div>
-            <div className="w-8 h-8 rounded-lg bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 flex items-center justify-center text-stone-600 dark:text-stone-400 shrink-0">
-              <DollarSign className="w-4 h-4" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+              <DollarSign className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-3 font-normal">
-            Gross booking revenue
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 font-normal">
+            Gross atelier booking revenue
           </p>
         </Card>
 
-        {/* Card 2: Total Bookings / Customer count */}
-        <Card className="p-5">
+        {/* Card 2: Completed Appointments */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                Customer count
+              <p className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
+                Client appointments
               </p>
               {isLoading ? (
-                <Skeleton variant="text" width={80} className="h-7 mt-1" />
+                <Skeleton variant="text" width={80} className="h-8 mt-1" />
               ) : (
-                <p className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
+                <p className="text-2xl sm:text-3xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
                   {reports ? reports.bookingsCount.toLocaleString() : '—'}
                 </p>
               )}
             </div>
-            <div className="w-8 h-8 rounded-lg bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 flex items-center justify-center text-stone-600 dark:text-stone-400 shrink-0">
-              <Users className="w-4 h-4" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+              <Users className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-3 font-normal">
-            Completed appointments
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 font-normal">
+            Completed private 1-on-1 treatments
           </p>
         </Card>
 
-        {/* Card 3: Top Service */}
-        <Card className="p-5">
+        {/* Card 3: Top Discipline */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="space-y-1 min-w-0 pr-2">
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                Top service
+              <p className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
+                Lead discipline
               </p>
               {isLoading ? (
-                <Skeleton variant="text" width={120} className="h-7 mt-1" />
+                <Skeleton variant="text" width={120} className="h-8 mt-1" />
               ) : (
-                <p className="text-xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 truncate">
+                <p className="text-xl sm:text-2xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 truncate">
                   {reports?.topServices[0]?.serviceName || 'No records'}
                 </p>
               )}
             </div>
-            <div className="w-8 h-8 rounded-lg bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 flex items-center justify-center text-stone-600 dark:text-stone-400 shrink-0">
-              <TrendingUp className="w-4 h-4" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+              <TrendingUp className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-3 font-normal">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 font-normal">
             {reports?.topServices[0] ? (
-              <span className="tabular-nums">
+              <span className="font-mono tabular-nums">
                 {reports.topServices[0].count} bookings this period
               </span>
             ) : (
-              'Most requested treatment'
+              'Most requested atelier treatment'
             )}
           </p>
         </Card>
 
         {/* Card 4: Loyalty Program Activity */}
-        <Card className="p-5">
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <p className="text-xs font-medium text-stone-500 dark:text-stone-400">
-                Loyalty activity
+              <p className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
+                Loyalty circulation
               </p>
               {isLoading ? (
-                <Skeleton variant="text" width={90} className="h-7 mt-1" />
+                <Skeleton variant="text" width={90} className="h-8 mt-1" />
               ) : (
-                <p className="text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
+                <p className="text-2xl sm:text-3xl font-serif font-medium tracking-tight text-stone-900 dark:text-rose-50 tabular-nums">
                   {reports ? `${loyaltyMetrics.issued} / ${loyaltyMetrics.redeemed}` : '—'}
                 </p>
               )}
             </div>
-            <div className="w-8 h-8 rounded-lg bg-stone-100/90 dark:bg-stone-800/80 border border-stone-200/60 dark:border-stone-700/60 flex items-center justify-center text-stone-600 dark:text-stone-400 shrink-0">
-              <Award className="w-4 h-4" strokeWidth={1.5} />
+            <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900/60 flex items-center justify-center text-rose-800 dark:text-rose-300 shrink-0">
+              <Award className="w-5 h-5" strokeWidth={1.5} />
             </div>
           </div>
-          <p className="text-xs text-stone-400 dark:text-stone-500 mt-3 font-normal">
+          <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 font-normal">
             {reports ? (
-              <span className="tabular-nums">
-                {loyaltyMetrics.redemptionRate}% redemption rate
+              <span className="font-mono tabular-nums">
+                {loyaltyMetrics.redemptionRate}% redemption conversion
               </span>
             ) : (
               'Stamps issued / redeemed'
@@ -365,12 +360,14 @@ export function ReportsView({
         </Card>
       </div>
 
-      {/* Main Revenue Chart: Quiet Recharts Data Series */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4">
+      {/* Main Revenue Chart: Muted Rose/Burgundy Fills and Rose Hairline Axes */}
+      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4">
           <div>
-            <CardTitle>Revenue overview</CardTitle>
-            <CardDescription>
+            <CardTitle className="font-serif text-xl text-stone-900 dark:text-rose-50">
+              Treatment revenue distribution
+            </CardTitle>
+            <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-1">
               Service booking distribution and estimated treatment earnings for {activePeriodMeta.periodPhrase}
             </CardDescription>
           </div>
@@ -379,27 +376,29 @@ export function ReportsView({
           <div
             role="group"
             aria-label="Chart metric toggle"
-            className="inline-flex items-center p-1 rounded-lg bg-stone-100 dark:bg-stone-900 border border-stone-200/80 dark:border-stone-800/80 self-start sm:self-auto"
+            className="inline-flex items-center p-1.5 rounded-full bg-rose-50/70 dark:bg-stone-900/60 border border-rose-200/80 dark:border-rose-900/60 self-start sm:self-auto"
           >
             <button
               type="button"
               onClick={() => setMetricView('bookings')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
+              className={cn(
+                'px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-150',
                 metricView === 'bookings'
-                  ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm border border-stone-200/60 dark:border-stone-700/60'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 border border-transparent'
-              }`}
+                  ? 'bg-rose-900 text-white shadow-xs'
+                  : 'text-stone-600 dark:text-rose-200 hover:text-stone-900'
+              )}
             >
               Bookings volume
             </button>
             <button
               type="button"
               onClick={() => setMetricView('revenue')}
-              className={`px-3 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
+              className={cn(
+                'px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-150',
                 metricView === 'revenue'
-                  ? 'bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 shadow-sm border border-stone-200/60 dark:border-stone-700/60'
-                  : 'text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 border border-transparent'
-              }`}
+                  ? 'bg-rose-900 text-white shadow-xs'
+                  : 'text-stone-600 dark:text-rose-200 hover:text-stone-900'
+              )}
             >
               Estimated revenue
             </button>
@@ -409,13 +408,13 @@ export function ReportsView({
         <CardContent className="p-6 pt-2">
           {isLoading ? (
             <div className="h-72 w-full flex flex-col justify-end gap-2 pb-6">
-              <Skeleton variant="rectangular" className="h-full w-full rounded-lg" />
+              <Skeleton variant="rectangular" className="h-full w-full rounded-xl" />
             </div>
           ) : !reports || chartData.length === 0 ? (
-            <div className="h-72 flex flex-col items-center justify-center text-center p-6 rounded-lg border border-dashed border-stone-200 dark:border-stone-800">
-              <BarChart3 className="w-8 h-8 text-stone-400 dark:text-stone-600 mb-2" strokeWidth={1.5} />
-              <p className="text-sm font-medium text-stone-700 dark:text-stone-300">
-                No booking data available
+            <div className="h-72 flex flex-col items-center justify-center text-center p-6 rounded-2xl border border-dashed border-rose-200 dark:border-rose-900/60">
+              <BarChart3 className="w-8 h-8 text-rose-400 dark:text-rose-600 mb-2" strokeWidth={1.5} />
+              <p className="text-sm font-serif font-medium text-stone-800 dark:text-rose-200">
+                No booking records recorded
               </p>
               <p className="text-xs text-stone-500 dark:text-stone-400 mt-1 max-w-sm">
                 There are no completed or active appointments recorded for {activePeriodMeta.periodPhrase}.
@@ -429,10 +428,9 @@ export function ReportsView({
                   margin={{ top: 12, right: 12, left: 4, bottom: 20 }}
                 >
                   <CartesianGrid
-                    stroke="hsl(var(--border))"
+                    stroke="rgba(244, 114, 182, 0.2)"
                     strokeDasharray="3 3"
                     vertical={false}
-                    opacity={0.6}
                   />
                   <XAxis
                     dataKey="shortName"
@@ -442,7 +440,7 @@ export function ReportsView({
                       fontFamily: 'monospace',
                     }}
                     tickLine={false}
-                    axisLine={{ stroke: 'hsl(var(--border))', opacity: 0.6 }}
+                    axisLine={{ stroke: 'rgba(244, 114, 182, 0.3)' }}
                     interval={0}
                     dy={8}
                   />
@@ -455,35 +453,35 @@ export function ReportsView({
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(val: number) =>
-                      metricView === 'revenue' ? `₱${(val / 100).toLocaleString()}` : `${val}`
+                      metricView === 'revenue' ? `PHP ${(val / 100).toLocaleString()}` : `${val}`
                     }
-                    width={metricView === 'revenue' ? 68 : 36}
+                    width={metricView === 'revenue' ? 84 : 40}
                   />
                   <Tooltip
-                    cursor={{ fill: 'hsl(var(--muted) / 0.35)' }}
+                    cursor={{ fill: 'rgba(244, 114, 182, 0.08)' }}
                     content={({ active, payload }) => {
                       if (!active || !payload || !payload.length) return null;
                       const data = payload[0].payload as typeof chartData[0];
                       return (
-                        <div className="rounded-lg border border-stone-200/90 dark:border-stone-800/90 bg-card/95 backdrop-blur-sm p-3 shadow-float text-xs space-y-1.5 min-w-[180px]">
-                          <p className="font-medium text-stone-900 dark:text-stone-100 truncate">
+                        <div className="rounded-2xl border border-rose-200/90 dark:border-rose-950/90 bg-white/95 dark:bg-[#1A0E15]/95 backdrop-blur-sm p-4 shadow-lg text-xs space-y-2 min-w-[200px]">
+                          <p className="font-serif font-medium text-stone-900 dark:text-rose-50 truncate text-sm">
                             {data.name}
                           </p>
-                          <div className="flex items-center justify-between gap-4 text-stone-500 dark:text-stone-400">
+                          <div className="flex items-center justify-between gap-4 text-stone-600 dark:text-stone-300">
                             <span>Bookings</span>
-                            <span className="font-mono font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                            <span className="font-mono font-medium text-stone-900 dark:text-rose-50 tabular-nums">
                               {data.bookings}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between gap-4 text-stone-500 dark:text-stone-400">
+                          <div className="flex items-center justify-between gap-4 text-stone-600 dark:text-stone-300">
                             <span>Est. revenue</span>
-                            <span className="font-mono font-medium text-stone-900 dark:text-stone-100 tabular-nums">
+                            <span className="font-mono font-medium text-stone-900 dark:text-rose-50 tabular-nums">
                               {formatPrice(data.revenue)}
                             </span>
                           </div>
-                          <div className="flex items-center justify-between gap-4 text-stone-500 dark:text-stone-400 border-t border-stone-200/60 dark:border-stone-800/60 pt-1.5">
+                          <div className="flex items-center justify-between gap-4 text-stone-600 dark:text-stone-300 border-t border-rose-200/60 dark:border-rose-950/60 pt-2">
                             <span>Volume share</span>
-                            <span className="font-mono text-primary font-medium tabular-nums">
+                            <span className="font-mono text-rose-900 dark:text-rose-300 font-semibold tabular-nums">
                               {data.share}%
                             </span>
                           </div>
@@ -493,15 +491,11 @@ export function ReportsView({
                   />
                   <Bar
                     dataKey={metricView}
-                    radius={[4, 4, 0, 0]}
-                    maxBarSize={44}
+                    radius={[6, 6, 0, 0]}
+                    maxBarSize={48}
                   >
                     {chartData.map((entry, index) => {
-                      // Lead item gets single lacquer rose accent; secondary items sit in quiet stone steps
-                      const fillColor =
-                        index === 0
-                          ? 'hsl(var(--primary))'
-                          : SECONDARY_STONE_STEPS[Math.min(index - 1, SECONDARY_STONE_STEPS.length - 1)];
+                      const fillColor = ROSE_PALETTE_STEPS[Math.min(index, ROSE_PALETTE_STEPS.length - 1)];
                       return <Cell key={`cell-${entry.name}-${index}`} fill={fillColor} />;
                     })}
                   </Bar>
@@ -512,15 +506,15 @@ export function ReportsView({
 
           {/* Chart Sub-legend */}
           {reports && chartData.length > 0 && (
-            <div className="flex flex-wrap items-center justify-between border-t border-stone-200/60 dark:border-stone-800/60 pt-3 mt-2 text-xs text-stone-500 dark:text-stone-400">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-between border-t border-rose-200/60 dark:border-rose-950/60 pt-4 mt-2 text-xs text-stone-500 dark:text-stone-400">
+              <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-primary inline-block" />
-                  <span>#1 leading service</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-900 inline-block" />
+                  <span>Lead atelier treatment</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-sm bg-stone-400 dark:bg-stone-600 inline-block" />
-                  <span>Secondary treatments</span>
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" />
+                  <span>Secondary disciplines</span>
                 </div>
               </div>
               <p className="font-mono text-[11px] tabular-nums mt-1 sm:mt-0">
@@ -531,205 +525,255 @@ export function ReportsView({
         </CardContent>
       </Card>
 
-      {/* Two-Column Breakdown Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column: Top Services Detailed Breakdown */}
-        <Card>
-          <CardHeader>
+      {/* Tabular Section 1: Revenue & Attendance Summary Table */}
+      <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+        <CardHeader className="p-6 pb-4">
+          <CardTitle className="font-serif text-xl text-stone-900 dark:text-rose-50">
+            Revenue & Attendance Summary Table
+          </CardTitle>
+          <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+            Aggregated period metrics, appointment attendance volume, and gross billing valuation
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead>
+                <tr className="border-y border-rose-200/80 dark:border-rose-950/60 bg-rose-50/70 dark:bg-[#20111A]/90 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300">
+                  <th className="py-3 px-5">Period Metric</th>
+                  <th className="py-3 px-5 text-right">Total Volume</th>
+                  <th className="py-3 px-5 text-right">Value PHP</th>
+                  <th className="py-3 px-5 text-right">Share of Revenue</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-rose-200/60 dark:divide-rose-950/60">
+                <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                  <td className="py-3.5 px-5 font-medium text-stone-900 dark:text-rose-50">
+                    Gross Treatment Bookings
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    {reports?.bookingsCount ?? 0}
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums font-semibold text-rose-950 dark:text-rose-100">
+                    {reports ? formatPrice(reports.revenue) : '—'}
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-rose-900 dark:text-rose-300">
+                    100.0%
+                  </td>
+                </tr>
+                <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                  <td className="py-3.5 px-5 font-medium text-stone-900 dark:text-rose-50">
+                    Average Value per Appointment
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    1 treatment
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    {reports ? formatPrice(loyaltyMetrics.avgPerBooking) : '—'}
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-400">
+                    —
+                  </td>
+                </tr>
+                <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                  <td className="py-3.5 px-5 font-medium text-stone-900 dark:text-rose-50">
+                    Complimentary Reward Treatments Claimed
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    {loyaltyMetrics.redeemed}
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    {formatPrice(loyaltyMetrics.redeemed * (loyaltyMetrics.avgPerBooking || 150000))}
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-400">
+                    —
+                  </td>
+                </tr>
+                <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                  <td className="py-3.5 px-5 font-medium text-stone-900 dark:text-rose-50">
+                    Active Client Loyalty Stamps in Circulation
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    {loyaltyMetrics.active} stamps
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                    —
+                  </td>
+                  <td className="py-3.5 px-5 font-mono text-right tabular-nums text-stone-400">
+                    —
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Two-Column Breakdown Row: Top Treatments Attendance Table & Loyalty Health Table */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Tabular Section 2: Top Treatments Attendance Table */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+          <CardHeader className="p-6 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle>Top services</CardTitle>
-                <CardDescription>
+                <CardTitle className="font-serif text-xl text-stone-900 dark:text-rose-50">
+                  Top Treatments Attendance Table
+                </CardTitle>
+                <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-1">
                   Ranked treatment frequency and appointment contribution
                 </CardDescription>
               </div>
-              <Badge variant="outline" className="font-mono text-xs tabular-nums">
-                {reports?.topServices.length || 0} services
+              <Badge variant="outline" className="font-mono text-xs tabular-nums rounded-full px-3 py-1 border-rose-200/80 dark:border-rose-800/60">
+                {reports?.topServices.length || 0} treatments
               </Badge>
             </div>
           </CardHeader>
-          <CardContent className="p-5 sm:p-6 pt-0">
+          <CardContent className="p-0">
             {isLoading ? (
-              <div className="space-y-3">
+              <div className="p-6 space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} variant="rectangular" className="h-12 w-full rounded-md" />
+                  <Skeleton key={i} variant="rectangular" className="h-12 w-full rounded-xl" />
                 ))}
               </div>
             ) : !reports || reports.topServices.length === 0 ? (
-              <div className="py-12 text-center text-xs text-stone-500 dark:text-stone-400">
-                No booking records found for this period
+              <div className="py-14 text-center text-xs text-stone-500 dark:text-stone-400">
+                No treatment records found for this period
               </div>
             ) : (
-              <div className="divide-y divide-stone-200/60 dark:divide-stone-800/60">
-                {reports.topServices.map((service, index) => {
-                  const share =
-                    reports.bookingsCount > 0
-                      ? ((service.count / reports.bookingsCount) * 100).toFixed(1)
-                      : '0.0';
-                  const estRev =
-                    reports.bookingsCount > 0
-                      ? Math.round((service.count / reports.bookingsCount) * reports.revenue)
-                      : 0;
-                  const isTopRank = index === 0;
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead>
+                    <tr className="border-y border-rose-200/80 dark:border-rose-950/60 bg-rose-50/70 dark:bg-[#20111A]/90 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300">
+                      <th className="py-3 px-4">Rank</th>
+                      <th className="py-3 px-4">Treatment Name</th>
+                      <th className="py-3 px-4 text-right">Appointment Count</th>
+                      <th className="py-3 px-4 text-right">Estimated Revenue</th>
+                      <th className="py-3 px-4 text-right">Volume Share</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-rose-200/60 dark:divide-rose-950/60">
+                    {reports.topServices.map((service, index) => {
+                      const share =
+                        reports.bookingsCount > 0
+                          ? ((service.count / reports.bookingsCount) * 100).toFixed(1)
+                          : '0.0';
+                      const estRev =
+                        reports.bookingsCount > 0
+                          ? Math.round((service.count / reports.bookingsCount) * reports.revenue)
+                          : 0;
+                      const isTopRank = index === 0;
 
-                  return (
-                    <div
-                      key={service.serviceName}
-                      className="py-3.5 first:pt-0 last:pb-0 flex flex-col gap-2 group"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span
-                            className={`font-mono text-xs font-semibold w-5 text-right tabular-nums ${
-                              isTopRank ? 'text-primary' : 'text-stone-400 dark:text-stone-500'
-                            }`}
-                          >
+                      return (
+                        <tr
+                          key={service.serviceName}
+                          className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors"
+                        >
+                          <td className="py-3.5 px-4 font-mono font-semibold tabular-nums text-xs text-rose-900 dark:text-rose-300">
                             {String(index + 1).padStart(2, '0')}
-                          </span>
-                          <span className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
+                          </td>
+                          <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-rose-50">
                             {service.serviceName}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-3 shrink-0">
-                          <span className="font-mono text-xs text-stone-500 dark:text-stone-400 tabular-nums">
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                            {service.count}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
                             {formatPrice(estRev)}
-                          </span>
-                          <Badge
-                            variant={isTopRank ? 'default' : 'secondary'}
-                            className="font-mono text-xs tabular-nums"
-                          >
-                            {service.count} {service.count === 1 ? 'booking' : 'bookings'}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {/* Visual proportion hairline bar */}
-                      <div className="h-1.5 w-full bg-stone-100 dark:bg-stone-800/80 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full transition-all duration-300 ${
-                            isTopRank
-                              ? 'bg-primary'
-                              : 'bg-stone-300 dark:bg-stone-600'
-                          }`}
-                          style={{ width: `${Math.min(100, Math.max(4, Number(share)))}%` }}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                          </td>
+                          <td className="py-3.5 px-4 font-mono text-right tabular-nums font-semibold text-rose-900 dark:text-rose-300">
+                            {share}%
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
         </Card>
 
-        {/* Right Column: Loyalty Program Statistics & Ratio */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Loyalty performance</CardTitle>
-                <CardDescription>
-                  Stamp card circulation, rewards, and retention health
-                </CardDescription>
-              </div>
-              <Sparkles className="w-4 h-4 text-stone-400 dark:text-stone-500" strokeWidth={1.5} />
-            </div>
+        {/* Tabular Section 3: Loyalty Circulation & Redemption Health Table */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 overflow-hidden bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-sm">
+          <CardHeader className="p-6 pb-4">
+            <CardTitle className="font-serif text-xl text-stone-900 dark:text-rose-50">
+              Loyalty Circulation & Redemption Health Table
+            </CardTitle>
+            <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-1">
+              Stamp card circulation, rewards claimed, and member retention benchmarks
+            </CardDescription>
           </CardHeader>
-          <CardContent className="p-5 sm:p-6 pt-0 space-y-6">
-            {isLoading ? (
-              <div className="space-y-4">
-                <div className="grid grid-cols-3 gap-3">
-                  {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} variant="rectangular" className="h-20 rounded-lg" />
-                  ))}
-                </div>
-                <Skeleton variant="rectangular" className="h-16 rounded-lg" />
-              </div>
-            ) : !reports ? (
-              <div className="py-12 text-center text-xs text-stone-500 dark:text-stone-400">
-                No loyalty data available
-              </div>
-            ) : (
-              <>
-                {/* 3 Metric Tiles */}
-                <div className="grid grid-cols-3 gap-3">
-                  <div className="p-3.5 rounded-lg bg-stone-50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-800/60 text-center">
-                    <p className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
-                      {loyaltyMetrics.issued.toLocaleString()}
-                    </p>
-                    <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                      Stamps issued
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-lg bg-stone-50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-800/60 text-center">
-                    <p className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
-                      {loyaltyMetrics.redeemed.toLocaleString()}
-                    </p>
-                    <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                      Redeemed
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-lg bg-stone-50 dark:bg-stone-900/40 border border-stone-200/60 dark:border-stone-800/60 text-center">
-                    <p className="text-xl sm:text-2xl font-semibold tracking-tight text-stone-900 dark:text-stone-100 tabular-nums">
-                      {loyaltyMetrics.active.toLocaleString()}
-                    </p>
-                    <p className="text-[11px] text-stone-500 dark:text-stone-400 mt-0.5">
-                      Active balance
-                    </p>
-                  </div>
-                </div>
-
-                {/* Redemption Rate Progress */}
-                <div className="p-4 rounded-lg bg-stone-50/70 dark:bg-stone-900/30 border border-stone-200/60 dark:border-stone-800/60 space-y-2.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-medium text-stone-700 dark:text-stone-300">
-                      Redemption rate
-                    </span>
-                    <span className="font-mono font-semibold text-primary tabular-nums">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead>
+                  <tr className="border-y border-rose-200/80 dark:border-rose-950/60 bg-rose-50/70 dark:bg-[#20111A]/90 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-800 dark:text-rose-300">
+                    <th className="py-3 px-4">Program Metric</th>
+                    <th className="py-3 px-4 text-right">Volume</th>
+                    <th className="py-3 px-4 text-right">Rate</th>
+                    <th className="py-3 px-4 text-right">Benchmark Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-rose-200/60 dark:divide-rose-950/60">
+                  <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                    <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-rose-50">
+                      Total Stamps Issued
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                      {loyaltyMetrics.issued}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-600 dark:text-stone-400">
+                      100.0%
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right text-xs text-stone-700 dark:text-stone-300">
+                      Active issuance
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                    <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-rose-50">
+                      Free Treatments Redeemed
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                      {loyaltyMetrics.redeemed}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums font-semibold text-rose-900 dark:text-rose-300">
                       {loyaltyMetrics.redemptionRate}%
-                    </span>
-                  </div>
-
-                  <div className="h-2 w-full bg-stone-200/70 dark:bg-stone-800 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-primary rounded-full transition-all duration-500 ease-out"
-                      style={{ width: `${Math.min(100, loyaltyMetrics.redemptionRate)}%` }}
-                    />
-                  </div>
-
-                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-normal">
-                    {loyaltyMetrics.redeemed} client rewards claimed out of{' '}
-                    {loyaltyMetrics.issued} total stamps issued this period.
-                  </p>
-                </div>
-
-                {/* Additional Period Comparison Metrics */}
-                <div className="grid grid-cols-2 gap-3 pt-1">
-                  <div className="p-3.5 rounded-lg border border-stone-200/60 dark:border-stone-800/60">
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Average per booking
-                    </p>
-                    <p className="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-100 mt-1 tabular-nums">
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right text-xs text-emerald-700 dark:text-emerald-400">
+                      Reward healthy
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                    <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-rose-50">
+                      Active Stamp Balance
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
+                      {loyaltyMetrics.active}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-600 dark:text-stone-400">
+                      {loyaltyMetrics.issued > 0 ? (100 - loyaltyMetrics.redemptionRate).toFixed(0) : 0}%
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right text-xs text-stone-700 dark:text-stone-300">
+                      In circulation
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-rose-50/40 dark:hover:bg-rose-950/20 transition-colors">
+                    <td className="py-3.5 px-4 font-medium text-stone-900 dark:text-rose-50">
+                      Average Ticket Value
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-800 dark:text-stone-200">
                       {formatPrice(loyaltyMetrics.avgPerBooking)}
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-lg border border-stone-200/60 dark:border-stone-800/60">
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Bookings per service
-                    </p>
-                    <p className="text-lg font-semibold tracking-tight text-stone-900 dark:text-stone-100 mt-1 tabular-nums">
-                      {reports.topServices.length > 0
-                        ? (reports.bookingsCount / reports.topServices.length).toFixed(1)
-                        : '0.0'}
-                    </p>
-                  </div>
-                </div>
-              </>
-            )}
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right tabular-nums text-stone-400">
+                      —
+                    </td>
+                    <td className="py-3.5 px-4 font-mono text-right text-xs text-stone-700 dark:text-stone-300">
+                      Private atelier standard
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </CardContent>
         </Card>
       </div>
