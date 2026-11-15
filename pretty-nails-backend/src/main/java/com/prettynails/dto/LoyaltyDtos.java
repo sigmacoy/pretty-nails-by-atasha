@@ -106,8 +106,8 @@ public class LoyaltyDtos {
     @AllArgsConstructor
     public static class AdminLoyaltyPageResponse {
         private List<AdminLoyaltyCardDto> content;
-        private Integer pageNumber;
-        private Integer pageSize;
+        private Integer number;
+        private Integer size;
         private Long totalElements;
         private Integer totalPages;
         private Boolean first;

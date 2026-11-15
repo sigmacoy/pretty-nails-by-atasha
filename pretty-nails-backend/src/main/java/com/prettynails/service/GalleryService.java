@@ -5,6 +5,8 @@ import com.prettynails.entity.Gallery;
 import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.GalleryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,11 @@ public class GalleryService {
         return galleryRepository.searchActive(search, category).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
+    }
+
+    public Page<GalleryDto> getAdminGallery(String search, String category, Pageable pageable) {
+        Page<Gallery> page = galleryRepository.searchActive(search, category, pageable);
+        return page.map(this::mapToDto);
     }
 
     public GalleryDto getGalleryById(String id) {

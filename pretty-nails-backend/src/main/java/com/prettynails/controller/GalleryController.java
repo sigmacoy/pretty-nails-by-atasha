@@ -4,6 +4,9 @@ import com.prettynails.dto.GalleryDtos.*;
 import com.prettynails.service.GalleryService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -33,12 +36,22 @@ public class GalleryController {
 
     @GetMapping("/admin/gallery")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<GalleryDto>> getAdminGallery(
+    public ResponseEntity<AdminGalleryPageResponse> getAdminGallery(
             @RequestParam(required = false) String search,
-            @RequestParam(required = false) String category
+            @RequestParam(required = false) String category,
+            @PageableDefault(size = 20) Pageable pageable
     ) {
-        List<GalleryDto> gallery = galleryService.getAdminGallery(search, category);
-        return ResponseEntity.ok(gallery);
+        Page<GalleryDto> page = galleryService.getAdminGallery(search, category, pageable);
+        AdminGalleryPageResponse response = AdminGalleryPageResponse.builder()
+                .content(page.getContent())
+                .number(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .first(page.isFirst())
+                .last(page.isLast())
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/admin/gallery/{id}")

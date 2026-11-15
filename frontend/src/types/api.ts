@@ -230,6 +230,17 @@ export interface LoyaltyActionRequest {
   amount?: number;
 }
 
+// Paginated response for admin loyalty (matching AdminBookingPage/AdminGalleryPage structure)
+export interface AdminLoyaltyPage {
+  content: AdminLoyaltyCardDto[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
 // ---------- Availability ----------
 export interface AvailabilityDto {
   id: string;

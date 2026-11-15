@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@/hooks/useApi';
 import { adminApi, loyaltyApi } from '@/lib/api';
 import { AdminLoyaltyCardDto, LoyaltyActionType } from '@/types';
@@ -24,9 +24,21 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 
+// Paginated response type for loyalty (matching AdminBookingPage/AdminGalleryPage pattern)
+interface AdminLoyaltyPage {
+  content: AdminLoyaltyCardDto[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+const DEFAULT_PAGE_SIZE = 10;
+
 export default function AdminLoyaltyPage() {
   const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(10);
   const [search, setSearch] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
   const [selectedCard, setSelectedCard] = useState<AdminLoyaltyCardDto | null>(null);
@@ -41,8 +53,15 @@ export default function AdminLoyaltyPage() {
   const [actionAmount, setActionAmount] = useState(1);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
+  // Build API params - include pagination for server-side pagination
+  const params = useMemo(() => ({
+    search: search || undefined,
+    page: currentPage,
+    size: DEFAULT_PAGE_SIZE,
+  }), [search, currentPage]);
+
   const { data: cardsData, isLoading, refetch } = useQuery(
-    () => loyaltyApi.getAllCards(),
+    () => loyaltyApi.getAllCards(params),
     { enabled: true }
   );
 
@@ -52,25 +71,48 @@ export default function AdminLoyaltyPage() {
   );
 
   // Access .data from Axios response
-  const cards = cardsData?.data ?? [];
+  const responseData = cardsData?.data;
   const settings = settingsData?.data;
   const REWARD_THRESHOLD = 10; // Fixed reward threshold (stamps needed for complimentary reward)
   const maxStamps = REWARD_THRESHOLD;
 
-  // Filter cards by search query
-  const filteredCards = cards.filter(
-    (card) =>
-      card.userName.toLowerCase().includes(search.toLowerCase()) ||
-      card.userEmail.toLowerCase().includes(search.toLowerCase()) ||
-      card.id.toLowerCase().includes(search.toLowerCase())
-  );
+  // Handle both array response (AdminLoyaltyCardDto[]) and paginated response (AdminLoyaltyPage)
+  // Check if response has pagination properties (content, totalElements, totalPages)
+  const isPaginatedResponse = responseData && typeof responseData === 'object' && 'content' in responseData && 'totalElements' in responseData && 'totalPages' in responseData;
 
-  // Pagination slice
-  const totalPages = Math.max(1, Math.ceil(filteredCards.length / pageSize));
-  const paginatedCards = filteredCards.slice(
-    currentPage * pageSize,
-    (currentPage + 1) * pageSize
-  );
+  // Define the paginated response shape inline for casting
+  type PaginatedLoyaltyResponse = {
+    content: AdminLoyaltyCardDto[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+  };
+
+  const cards = isPaginatedResponse ? (responseData as PaginatedLoyaltyResponse).content : (responseData ?? []);
+  const totalItems = isPaginatedResponse ? (responseData as PaginatedLoyaltyResponse).totalElements : cards.length;
+  const totalPages = isPaginatedResponse ? (responseData as PaginatedLoyaltyResponse).totalPages : Math.max(1, Math.ceil(cards.length / DEFAULT_PAGE_SIZE));
+
+  // For paginated response, items are already paginated server-side
+  // For array response, we need client-side pagination and filtering
+  const filteredCards = isPaginatedResponse
+    ? cards
+    : cards.filter(
+        (card) =>
+          card.userName.toLowerCase().includes(search.toLowerCase()) ||
+          card.userEmail.toLowerCase().includes(search.toLowerCase()) ||
+          card.id.toLowerCase().includes(search.toLowerCase())
+      );
+
+  // Pagination slice (only for non-paginated response)
+  const paginatedCards = isPaginatedResponse
+    ? filteredCards
+    : filteredCards.slice(
+        currentPage * DEFAULT_PAGE_SIZE,
+        (currentPage + 1) * DEFAULT_PAGE_SIZE
+      );
 
   // Core API mutation handler
   const handleAction = async (
@@ -244,7 +286,7 @@ export default function AdminLoyaltyPage() {
           </div>
 
           <div className="text-xs font-mono text-stone-500 dark:text-stone-400 tabular-nums">
-            Showing {paginatedCards.length} of {filteredCards.length} studio members
+            Showing {paginatedCards.length} of {isPaginatedResponse ? totalItems : filteredCards.length} studio members
           </div>
         </div>
 

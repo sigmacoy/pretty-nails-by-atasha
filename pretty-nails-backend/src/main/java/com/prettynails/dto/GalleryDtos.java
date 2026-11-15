@@ -3,6 +3,8 @@ package com.prettynails.dto;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
+import java.util.List;
+
 public class GalleryDtos {
 
     @Data
@@ -38,5 +40,19 @@ public class GalleryDtos {
         private Boolean isActive;
         private String createdAt;
         private String updatedAt;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class AdminGalleryPageResponse {
+        private List<GalleryDto> content;
+        private Integer number;
+        private Integer size;
+        private Long totalElements;
+        private Integer totalPages;
+        private Boolean first;
+        private Boolean last;
     }
 }

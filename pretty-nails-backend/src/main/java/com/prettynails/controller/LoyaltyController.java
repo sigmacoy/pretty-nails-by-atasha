@@ -61,8 +61,8 @@ public class LoyaltyController {
         Page<AdminLoyaltyCardDto> page = loyaltyService.getAllLoyaltyCards(search, pageable);
         AdminLoyaltyPageResponse response = AdminLoyaltyPageResponse.builder()
                 .content(page.getContent())
-                .pageNumber(page.getNumber())
-                .pageSize(page.getSize())
+                .number(page.getNumber())
+                .size(page.getSize())
                 .totalElements(page.getTotalElements())
                 .totalPages(page.getTotalPages())
                 .first(page.isFirst())

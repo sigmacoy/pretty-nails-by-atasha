@@ -165,7 +165,8 @@ export const loyaltyApi = {
     api.post<import('@/types').StampResponse>('/loyalty/stamp', { qrCode }),
 
   // Admin
-  getAllCards: () => api.get<import('@/types').AdminLoyaltyCardDto[]>('/admin/loyalty'),
+  getAllCards: (params?: { search?: string; page?: number; size?: number }) =>
+    api.get<import('@/types').AdminLoyaltyCardDto[] | import('@/types').AdminLoyaltyPage>('/admin/loyalty', { params }),
   loyaltyAction: (data: import('@/types').LoyaltyActionRequest) =>
     api.post<import('@/types').AdminLoyaltyCardDto>('/admin/loyalty', data),
 };
