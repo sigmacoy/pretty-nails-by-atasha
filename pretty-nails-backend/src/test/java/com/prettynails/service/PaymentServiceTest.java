@@ -14,7 +14,9 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.prettynails.util.TimeProvider;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +33,9 @@ class PaymentServiceTest {
     @Mock
     private BookingRepository bookingRepository;
 
+    @Mock
+    private TimeProvider timeProvider;
+
     @InjectMocks
     private PaymentService paymentService;
 
@@ -41,6 +46,7 @@ class PaymentServiceTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(timeProvider.localNow()).thenReturn(LocalDateTime.now());
         testCustomer = User.builder()
                 .id("cust-123")
                 .name("Maria Santos")

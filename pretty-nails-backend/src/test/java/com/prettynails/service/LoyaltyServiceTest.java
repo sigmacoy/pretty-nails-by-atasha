@@ -9,6 +9,7 @@ import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.LoyaltyStampRepository;
 import com.prettynails.repository.UserRepository;
+import com.prettynails.util.TimeProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,6 +40,9 @@ class LoyaltyServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private TimeProvider timeProvider;
+
     @InjectMocks
     private LoyaltyService loyaltyService;
 
@@ -47,6 +51,7 @@ class LoyaltyServiceTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(timeProvider.localNow()).thenReturn(LocalDateTime.now());
         testUser = User.builder()
                 .id("user-123")
                 .name("Test User")

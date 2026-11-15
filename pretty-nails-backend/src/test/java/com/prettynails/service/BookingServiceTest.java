@@ -10,6 +10,7 @@ import com.prettynails.exception.BadRequestException;
 import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.*;
 import com.prettynails.service.BookingService;
+import com.prettynails.util.TimeProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,6 +59,9 @@ class BookingServiceTest {
     @Mock
     private LoyaltyService loyaltyService;
 
+    @Mock
+    private TimeProvider timeProvider;
+
     @InjectMocks
     private BookingService bookingService;
 
@@ -67,6 +71,9 @@ class BookingServiceTest {
 
     @BeforeEach
     void setUp() {
+        lenient().when(timeProvider.localNow()).thenReturn(LocalDateTime.now());
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
+
         testUser = User.builder()
                 .id("user-123")
                 .name("Test User")
