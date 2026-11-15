@@ -65,4 +65,5 @@ sims-reference/
 .claude/*.log
 
 ### Agent configs (local) ###
-.agents/frontend/.env.local
+.agents/
+frontend/.env.local
