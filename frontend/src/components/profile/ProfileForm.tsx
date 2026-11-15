@@ -88,7 +88,6 @@ export function ProfileForm() {
           />
           <Input
             label="Nickname (optional)"
-            placeholder="Mia"
             {...register('nickname')}
             error={errors.nickname?.message}
             disabled={isSubmitting}

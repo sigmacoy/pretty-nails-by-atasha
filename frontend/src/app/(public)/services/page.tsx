@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Clock, ChevronDown, ChevronUp, Check, ShieldCheck } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@/hooks/useApi';
 import { servicesApi } from '@/lib/api';
@@ -230,38 +230,12 @@ export default function ServicesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Header */}
         <div className="max-w-3xl mx-auto text-center mb-12">
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
-            Service Menu · Pretty Nails by Atasha · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Curated Services & Treatment Rates
           </h1>
           <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl mx-auto font-normal leading-relaxed">
             Structured BIAB gel overlays, Japanese apex gel architecture, soft gel extensions, and hospital-grade dry cuticle prep. Every treatment is private, unhurried, and dedicated to natural nail plate preservation.
           </p>
-        </div>
-
-        {/* Studio Hygiene Notice Card */}
-        <div className="mb-10 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-6 sm:p-7 shadow-card">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3.5">
-              <div className="h-9 w-9 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 flex items-center justify-center border border-rose-200 dark:border-rose-800 shrink-0 mt-0.5">
-                <ShieldCheck className="h-5 w-5" strokeWidth={1.5} />
-              </div>
-              <div>
-                <h2 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50">
-                  Hospital-Grade Dry Autoclave Sterilization & Hygiene Protocol
-                </h2>
-                <p className="mt-1.5 text-xs sm:text-sm text-stone-600 dark:text-stone-300 leading-relaxed font-normal max-w-3xl">
-                  Pretty Nails by Atasha · Cebu City adheres to hospital-grade dry autoclave sterilization for all metal instruments (nippers, pushers, carbide bits), individual sealed medical indicator pouches unsealed in your presence, and single-use files and buffers. Natural nail plate preservation without abrasive drilling or heat spikes.
-                </p>
-              </div>
-            </div>
-            <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-rose-800 dark:text-rose-300 shrink-0 px-3.5 py-1.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/30">
-              <Check className="h-3.5 w-3.5" strokeWidth={2} />
-              <span>Medical pouches verified</span>
-            </div>
-          </div>
         </div>
 
         {/* Category Tabs */}
@@ -309,9 +283,6 @@ export default function ServicesPage() {
 
         {/* Bottom Reservation Invitation CTA */}
         <div className="mt-16 sm:mt-20 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-gradient-to-br from-white via-rose-50/50 to-pink-50/30 dark:from-stone-900 dark:via-rose-950/20 dark:to-stone-900 p-8 sm:p-12 text-center shadow-card max-w-3xl mx-auto">
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Private 1-on-1 Studio Sanctuary
-          </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-normal text-stone-900 dark:text-rose-50 tracking-tight">
             Reserve your private studio session
           </h2>
@@ -337,7 +308,7 @@ export default function ServicesPage() {
             </Link>
           </div>
           <p className="mt-4 text-xs text-rose-800/70 dark:text-rose-300/70 font-normal tracking-wide">
-            GCash and Maya downpayment review · Dedicated private studio · Cebu City
+            GCash and Maya downpayment review
           </p>
         </div>
       </div>
@@ -413,9 +384,8 @@ function ServiceCard({ service, isExpanded, onToggle }: ServiceCardProps) {
                       </span>{' '}
                       {service.variants.map((v) => getVariantLabel(v.name)).join(' · ')}
                     </span>
-                    <span className="inline-flex items-center gap-1 text-[11px] text-rose-700 dark:text-rose-400 group-hover:underline shrink-0">
+                    <span className="text-[11px] text-rose-700 dark:text-rose-400 group-hover:underline shrink-0">
                       View rates
-                      <ChevronDown className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </span>
                   </button>
                 </div>
@@ -428,10 +398,9 @@ function ServiceCard({ service, isExpanded, onToggle }: ServiceCardProps) {
                     <button
                       type="button"
                       onClick={onToggle}
-                      className="inline-flex items-center gap-1 text-[11px] text-rose-700 dark:text-rose-400 hover:underline transition-colors duration-150"
+                      className="text-[11px] text-rose-700 dark:text-rose-400 hover:underline transition-colors duration-150"
                     >
                       Hide
-                      <ChevronUp className="h-3.5 w-3.5" strokeWidth={1.5} />
                     </button>
                   </div>
                   <div className="space-y-1.5">
@@ -475,8 +444,7 @@ function ServiceCard({ service, isExpanded, onToggle }: ServiceCardProps) {
         {/* Pricing, Duration & Action Footer */}
         <div>
           <div className="pt-4 border-t border-rose-100 dark:border-rose-950/60 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 text-xs text-stone-500 dark:text-stone-400">
-              <Clock className="h-4 w-4 text-rose-500 shrink-0" strokeWidth={1.5} />
+            <div className="text-xs text-stone-500 dark:text-stone-400">
               <span className="tabular-nums">{service.duration} mins</span>
             </div>
             <div className="text-right">

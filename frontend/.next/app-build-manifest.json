@@ -31,21 +31,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/services/page.js"
     ],
-    "/(auth)/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/login/page.js"
-    ],
-    "/(auth)/layout": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/layout.js"
-    ],
-    "/(auth)/register/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(auth)/register/page.js"
-    ],
     "/(public)/gallery/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -55,11 +40,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/(public)/availability/page.js"
-    ],
-    "/(public)/booking/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/(public)/booking/page.js"
     ],
     "/(customer)/my-bookings/page": [
       "static/chunks/webpack.js",

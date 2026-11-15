@@ -55,9 +55,6 @@ export function ChangePasswordForm() {
   return (
     <div className="rounded-2xl bg-white/95 dark:bg-stone-900/95 border border-rose-200/80 dark:border-rose-950/60 p-6 sm:p-8 shadow-card backdrop-blur-sm">
       <div className="mb-6 pb-5 border-b border-rose-200/70 dark:border-rose-950/60">
-        <span className="text-[11px] uppercase tracking-[0.22em] text-rose-800 dark:text-rose-300 font-semibold block mb-1">
-          Security Credentials
-        </span>
         <h2 className="text-xl sm:text-2xl font-serif text-stone-900 dark:text-rose-50 font-normal">
           Account Security
         </h2>

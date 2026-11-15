@@ -59,10 +59,6 @@ export default function ProfilePage() {
   }
 
   const isStaff = userData.role === 'ADMIN';
-  const roleLabel = isStaff ? 'Studio Administrator' : 'Studio Client';
-  const roleBadgeClass = isStaff
-    ? 'bg-rose-100 text-rose-900 border border-rose-300/80 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800/60'
-    : 'bg-rose-50 text-rose-900 border border-rose-200/80 dark:bg-stone-800 dark:text-rose-200 dark:border-rose-900/50';
 
   return (
     <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-10 sm:py-14 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
@@ -97,12 +93,14 @@ export default function ProfilePage() {
                   <h3 className="text-lg sm:text-xl font-serif text-stone-900 dark:text-rose-50 font-normal truncate">
                     {userData.name}
                   </h3>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 truncate mb-2 font-sans">
+                  <p className={cn('text-xs text-stone-500 dark:text-stone-400 truncate font-sans', isStaff && 'mb-2')}>
                     {userData.email}
                   </p>
-                  <span className={cn('inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium font-sans', roleBadgeClass)}>
-                    {roleLabel}
-                  </span>
+                  {isStaff && (
+                    <span className="inline-flex items-center px-3 py-0.5 rounded-full text-xs font-medium font-sans bg-rose-100 text-rose-900 border border-rose-300/80 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800/60">
+                      Studio Administrator
+                    </span>
+                  )}
                 </div>
               </div>
 

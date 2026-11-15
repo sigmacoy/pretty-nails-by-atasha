@@ -29,7 +29,7 @@ export function Footer() {
   const contactInfo = {
     address: 'Sitio Sto. Niño B, Aranas Extension, Cebu City',
     phone: '+63 977 284 6167',
-    hours: 'Mon – Sat: 9:00 AM – 7:00 PM',
+    hours: 'Sat – Sun: 8:00 AM – 10:00 PM',
   };
 
   return (

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Eye, Calendar, X, Check } from 'lucide-react';
+import { Search, Eye, Check } from 'lucide-react';
 import { useQuery } from '@/hooks/useApi';
 import { galleryApi } from '@/lib/api';
 import { GalleryDto } from '@/types';
@@ -189,9 +189,6 @@ export default function GalleryPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Header */}
         <div className="mb-12 max-w-3xl mx-auto text-center">
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
-            Studio Archive & Lookbook · Pretty Nails by Atasha · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Studio Lookbook & Custom Art Archive
           </h1>
@@ -250,10 +247,9 @@ export default function GalleryPage() {
                 variant="ghost"
                 size="sm"
                 onClick={handleClearFilters}
-                className="h-11 px-4 text-xs text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 gap-1.5 rounded-full shrink-0 border border-rose-200/80 dark:border-rose-950/60"
+                className="h-11 px-4 text-xs text-stone-500 hover:text-stone-900 dark:hover:text-stone-100 rounded-full shrink-0 border border-rose-200/80 dark:border-rose-950/60"
                 title="Clear search and category filters"
               >
-                <X className="w-3.5 h-3.5" strokeWidth={1.5} />
                 <span>Reset</span>
               </Button>
             )}
@@ -356,9 +352,8 @@ export default function GalleryPage() {
                   >
                     <button
                       type="button"
-                      className="w-full inline-flex items-center justify-center h-14 px-8 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.28)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.4)] border border-rose-800/80 transition-all duration-300 gap-2"
+                      className="w-full inline-flex items-center justify-center h-14 px-8 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.28)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.4)] border border-rose-800/80 transition-all duration-300"
                     >
-                      <Calendar className="w-4 h-4" strokeWidth={1.5} />
                       <span>Reserve This Treatment</span>
                     </button>
                   </Link>
@@ -436,9 +431,8 @@ function GalleryItem({ item, onClick }: GalleryItemProps) {
           <Link
             href={`/booking?design=${encodeURIComponent(item.title)}`}
             onClick={(e) => e.stopPropagation()}
-            className="mt-3.5 inline-flex items-center justify-center gap-2 w-full h-11 px-4 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-xs font-medium transition-colors duration-150 border border-rose-800/80 shadow-xs"
+            className="mt-3.5 inline-flex items-center justify-center w-full h-11 px-4 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-xs font-medium transition-colors duration-150 border border-rose-800/80 shadow-xs"
           >
-            <Calendar className="w-3.5 h-3.5" strokeWidth={1.5} />
             <span>Select Design</span>
           </Link>
         </div>

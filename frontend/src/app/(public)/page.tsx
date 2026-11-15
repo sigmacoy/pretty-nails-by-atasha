@@ -204,13 +204,8 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             {/* Left Column: Haute Editorial Typography & Actions */}
             <div className="lg:col-span-7 flex flex-col items-start text-left">
-              {/* Integrated Editorial Kicker (No hanging pill, no pulse dot) */}
-              <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold">
-                Private Atelier · Cebu City
-              </span>
-
               {/* Display Headline with High-Contrast Serif Styling */}
-              <h1 className="mt-4 text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-[1.04]">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-[1.04]">
                 Life is too short to have{' '}
                 <span className="italic font-normal text-rose-700 dark:text-rose-300">
                   naked nails
@@ -269,10 +264,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 text-left">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
-                Curated Service Menu
-              </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
                 Selected Studio Treatments
               </h2>
               <p className="mt-2 text-sm text-stone-500 dark:text-stone-400 max-w-xl font-normal leading-relaxed">
@@ -362,10 +354,9 @@ export default function HomePage() {
             </p>
             <Link
               href="/services"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-rose-900 dark:text-rose-300 hover:text-rose-950 dark:hover:text-rose-200 shrink-0 transition-colors"
+              className="inline-flex items-center text-xs font-semibold uppercase tracking-[0.14em] text-rose-900 dark:text-rose-300 hover:text-rose-950 dark:hover:text-rose-200 shrink-0 transition-colors"
             >
-              <span>Explore All Tiers & Pricing</span>
-              <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2} />
+              Explore All Tiers & Pricing
             </Link>
           </div>
         </div>
@@ -379,10 +370,7 @@ export default function HomePage() {
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10 text-left">
             <div>
-              <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold">
-                Studio Archive & Lookbook
-              </span>
-              <h2 className="mt-2 text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
                 Recent Studio Finishes
               </h2>
             </div>
@@ -439,10 +427,7 @@ export default function HomePage() {
             {/* Left: Founder's Quote Card */}
             <div className="lg:col-span-5 text-left">
               <div className="p-8 sm:p-10 rounded-3xl bg-gradient-to-br from-white via-rose-50/70 to-pink-50/50 dark:from-stone-900 dark:via-rose-950/30 dark:to-stone-900 border border-rose-200/90 dark:border-rose-900/60 shadow-card">
-                <span className="text-[10px] uppercase tracking-[0.25em] text-rose-700 dark:text-rose-400 font-semibold">
-                  Atelier Philosophy
-                </span>
-                <h3 className="mt-4 text-2xl sm:text-3xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-tight">
+                <h3 className="text-2xl sm:text-3xl font-serif tracking-tight text-stone-900 dark:text-rose-50 leading-tight">
                   Natural nail health, <span className="italic font-normal text-rose-700 dark:text-rose-300">unrushed patience</span>, & precision.
                 </h3>
                 <blockquote className="mt-6 text-sm font-serif text-stone-600 dark:text-stone-300 leading-relaxed font-normal space-y-4">
@@ -543,11 +528,6 @@ export default function HomePage() {
         />
 
         <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center">
-          {/* Understated Editorial Subline (No hanging pill badge) */}
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold mb-3 block">
-            Dedicated Appointments · Cebu City
-          </span>
-
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Reserve your studio appointment
           </h2>
@@ -578,7 +558,7 @@ export default function HomePage() {
           </div>
 
           <p className="mt-6 text-xs text-rose-800/70 dark:text-rose-300/70 tracking-wide font-normal">
-            GCash & Maya reservation deposits · Confirmed by studio upon deposit review · 24-hr advance rescheduling
+            GCash & Maya reservation deposits · Confirmed by studio upon deposit review · 12-hr advance rescheduling
           </p>
         </div>
       </section>
