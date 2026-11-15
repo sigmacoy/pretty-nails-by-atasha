@@ -43,14 +43,14 @@ export default function AdminGalleryPage() {
     category: category || undefined,
   };
 
-  // Fetch gallery items
+  // Fetch gallery items - API returns AxiosResponse<GalleryDto[]>
   const { data, isLoading, isError, error, refetch } = useQuery(
     () => galleryApi.getAdmin(params),
     { enabled: true }
   );
 
-  // Handle pagination - API returns array directly
-  const galleryItems = (data?.data as GalleryDto[] | undefined) ?? [];
+  // Handle pagination - access .data from Axios response
+  const galleryItems = data?.data ?? [];
   const totalItems = galleryItems.length;
   const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
   const paginatedItems = galleryItems.slice(
@@ -164,9 +164,6 @@ export default function AdminGalleryPage() {
       <div className="space-y-8 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground min-h-screen p-6 sm:p-8 lg:p-10 transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
           <div>
-            <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-              Pretty Nails by Atasha · Cebu City
-            </span>
             <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
               Lookbook & Portfolio Curation
             </h1>
@@ -223,9 +220,6 @@ export default function AdminGalleryPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Pretty Nails by Atasha · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
             Lookbook & Portfolio Curation
           </h1>

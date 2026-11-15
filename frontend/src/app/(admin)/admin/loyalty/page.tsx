@@ -51,7 +51,8 @@ export default function AdminLoyaltyPage() {
     { enabled: true }
   );
 
-  const cards = cardsData?.data || [];
+  // Access .data from Axios response
+  const cards = cardsData?.data ?? [];
   const settings = settingsData?.data;
   const maxStamps = settings?.stampsPerService ? settings.stampsPerService * 10 : 10;
 
@@ -134,9 +135,6 @@ export default function AdminLoyaltyPage() {
       {/* Header & Top Action Bar */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Pretty Nails by Atasha · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
             Digital Stamp Administration
           </h1>
