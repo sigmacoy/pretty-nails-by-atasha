@@ -185,17 +185,17 @@ export default function GalleryPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+    <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Header */}
-        <div className="mb-10 max-w-3xl">
+        <div className="mb-12 max-w-3xl mx-auto text-center">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
             Studio Archive & Lookbook · Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Studio Lookbook & Custom Art Archive
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 font-normal leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl mx-auto font-normal leading-relaxed">
             Browse handcrafted sets, Japanese apex gel architecture, structured BIAB overlays, and bespoke hand-painted artwork by Atasha. Select any design to view details or reserve your appointment.
           </p>
         </div>

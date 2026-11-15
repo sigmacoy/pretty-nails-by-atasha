@@ -253,7 +253,7 @@ export function BookingDetailsDrawer({
           <div className="flex items-center gap-3">
             <div>
               <span className="text-[10px] uppercase tracking-[0.2em] text-rose-800 dark:text-rose-300 font-semibold block mb-1">
-                Pretty Nails by Atasha · Atelier Record
+                Pretty Nails by Atasha · Studio Record
               </span>
               <div className="flex items-center gap-2">
                 <h2 id="drawer-title" className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">

@@ -27,7 +27,7 @@ interface BookingsTableProps {
   customerMap?: Record<string, CustomerListDto>;
 }
 
-// Restrained status badge styles adhering to atelier design tokens
+// Restrained status badge styles adhering to studio design tokens
 function getRestrainedStatusBadge(status: BookingStatus) {
   switch (status) {
     case 'CONFIRMED':

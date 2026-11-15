@@ -91,7 +91,7 @@ export default function AdminDashboard() {
             Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-            Atelier Command Hub
+            Studio Command Hub
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
             Real-time studio oversight across private 1-on-1 bookings, manual deposit reviews, service catalog rates, and loyalty cards.
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
 
         <div className="flex flex-wrap items-center gap-3">
           <span className="inline-flex items-center px-3.5 py-1.5 rounded-full border border-rose-200/80 dark:border-rose-900/60 bg-white/80 dark:bg-[#1A0E15]/80 text-xs font-medium text-rose-900 dark:text-rose-200 shadow-xs">
-            Private Atelier Active
+            Private Studio Active
           </span>
           <Link
             href="/admin/bookings"
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
       {/* 4 Stat Cards in a row */}
       <DashboardStats stats={stats} reports={reports} isLoading={isLoading} />
 
-      {/* Middle Grid: Revenue Visualization + Atelier Shortcuts */}
+      {/* Middle Grid: Revenue Visualization + Studio Shortcuts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 sm:p-7 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
@@ -141,7 +141,7 @@ export default function AdminDashboard() {
             <div>
               <div className="flex items-center justify-between pb-4 border-b border-rose-200/60 dark:border-rose-950/50 mb-4">
                 <h3 className="text-base font-serif font-medium text-stone-900 dark:text-rose-50 tracking-tight">
-                  Atelier Actions
+                  Studio Actions
                 </h3>
                 <span className="text-[11px] uppercase tracking-[0.16em] text-rose-800/80 dark:text-rose-300/80 font-semibold">
                   Shortcuts

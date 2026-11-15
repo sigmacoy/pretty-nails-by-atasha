@@ -99,7 +99,7 @@ export function RevenueChart({
             No revenue data recorded
           </h4>
           <p className="text-xs text-stone-500 dark:text-stone-400 font-sans max-w-xs">
-            Revenue figures populate automatically as appointments are marked completed in the atelier queue.
+            Revenue figures populate automatically as appointments are marked completed in the studio queue.
           </p>
         </div>
       </div>

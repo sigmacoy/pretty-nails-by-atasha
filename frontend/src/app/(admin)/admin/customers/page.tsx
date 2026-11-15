@@ -58,10 +58,10 @@ export default function AdminCustomersPage() {
       const next = new Set(prev);
       if (next.has(customer.id)) {
         next.delete(customer.id);
-        toast.success(`${customer.name} reinstated for atelier bookings.`);
+        toast.success(`${customer.name} reinstated for studio bookings.`);
       } else {
         next.add(customer.id);
-        toast.success(`${customer.name} restricted from atelier bookings.`);
+        toast.success(`${customer.name} restricted from studio bookings.`);
       }
       return next;
     });
@@ -96,10 +96,10 @@ export default function AdminCustomersPage() {
             Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-            Client Atelier Directory
+            Client Studio Directory
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
-            Client treatment history, visit logs, structured BIAB overlay notes, and private atelier client records.
+            Client treatment history, visit logs, structured BIAB overlay notes, and private studio client records.
           </p>
         </div>
 
@@ -235,7 +235,7 @@ export default function AdminCustomersPage() {
               ? 'No client accounts match your search query'
               : statusFilter !== 'all'
               ? `No ${statusFilter} client accounts found`
-              : 'No registered atelier clients found'
+              : 'No registered studio clients found'
           }
         />
       </div>

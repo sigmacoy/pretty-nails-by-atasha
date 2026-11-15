@@ -205,32 +205,46 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedAdminUser() {
-        String adminEmail = adminProperties.getEmail();
+        // Seed primary owner account with username "admin" and password "admin"
+        if (userRepository.findByEmailIgnoreCase("admin").isEmpty()) {
+            User owner = User.builder()
+                    .email("admin")
+                    .name("Ma'am Atasha (Owner)")
+                    .password(passwordEncoder.encode("admin"))
+                    .role("ADMIN")
+                    .phone("+639000000000")
+                    .emailVerified(LocalDateTime.now())
+                    .build();
+            owner = userRepository.save(owner);
 
-        // Check if admin already exists
-        Optional<User> existingAdmin = userRepository.findByEmailIgnoreCase(adminEmail);
-        if (existingAdmin.isPresent()) {
-            return; // Admin already exists
+            LoyaltyCard loyaltyCard = LoyaltyCard.builder()
+                    .userId(owner.getId())
+                    .stampCount(0)
+                    .expiresAt(LocalDateTime.now().plusYears(1))
+                    .build();
+            loyaltyCardRepository.save(loyaltyCard);
         }
 
-        // Create admin user
-        User admin = User.builder()
-                .email(adminEmail)
-                .name("Ma'am Atasha (Owner)")
-                .password(passwordEncoder.encode(adminProperties.getPassword()))
-                .role("ADMIN")
-                .phone(adminProperties.getPhone())
-                .emailVerified(LocalDateTime.now())
-                .build();
-        admin = userRepository.save(admin);
+        // Seed configurable admin if distinct
+        String adminEmail = adminProperties.getEmail();
+        if (!"admin".equalsIgnoreCase(adminEmail) && userRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
+            User admin = User.builder()
+                    .email(adminEmail)
+                    .name("Ma'am Atasha (Owner)")
+                    .password(passwordEncoder.encode(adminProperties.getPassword()))
+                    .role("ADMIN")
+                    .phone(adminProperties.getPhone())
+                    .emailVerified(LocalDateTime.now())
+                    .build();
+            admin = userRepository.save(admin);
 
-        // Create loyalty card for admin
-        LoyaltyCard loyaltyCard = LoyaltyCard.builder()
-                .userId(admin.getId())
-                .stampCount(0)
-                .expiresAt(LocalDateTime.now().plusYears(1))
-                .build();
-        loyaltyCardRepository.save(loyaltyCard);
+            LoyaltyCard loyaltyCard = LoyaltyCard.builder()
+                    .userId(admin.getId())
+                    .stampCount(0)
+                    .expiresAt(LocalDateTime.now().plusYears(1))
+                    .build();
+            loyaltyCardRepository.save(loyaltyCard);
+        }
     }
 
     private void seedGallery() {

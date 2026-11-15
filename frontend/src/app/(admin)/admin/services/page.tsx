@@ -399,12 +399,12 @@ export default function AdminServicesPage() {
     (data: ServiceRequest) => servicesApi.create(data),
     {
       onSuccess: () => {
-        toast.success('Nail treatment service added to atelier menu.');
+        toast.success('Nail treatment service added to studio menu.');
         setModalOpen(false);
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Could not add nail service to atelier menu.');
+        toast.error(error.message || 'Could not add nail service to studio menu.');
       },
       onSettled: () => setIsSubmitting(false),
     }
@@ -430,11 +430,11 @@ export default function AdminServicesPage() {
     (id: string) => servicesApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Nail treatment service removed from atelier menu.');
+        toast.success('Nail treatment service removed from studio menu.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Could not remove nail service from atelier menu.');
+        toast.error(error.message || 'Could not remove nail service from studio menu.');
       },
     }
   );

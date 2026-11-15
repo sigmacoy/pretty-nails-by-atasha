@@ -46,7 +46,7 @@ export function ProfileForm() {
         phone: data.phone,
         nickname: data.nickname,
       });
-      toast.success('Client profile preferences updated in atelier records.');
+      toast.success('Client profile preferences updated in studio records.');
       await refreshUser();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
@@ -67,7 +67,7 @@ export function ProfileForm() {
           Profile Details
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans">
-          Update your contact details and atelier record preferences.
+          Update your contact details and studio record preferences.
         </p>
       </div>
 

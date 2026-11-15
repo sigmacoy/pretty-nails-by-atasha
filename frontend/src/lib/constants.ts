@@ -143,9 +143,9 @@ export const ROUTES = {
 
 // Toast messages
 export const TOAST_MESSAGES = {
-  LOGIN_SUCCESS: 'Signed in to your atelier account',
-  REGISTER_SUCCESS: 'Atelier client account registered',
-  LOGOUT_SUCCESS: 'Signed out of your atelier account',
+  LOGIN_SUCCESS: 'Signed in to your Pretty Nails account',
+  REGISTER_SUCCESS: 'Client account registered',
+  LOGOUT_SUCCESS: 'Signed out of your Pretty Nails account',
   BOOKING_CREATED: 'Reservation request submitted for studio review',
   BOOKING_CANCELLED: 'Reservation cancelled and slot released',
   BOOKING_UPDATED: 'Reservation details updated',
@@ -154,7 +154,7 @@ export const TOAST_MESSAGES = {
   SERVICE_CREATED: 'Service added to catalog',
   SERVICE_UPDATED: 'Service entry updated',
   SERVICE_DELETED: 'Service removed from catalog',
-  GALLERY_CREATED: 'Design added to atelier portfolio',
+  GALLERY_CREATED: 'Design added to studio portfolio',
   GALLERY_UPDATED: 'Portfolio design updated',
   GALLERY_DELETED: 'Design removed from portfolio',
   LOYALTY_STAMP_ADDED: 'Loyalty stamp recorded',
@@ -164,7 +164,7 @@ export const TOAST_MESSAGES = {
   SETTINGS_SAVED: 'Studio settings updated',
   NOTE_ADDED: 'Owner note saved',
   ERROR_GENERIC: 'An interruption occurred. Check your connection and retry.',
-  ERROR_UNAUTHORIZED: 'Sign in to your atelier account to continue.',
+  ERROR_UNAUTHORIZED: 'Sign in to your studio account to continue.',
   ERROR_FORBIDDEN: 'Your account does not have permission for this action.',
   ERROR_NETWORK: 'Network interruption detected. Check your connection.',
 } as const;

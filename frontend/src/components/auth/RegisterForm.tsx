@@ -49,7 +49,7 @@ export function RegisterForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Atelier client account registered successfully.');
+      toast.success('Client account registered successfully.');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -73,7 +73,7 @@ export function RegisterForm() {
         <Link
           href="/"
           className="inline-flex items-center justify-center mb-5 rounded-full focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-transform duration-200 hover:scale-[1.03]"
-          aria-label="Pretty Nails atelier home"
+          aria-label="Pretty Nails by Atasha home"
         >
           <StudioMark size="lg" />
         </Link>
@@ -81,7 +81,7 @@ export function RegisterForm() {
           Pretty Nails by Atasha · Cebu City
         </span>
         <h1 className="text-2xl sm:text-3xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
-          Create Atelier Account
+          Create Studio Account
         </h1>
         <p className="mt-2 text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans max-w-sm">
           Join Pretty Nails to manage your private reservations and collect digital loyalty stamps.
@@ -180,7 +180,7 @@ export function RegisterForm() {
               disabled={isSubmitting}
               className="w-full inline-flex items-center justify-center h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 disabled:opacity-60 text-white font-medium text-base tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.28)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.4)] border border-rose-800/80 transition-all duration-300 hover:scale-[1.01]"
             >
-              {isSubmitting ? 'Creating account...' : 'Create Atelier Account'}
+              {isSubmitting ? 'Creating account...' : 'Create Studio Account'}
             </button>
           </div>
 
@@ -197,7 +197,7 @@ export function RegisterForm() {
       </div>
 
       <p className="mt-6 text-center text-xs text-stone-500 dark:text-stone-400 font-sans leading-relaxed">
-        By registering, you agree to our atelier reservation terms and client privacy standards.
+        By registering, you agree to our studio reservation terms and client privacy standards.
       </p>
     </div>
   );

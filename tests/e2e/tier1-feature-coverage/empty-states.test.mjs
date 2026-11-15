@@ -119,7 +119,7 @@ test('T1-12: Customer bookings empty state headline uses Newsreader serif stylin
 
 test('T1-13: Customer bookings empty state renders operational copy for appointment reservation', () => {
   const content = readSourceFile('frontend/src/app/(customer)/my-bookings/page.tsx');
-  assert.ok(content.includes('You have not scheduled any private atelier sessions yet'), 'Must provide clear guidance');
+  assert.ok(content.includes('You have not scheduled any studio sessions yet'), 'Must provide clear guidance');
   assert.ok(content.includes('font-sans leading-relaxed'), 'Must use font-sans for body copy');
 });
 

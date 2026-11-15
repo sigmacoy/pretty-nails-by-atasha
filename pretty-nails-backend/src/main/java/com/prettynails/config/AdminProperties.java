@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "app.admin")
 public class AdminProperties {
 
-    private String email = "admin@prettynails.com";
-    private String password = "admin123";
+    private String email = "admin";
+    private String password = "admin";
     private String phone = "+639000000000";
 
     public String getEmail() {

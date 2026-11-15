@@ -49,3 +49,15 @@ VALUES
   ('set-003', 'stampPerService', 'true', '1 stamp per nail set service', NOW(), NOW()),
   ('set-004', 'stampPerAmount', '50000', '1 stamp per 500 PHP spent in centavos', NOW(), NOW())
 ON CONFLICT (key) DO NOTHING;
+
+-- 5. Owner / Administrator Account (admin / admin)
+INSERT INTO users (id, email, password, name, role, phone, email_verified, created_at, updated_at)
+VALUES
+  ('usr-admin-01', 'admin', '$2a$10$iw/DnkJXDPpF09NWeGqAvuMUtGcP4Ba1ymqEv5rUH8AkHDxJWuhz6', 'Ma''am Atasha (Owner)', 'ADMIN', '+639000000000', NOW(), NOW(), NOW())
+ON CONFLICT (email) DO NOTHING;
+
+INSERT INTO loyalty_cards (id, user_id, stamp_count, expires_at, created_at, updated_at)
+VALUES
+  ('lc-admin-01', 'usr-admin-01', 0, NOW() + INTERVAL '1 year', NOW(), NOW())
+ON CONFLICT (user_id) DO NOTHING;
+

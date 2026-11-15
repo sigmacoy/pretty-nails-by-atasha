@@ -36,7 +36,7 @@ function getCategoryLabel(category: string): string {
   }
 }
 
-// Curated studio treatments fallback (active atelier disciplines)
+// Curated studio treatments fallback
 const defaultServicesFallback: ServiceDto[] = [
   {
     id: 'service-extension',
@@ -163,14 +163,14 @@ export default function ServicesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
-          <div className="mb-10 space-y-3">
+      <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div className="mb-10 space-y-3 max-w-2xl mx-auto text-center flex flex-col items-center">
             <Skeleton className="h-4 w-48 bg-rose-200/50 dark:bg-rose-950/40 rounded-full" />
             <Skeleton className="h-10 w-96 bg-rose-200/50 dark:bg-rose-950/40 rounded-lg" />
             <Skeleton className="h-4 w-full max-w-xl bg-rose-200/40 dark:bg-rose-950/30 rounded-md" />
           </div>
-          <div className="flex flex-wrap gap-2 mb-10">
+          <div className="flex flex-wrap justify-center gap-2 mb-10">
             {SERVICE_CATEGORIES.map((cat) => (
               <Skeleton key={cat.value} className="h-10 w-36 bg-rose-200/40 dark:bg-rose-950/30 rounded-full" />
             ))}
@@ -195,32 +195,30 @@ export default function ServicesPage() {
 
   if (error && rawServices.length === 0) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-10 sm:p-12 text-center max-w-md mx-auto shadow-card">
-            <h2 className="text-2xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
-              Unable to load services
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-6 font-sans leading-relaxed">
-              We could not retrieve live updates from the service catalog. You can reload or continue to booking.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button
-                variant="outline"
-                className="rounded-full px-6 border-rose-300/80 hover:bg-rose-50 dark:border-rose-800"
-                onClick={() => window.location.reload()}
+      <div className="flex-1 min-h-[calc(100vh-14rem)] flex items-center justify-center py-10 px-4 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-10 sm:p-12 text-center max-w-md mx-auto shadow-card">
+          <h2 className="text-2xl font-serif font-normal text-stone-900 dark:text-rose-50 mb-2">
+            Unable to load services
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-6 font-sans leading-relaxed">
+            We could not retrieve live updates from the service catalog. You can reload or continue to booking.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button
+              variant="outline"
+              className="rounded-full px-6 border-rose-300/80 hover:bg-rose-50 dark:border-rose-800"
+              onClick={() => window.location.reload()}
+            >
+              Reload Catalog
+            </Button>
+            <Link href="/booking">
+              <button
+                type="button"
+                className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-sm font-medium transition-colors"
               >
-                Reload Catalog
-              </Button>
-              <Link href="/booking">
-                <button
-                  type="button"
-                  className="inline-flex items-center justify-center px-6 py-2.5 rounded-full bg-rose-900 hover:bg-rose-950 text-white text-sm font-medium transition-colors"
-                >
-                  Direct Booking
-                </button>
-              </Link>
-            </div>
+                Direct Booking
+              </button>
+            </Link>
           </div>
         </div>
       </div>
@@ -228,17 +226,17 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+    <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Header */}
-        <div className="mb-12">
+        <div className="max-w-3xl mx-auto text-center mb-12">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
             Service Menu · Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
             Curated Services & Treatment Rates
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl mx-auto font-normal leading-relaxed">
             Structured BIAB gel overlays, Japanese apex gel architecture, soft gel extensions, and hospital-grade dry cuticle prep. Every treatment is private, unhurried, and dedicated to natural nail plate preservation.
           </p>
         </div>
@@ -312,10 +310,10 @@ export default function ServicesPage() {
         {/* Bottom Reservation Invitation CTA */}
         <div className="mt-16 sm:mt-20 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-gradient-to-br from-white via-rose-50/50 to-pink-50/30 dark:from-stone-900 dark:via-rose-950/20 dark:to-stone-900 p-8 sm:p-12 text-center shadow-card max-w-3xl mx-auto">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Private 1-on-1 Atelier Sanctuary
+            Private 1-on-1 Studio Sanctuary
           </span>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-serif font-normal text-stone-900 dark:text-rose-50 tracking-tight">
-            Reserve your private atelier session
+            Reserve your private studio session
           </h2>
           <p className="mt-3 text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal max-w-lg mx-auto leading-relaxed">
             A reservation deposit via GCash or Maya guarantees your exclusive appointment slot. Atasha manually verifies each deposit before confirming your appointment. Rescheduling is available up to 24 hours in advance via your client portal.
@@ -339,7 +337,7 @@ export default function ServicesPage() {
             </Link>
           </div>
           <p className="mt-4 text-xs text-rose-800/70 dark:text-rose-300/70 font-normal tracking-wide">
-            GCash and Maya downpayment review · Dedicated private atelier · Cebu City
+            GCash and Maya downpayment review · Dedicated private studio · Cebu City
           </p>
         </div>
       </div>

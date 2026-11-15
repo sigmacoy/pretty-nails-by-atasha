@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils';
 const DEFAULT_PAGE_SIZE = 12;
 
 const categoryOptions: SelectOption[] = [
-  { value: '', label: 'All atelier disciplines' },
+  { value: '', label: 'All studio disciplines' },
   { value: 'GEL', label: 'Structured BIAB Overlay' },
   { value: 'EXTENSION', label: 'Japanese Soft Gel Extension' },
   { value: 'VELVET_CAT_EYE', label: 'Velvet Cat-Eye Finish' },
@@ -63,7 +63,7 @@ export default function AdminGalleryPage() {
     (formData: GalleryRequest) => galleryApi.create(formData),
     {
       onSuccess: () => {
-        toast.success('Nail art design added to atelier lookbook.');
+        toast.success('Nail art design added to studio lookbook.');
         refetch();
       },
       onError: (err) => {
@@ -77,7 +77,7 @@ export default function AdminGalleryPage() {
       galleryApi.update(id, updateData),
     {
       onSuccess: () => {
-        toast.success('Atelier lookbook design updated.');
+        toast.success('Studio lookbook design updated.');
         refetch();
       },
       onError: (err) => {
@@ -90,7 +90,7 @@ export default function AdminGalleryPage() {
     (id: string) => galleryApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Design removed from atelier lookbook.');
+        toast.success('Design removed from studio lookbook.');
         refetch();
       },
       onError: (err) => {
@@ -171,7 +171,7 @@ export default function AdminGalleryPage() {
               Lookbook & Portfolio Curation
             </h1>
             <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
-              Curate high-resolution atelier photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
+              Curate high-resolution studio photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
             </p>
           </div>
           <Button
@@ -230,7 +230,7 @@ export default function AdminGalleryPage() {
             Lookbook & Portfolio Curation
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
-            Curate high-resolution atelier photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
+            Curate high-resolution studio photography, apex gel architecture, bespoke hand-painted nail art, and public lookbook displays.
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -268,15 +268,15 @@ export default function AdminGalleryPage() {
           </div>
           <div>
             <label htmlFor="category-filter" className="sr-only">
-              Filter by atelier discipline
+              Filter by studio discipline
             </label>
             <Select
               id="category-filter"
               value={category}
               onChange={(e) => handleCategoryChange(e.target.value)}
               options={categoryOptions}
-              placeholder="All atelier disciplines"
-              aria-label="Filter by atelier discipline"
+              placeholder="All studio disciplines"
+              aria-label="Filter by studio discipline"
             />
           </div>
         </div>

@@ -244,7 +244,7 @@ export default function AdminBookingsPage() {
   // Export Bookings to CSV
   const handleExportCSV = () => {
     if (allRawBookings.length === 0) {
-      toast.info('No atelier appointments available to export.');
+      toast.info('No studio appointments available to export.');
       return;
     }
 
@@ -271,7 +271,7 @@ export default function AdminBookingsPage() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Atelier appointments exported to CSV.');
+    toast.success('Studio appointments exported to CSV.');
   };
 
   if (isError) {
@@ -285,7 +285,7 @@ export default function AdminBookingsPage() {
             Appointments Queue
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
-            Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor atelier schedule status.
+            Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor studio schedule status.
           </p>
         </div>
         <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm">
@@ -319,7 +319,7 @@ export default function AdminBookingsPage() {
             Appointments Queue
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
-            Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor atelier schedule status.
+            Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor studio schedule status.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -401,7 +401,7 @@ export default function AdminBookingsPage() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-xs font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 flex items-center gap-2">
               <Filter className="h-4 w-4 stroke-[1.5]" />
-              Filter Atelier Appointments
+              Filter Studio Appointments
             </CardTitle>
             {hasActiveFilters && (
               <span className="text-xs text-rose-800 dark:text-rose-300 font-medium">Filters active</span>

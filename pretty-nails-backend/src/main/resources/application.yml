@@ -36,8 +36,8 @@ app:
   cors:
     allowed-origins: http://localhost:3000
   admin:
-    email: admin@prettynails.com
-    password: admin123
+    email: admin
+    password: admin
     phone: "+639000000000"
   upload:
     dir: uploads

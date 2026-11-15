@@ -22,7 +22,7 @@ export default function Error({
           Studio service interruption
         </h2>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-6 font-sans leading-relaxed">
-          The atelier interface encountered an unexpected interruption. You can retry the operation or return to the main salon directory.
+          The studio interface encountered an unexpected interruption. You can retry the operation or return to the main salon directory.
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Button onClick={reset} className="h-14 px-8 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-sans font-medium text-xs sm:text-sm gap-2">
@@ -34,7 +34,7 @@ export default function Error({
             className="h-14 px-8 rounded-full border-rose-200/80 dark:border-rose-800/60 font-sans font-medium text-xs sm:text-sm"
             onClick={() => window.location.href = '/'}
           >
-            Return to Atelier
+            Return to Studio
           </Button>
         </div>
         {process.env.NODE_ENV === 'development' && (

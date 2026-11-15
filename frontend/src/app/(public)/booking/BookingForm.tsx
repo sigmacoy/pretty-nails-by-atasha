@@ -132,6 +132,29 @@ const defaultServicesFallback: ServiceDto[] = [
   },
 ];
 
+function generateDefaultSlots(): { startTime: string; endTime: string }[] {
+  const slots: { startTime: string; endTime: string }[] = [];
+  const startHour = 9;
+  const endHour = 18;
+  let currentHour = startHour;
+  let currentMin = 0;
+
+  while (currentHour < endHour) {
+    const slotStart = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
+    let nextHour = currentHour;
+    let nextMin = currentMin + 30;
+    if (nextMin >= 60) {
+      nextMin -= 60;
+      nextHour += 1;
+    }
+    const slotEnd = `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
+    slots.push({ startTime: slotStart, endTime: slotEnd });
+    currentHour = nextHour;
+    currentMin = nextMin;
+  }
+  return slots;
+}
+
 export function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -217,8 +240,9 @@ export function BookingForm() {
     try {
       const response = await availabilityApi.getAvailable();
       const dayAvailability = response.data.find((a) => a.date === date && a.isAvailable);
+      let slots: { startTime: string; endTime: string }[] = [];
+
       if (dayAvailability) {
-        const slots: { startTime: string; endTime: string }[] = [];
         const [startHour, startMin] = dayAvailability.startTime.split(':').map(Number);
         const [endHour, endMin] = dayAvailability.endTime.split(':').map(Number);
 
@@ -242,13 +266,26 @@ export function BookingForm() {
           currentHour = nextHour;
           currentMin = nextMin;
         }
-        setAvailableSlots(slots);
       } else {
-        setAvailableSlots([]);
+        slots = generateDefaultSlots();
+      }
+      setAvailableSlots(slots);
+
+      if (slots.length > 0) {
+        const targetSlot = slots.find((s) => s.startTime === startTime) || slots[0];
+        setStartTime(targetSlot.startTime);
+        setEndTime(targetSlot.endTime);
+        step2Form.setValue('startTime', targetSlot.startTime, { shouldValidate: true });
       }
     } catch (error) {
       console.error('Failed to fetch availability:', error);
-      setAvailableSlots([]);
+      const fallback = generateDefaultSlots();
+      setAvailableSlots(fallback);
+      if (fallback.length > 0) {
+        setStartTime(fallback[0].startTime);
+        setEndTime(fallback[0].endTime);
+        step2Form.setValue('startTime', fallback[0].startTime, { shouldValidate: true });
+      }
     } finally {
       setIsLoadingSlots(false);
     }
@@ -273,8 +310,13 @@ export function BookingForm() {
         setCurrentStep(2);
       }
     } else if (step === 2) {
+      if (!startTime && availableSlots.length > 0) {
+        setStartTime(availableSlots[0].startTime);
+        setEndTime(availableSlots[0].endTime);
+        step2Form.setValue('startTime', availableSlots[0].startTime, { shouldValidate: true });
+      }
       const valid = await step2Form.trigger();
-      if (valid && appointmentDate && startTime) {
+      if (valid && appointmentDate) {
         setCurrentStep(3);
       }
     } else if (step === 3) {
@@ -363,10 +405,10 @@ export function BookingForm() {
         {/* Studio Header */}
         <div className="mb-10 max-w-3xl">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
-            Private Atelier · Pretty Nails by Atasha · Cebu City
+            Studio · Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
-            Book a Private Atelier Appointment
+            Book a Private Studio Appointment
           </h1>
           <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 font-normal leading-relaxed">
             Select your preferred treatments, reserve an available date and time, and secure your session with a reservation downpayment. Each appointment is an unhurried, private 1-on-1 experience.
@@ -629,15 +671,9 @@ function AppointmentSummaryCard({
   return (
     <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-900/90 p-6 sm:p-7 shadow-card space-y-5">
       <div className="border-b border-rose-100 dark:border-rose-950/60 pb-3.5">
-        <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-rose-800/80 dark:text-rose-300/80 block mb-1">
-          Atelier Overview
-        </span>
         <h3 className="font-serif text-lg font-medium text-stone-900 dark:text-rose-50 tracking-tight">
           Appointment Summary
         </h3>
-        <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5 font-normal">
-          Transparent treatment rates and deposit breakdown
-        </p>
       </div>
 
       {/* Selected Services List */}
@@ -760,7 +796,7 @@ function AppointmentSummaryCard({
         <div className="border-t border-rose-100 dark:border-rose-950/60 pt-2.5 flex justify-between items-baseline">
           <div>
             <p className="font-serif font-medium text-stone-900 dark:text-rose-50 text-sm">
-              Balance due at atelier
+              Balance due at studio
             </p>
             <p className="text-[11px] text-stone-500 dark:text-stone-400 font-normal">
               Payable upon session completion
@@ -942,7 +978,7 @@ function ServiceCard({
               </button>
             )}
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             {service.variants.map((variant) => {
               const active = isSelected && (selectedVariant === variant.id || (!selectedVariant && variant.id === service.variants[0]?.id));
               return (
@@ -950,16 +986,37 @@ function ServiceCard({
                   key={variant.id}
                   type="button"
                   onClick={() => onSelect(variant.id)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-150 border ${
+                  aria-pressed={active}
+                  className={`group relative inline-flex items-center gap-2.5 px-4 py-2 rounded-xl text-xs font-sans transition-all duration-150 border cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-800/40 active:scale-[0.98] ${
                     active
-                      ? 'bg-rose-900 text-white border-rose-900 shadow-xs'
-                      : 'bg-white/80 dark:bg-stone-900/80 text-stone-700 dark:text-stone-300 border-rose-200/80 dark:border-rose-950/60 hover:border-rose-300'
+                      ? 'bg-rose-900 text-rose-50 border-rose-900 shadow-xs dark:bg-rose-950 dark:border-rose-700/80 dark:text-rose-100 ring-1 ring-rose-900/40'
+                      : 'bg-white dark:bg-stone-900/90 text-stone-800 dark:text-stone-200 border-rose-200/90 dark:border-rose-950/70 hover:border-rose-400 dark:hover:border-rose-800/80 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 hover:shadow-2xs'
                   }`}
                 >
-                  <span className="mr-1.5">{getVariantLabel(variant.name)}</span>
-                  <span className="font-serif font-semibold tabular-nums opacity-90">
+                  <span className="font-medium tracking-normal text-stone-800 dark:text-stone-200 group-aria-pressed:text-white dark:group-aria-pressed:text-rose-100">
+                    {getVariantLabel(variant.name)}
+                  </span>
+                  <span
+                    className={`inline-block w-px h-3 ${
+                      active ? 'bg-rose-300/40' : 'bg-rose-200 dark:bg-rose-900/60'
+                    }`}
+                    aria-hidden="true"
+                  />
+                  <span
+                    className={`font-serif font-semibold tabular-nums text-xs sm:text-[13px] ${
+                      active
+                        ? 'text-rose-100 dark:text-rose-200'
+                        : 'text-rose-950 dark:text-rose-300'
+                    }`}
+                  >
                     {formatPrice(variant.price)}
                   </span>
+                  {active && (
+                    <Check
+                      className="h-3.5 w-3.5 stroke-[2] text-rose-200 dark:text-rose-300 ml-0.5 shrink-0"
+                      aria-hidden="true"
+                    />
+                  )}
                 </button>
               );
             })}
@@ -1029,7 +1086,7 @@ function BookingStep2({
             onChange={(e) => {
               const date = e.target.value;
               setAppointmentDate(date);
-              form.setValue('appointmentDate', date);
+              form.setValue('appointmentDate', date, { shouldValidate: true });
               fetchAvailableSlots(date);
             }}
             className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 font-mono tabular-nums shadow-xs"
@@ -1080,7 +1137,7 @@ function BookingStep2({
                     onClick={() => {
                       setStartTime(slot.startTime);
                       setEndTime(slot.endTime);
-                      form.setValue('startTime', slot.startTime);
+                      form.setValue('startTime', slot.startTime, { shouldValidate: true });
                     }}
                     className={`p-3 rounded-xl border text-left transition-all duration-150 font-mono tabular-nums text-xs ${
                       isSelected
@@ -1112,7 +1169,7 @@ function BookingStep2({
         <button
           type="button"
           onClick={onNext}
-          disabled={!appointmentDate || !startTime}
+          disabled={!appointmentDate || isLoadingSlots}
           className="h-12 sm:h-14 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 disabled:opacity-50 disabled:pointer-events-none text-white font-medium text-sm sm:text-base tracking-normal shadow-[0_4px_16px_rgba(76,5,25,0.2)] hover:shadow-[0_6px_24px_rgba(76,5,25,0.32)] border border-rose-800/80 transition-all duration-200 inline-flex items-center justify-center"
         >
           <span>Continue to Client Record</span>
@@ -1293,7 +1350,7 @@ function BookingStep4({
           Reservation downpayment & verification
         </h2>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal">
-          Submit your downpayment details to lock in your private atelier appointment slot
+          Submit your downpayment details to lock in your private studio appointment slot
         </p>
       </div>
 
@@ -1394,14 +1451,14 @@ function BookingStep4({
             <div className="flex items-center justify-between mb-1">
               <span className="font-serif font-medium text-sm text-stone-900 dark:text-rose-50 flex items-center gap-1.5">
                 <Banknote className="h-4 w-4 text-rose-600 stroke-[1.5]" />
-                Atelier Counter
+                Studio Counter
               </span>
               <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
                 In-person
               </span>
             </div>
             <p className="text-[11px] text-stone-600 dark:text-stone-400 font-normal">
-              Pay at atelier counter within 24h
+              Pay at studio counter within 24h
             </p>
           </button>
         </div>
@@ -1549,7 +1606,7 @@ function BookingStep4({
         <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-rose-50/40 dark:bg-stone-900/50 p-4 space-y-1.5">
           <div className="flex items-center gap-2 text-stone-900 dark:text-rose-50 font-medium text-xs">
             <AlertCircle className="h-4 w-4 stroke-[1.5] text-rose-600" />
-            <span>Atelier In-Person Cash Downpayment</span>
+            <span>Studio In-Person Cash Downpayment</span>
           </div>
           <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed font-normal">
             Please visit Pretty Nails by Atasha · Cebu City within 24 hours of booking to settle the ₱100.00 reservation downpayment. Unconfirmed slots without downpayment may be released to waitlisted clients.

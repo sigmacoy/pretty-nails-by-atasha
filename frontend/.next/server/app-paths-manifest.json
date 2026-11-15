@@ -1,4 +1,11 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/(public)/booking/page": "app/(public)/booking/page.js",
   "/(public)/services/page": "app/(public)/services/page.js",
-  "/(public)/page": "app/(public)/page.js"
+  "/(public)/availability/page": "app/(public)/availability/page.js",
+  "/(public)/gallery/page": "app/(public)/gallery/page.js",
+  "/(public)/page": "app/(public)/page.js",
+  "/(customer)/loyalty/page": "app/(customer)/loyalty/page.js",
+  "/(customer)/profile/page": "app/(customer)/profile/page.js",
+  "/(customer)/my-bookings/page": "app/(customer)/my-bookings/page.js"
 }

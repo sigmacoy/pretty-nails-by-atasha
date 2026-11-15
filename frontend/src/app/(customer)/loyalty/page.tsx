@@ -9,7 +9,7 @@ import { LoyaltyCard } from '@/components/customer/LoyaltyCard';
 import { QRScanner } from '@/components/loyalty/QRScanner';
 import { Modal } from '@/components/ui/Modal';
 import { Badge } from '@/components/ui/Badge';
-import { formatDate } from '@/lib/utils';
+import { formatDate, formatMemberCardId } from '@/lib/utils';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
@@ -38,7 +38,7 @@ export default function LoyaltyPage() {
     if (!voucherCode) return;
     navigator.clipboard.writeText(voucherCode);
     setHasCopiedVoucher(true);
-    toast.success('Atelier reward voucher code copied to clipboard.');
+    toast.success('Studio reward voucher code copied to clipboard.');
     setTimeout(() => setHasCopiedVoucher(false), 2000);
   };
 
@@ -49,14 +49,14 @@ export default function LoyaltyPage() {
       const result = response.data as StampResponse;
 
       if (result.success) {
-        toast.success(result.message || 'Loyalty stamp recorded for your atelier card.');
+        toast.success(result.message || 'Loyalty stamp recorded for your studio card.');
         refetch();
       } else {
-        toast.error(result.message || 'Unable to record loyalty stamp. Please present your code to atelier staff.');
+        toast.error(result.message || 'Unable to record loyalty stamp. Please present your code to studio staff.');
       }
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Unable to record loyalty stamp. Please present your code to atelier staff.');
+      toast.error(axiosError.response?.data?.message || 'Unable to record loyalty stamp. Please present your code to studio staff.');
     } finally {
       setIsAddingStamp(false);
     }
@@ -64,7 +64,7 @@ export default function LoyaltyPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="flex-1 min-h-[calc(100vh-14rem)] flex items-center justify-center py-10 px-4 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-8 sm:p-10 text-center space-y-6 shadow-card backdrop-blur-sm">
           <div className="space-y-2">
             <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold block">
@@ -83,7 +83,7 @@ export default function LoyaltyPage() {
                 type="button"
                 className="w-full inline-flex items-center justify-center h-14 px-8 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-base shadow-[0_6px_24px_rgba(76,5,25,0.28)] transition-colors"
               >
-                Sign In to Atelier
+                Sign In to Studio
               </button>
             </Link>
             <Link href="/register?redirect=/loyalty">
@@ -102,7 +102,7 @@ export default function LoyaltyPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-10 sm:py-14 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-2xl mx-auto space-y-6">
           <LoyaltyCard
             data={{} as LoyaltyCardDto}
@@ -121,7 +121,7 @@ export default function LoyaltyPage() {
 
   if (error || !loyaltyCard) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="flex-1 min-h-[calc(100vh-14rem)] flex items-center justify-center py-10 px-4 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-8 sm:p-10 text-center space-y-4 shadow-card backdrop-blur-sm">
           <div className="space-y-1">
             <h2 className="text-xl font-serif text-stone-900 dark:text-rose-50 font-normal">
@@ -144,12 +144,12 @@ export default function LoyaltyPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
+    <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-10 sm:py-14 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
       <div className="max-w-2xl mx-auto space-y-8">
         {/* Editorial Page Header */}
-        <div className="text-center sm:text-left">
+        <div className="max-w-2xl mx-auto text-center mb-10">
           <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold mb-2 block">
-            Client Rewards Atelier · Cebu City
+            Studio Rewards · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
             Studio Loyalty Card
@@ -272,7 +272,7 @@ export default function LoyaltyPage() {
             <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50/80 dark:bg-stone-900/40 border border-rose-200/60 dark:border-rose-950/50 text-xs">
               <span className="text-stone-500 dark:text-stone-400">Member card ID</span>
               <span className="font-mono text-stone-800 dark:text-stone-200 tabular-nums">
-                {loyaltyCard.id.slice(0, 16)}...
+                {formatMemberCardId(loyaltyCard.id)}
               </span>
             </div>
 
@@ -301,13 +301,6 @@ export default function LoyaltyPage() {
                 })}
               </span>
             </div>
-
-            <div className="flex items-center justify-between p-3 rounded-xl bg-stone-50/80 dark:bg-stone-900/40 border border-rose-200/60 dark:border-rose-950/50 text-xs">
-              <span className="text-stone-500 dark:text-stone-400">Membership status</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-100 dark:bg-rose-950/60 text-rose-900 dark:text-rose-200 border border-rose-200/80 dark:border-rose-900/60">
-                Active Client
-              </span>
-            </div>
           </div>
         </div>
 
@@ -321,7 +314,7 @@ export default function LoyaltyPage() {
               </h2>
             </div>
             <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
-              Three simple steps to earn atelier loyalty rewards.
+              Three simple steps to earn studio loyalty rewards.
             </p>
           </div>
 

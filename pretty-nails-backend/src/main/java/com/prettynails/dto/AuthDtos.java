@@ -32,7 +32,6 @@ public class AuthDtos {
     @AllArgsConstructor
     public static class LoginRequest {
         @NotBlank
-        @Email
         private String email;
 
         @NotBlank

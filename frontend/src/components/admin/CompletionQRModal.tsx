@@ -53,7 +53,7 @@ export function CompletionQRModal({
     try {
       await navigator.clipboard.writeText(bookingId);
       setCopied(true);
-      toast.success('Appointment identifier copied for atelier verification.');
+      toast.success('Appointment identifier copied for studio verification.');
       setTimeout(() => setCopied(false), 2000);
     } catch {
       toast.error('Unable to copy appointment identifier.');
@@ -80,7 +80,7 @@ export function CompletionQRModal({
                 Service completed
               </p>
               <p className="text-[11px] text-stone-600 dark:text-stone-300">
-                1 atelier visit stamp ready for collection
+                1 studio visit stamp ready for collection
               </p>
             </div>
           </div>
@@ -132,7 +132,7 @@ export function CompletionQRModal({
             <div className="mt-3 text-center">
               <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-medium bg-rose-900 text-white">
                 <Award className="h-3.5 w-3.5 stroke-[1.5]" />
-                Atelier loyalty stamp check-out
+                Studio loyalty stamp check-out
               </span>
             </div>
           </div>

@@ -37,7 +37,7 @@ export default function ProfilePage() {
 
   if (authLoading || isLoading) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="flex-1 min-h-[calc(100vh-14rem)] flex items-center justify-center py-10 px-4 bg-[#FFF0F3] dark:bg-[#160D12]">
         <Loader2 className="h-7 w-7 animate-spin text-rose-800 dark:text-rose-300" strokeWidth={1.5} />
       </div>
     );
@@ -45,7 +45,7 @@ export default function ProfilePage() {
 
   if (!userData) {
     return (
-      <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+      <div className="flex-1 min-h-[calc(100vh-14rem)] flex items-center justify-center py-10 px-4 bg-[#FFF0F3] dark:bg-[#160D12]">
         <div className="max-w-md w-full rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 p-10 text-center shadow-card backdrop-blur-sm">
           <h2 className="text-xl font-serif text-stone-900 dark:text-rose-50 font-normal">
             Unable to Load Profile
@@ -59,24 +59,21 @@ export default function ProfilePage() {
   }
 
   const isStaff = userData.role === 'ADMIN';
-  const roleLabel = isStaff ? 'Studio Administrator' : 'Atelier Client';
+  const roleLabel = isStaff ? 'Studio Administrator' : 'Studio Client';
   const roleBadgeClass = isStaff
     ? 'bg-rose-100 text-rose-900 border border-rose-300/80 dark:bg-rose-950/60 dark:text-rose-200 dark:border-rose-800/60'
     : 'bg-rose-50 text-rose-900 border border-rose-200/80 dark:bg-stone-800 dark:text-rose-200 dark:border-rose-900/50';
 
   return (
-    <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
+    <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-10 sm:py-14 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
       <div className="max-w-5xl mx-auto space-y-10">
         {/* Page Header */}
-        <div>
-          <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold mb-2 block">
-            Client Atelier Sanctuary · Cebu City
-          </span>
+        <div className="max-w-2xl mx-auto text-center mb-10">
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
             Client Profile Record
           </h1>
-          <p className="mt-2.5 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl font-sans leading-relaxed">
-            Manage your personal record sheet, contact details, and private atelier reservation credentials.
+          <p className="mt-2.5 text-sm sm:text-base text-stone-600 dark:text-stone-300 font-sans leading-relaxed">
+            Manage your personal record sheet, contact details, and studio reservation credentials.
           </p>
         </div>
 

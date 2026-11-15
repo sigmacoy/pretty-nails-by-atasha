@@ -20,7 +20,7 @@ export function RecentBookings({ bookings, isLoading, totalElements }: RecentBoo
       render: (row: BookingDto) => (
         <div className="py-0.5">
           <p className="font-medium text-xs text-stone-900 dark:text-rose-100">
-            {row.services[0]?.service?.name || 'Atelier Treatment'}
+            {row.services[0]?.service?.name || 'Studio Treatment'}
           </p>
           <p className="text-[11px] text-stone-500 dark:text-stone-400 font-mono tabular-nums mt-0.5">
             Client #{row.userId.slice(-6)}

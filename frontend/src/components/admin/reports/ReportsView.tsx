@@ -95,7 +95,7 @@ export function ReportsView({
         : 0;
 
     const rows: (string | number)[][] = [
-      ['Pretty Nails by Atasha - Atelier Business Report', ''],
+      ['Pretty Nails by Atasha - Studio Business Report', ''],
       ['Period', periodLabel],
       ['Generated date', nowStr],
       [''],
@@ -125,7 +125,7 @@ export function ReportsView({
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `pretty-nails-atelier-report-${period}-${nowStr}.csv`);
+    link.setAttribute('download', `pretty-nails-studio-report-${period}-${nowStr}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -173,7 +173,7 @@ export function ReportsView({
             Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-            Atelier Revenue & Attendance Reports
+            Studio Revenue & Attendance Reports
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
             Comprehensive earnings reports, service attendance breakdown, and loyalty program retention metrics.
@@ -270,7 +270,7 @@ export function ReportsView({
             </div>
           </div>
           <p className="text-xs text-stone-500 dark:text-stone-400 mt-3 font-normal">
-            Gross atelier booking revenue
+            Gross studio booking revenue
           </p>
         </Card>
 
@@ -323,7 +323,7 @@ export function ReportsView({
                 {reports.topServices[0].count} bookings this period
               </span>
             ) : (
-              'Most requested atelier treatment'
+              'Most requested studio treatment'
             )}
           </p>
         </Card>
@@ -508,7 +508,7 @@ export function ReportsView({
               <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-900 inline-block" />
-                  <span>Lead atelier treatment</span>
+                  <span>Lead studio treatment</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 rounded-full bg-rose-600 inline-block" />
@@ -771,7 +771,7 @@ export function ReportsView({
                       —
                     </td>
                     <td className="py-3.5 px-4 font-mono text-right text-xs text-stone-700 dark:text-stone-300">
-                      Private atelier standard
+                      Private studio standard
                     </td>
                   </tr>
                 </tbody>

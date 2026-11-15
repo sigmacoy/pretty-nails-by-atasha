@@ -99,7 +99,7 @@ export default function AdminLoyaltyPage() {
       refetch();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
-      toast.error(axiosError.response?.data?.message || 'Unable to update atelier loyalty card.');
+      toast.error(axiosError.response?.data?.message || 'Unable to update studio loyalty card.');
     } finally {
       setIsActionLoading(false);
     }
@@ -245,7 +245,7 @@ export default function AdminLoyaltyPage() {
           </div>
 
           <div className="text-xs font-mono text-stone-500 dark:text-stone-400 tabular-nums">
-            Showing {paginatedCards.length} of {filteredCards.length} atelier members
+            Showing {paginatedCards.length} of {filteredCards.length} studio members
           </div>
         </div>
 
@@ -309,7 +309,7 @@ export default function AdminLoyaltyPage() {
                         <p className="text-xs text-stone-600 dark:text-stone-400 max-w-sm font-sans">
                           {search
                             ? 'No member cards match your search parameters.'
-                            : 'No customer loyalty cards registered in the atelier yet.'}
+                            : 'No customer loyalty cards registered in the studio yet.'}
                         </p>
                       </div>
                     </td>

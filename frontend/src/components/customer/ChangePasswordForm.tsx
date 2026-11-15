@@ -36,14 +36,14 @@ export function ChangePasswordForm() {
         currentPassword: data.currentPassword,
         newPassword: data.newPassword,
       });
-      toast.success('Atelier account password updated successfully.');
+      toast.success('Studio account password updated successfully.');
       reset();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };
       const message = axiosError.response?.data?.message || 'Unable to update password. Please check your credentials.';
 
-      if (message.includes('Current password is incorrect') || message.includes('does not match atelier records')) {
-        toast.error('Current password does not match atelier records.');
+      if (message.includes('Current password is incorrect') || message.includes('does not match studio records') || message.includes('does not match atelier records')) {
+        toast.error('Current password does not match studio records.');
       } else {
         toast.error(message);
       }
@@ -62,7 +62,7 @@ export function ChangePasswordForm() {
           Account Security
         </h2>
         <p className="mt-1 text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans">
-          Update your password to safeguard your atelier reservations and records.
+          Update your password to safeguard your studio reservations and records.
         </p>
       </div>
 

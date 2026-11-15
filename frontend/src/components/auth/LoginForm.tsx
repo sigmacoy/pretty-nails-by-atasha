@@ -43,7 +43,7 @@ export function LoginForm() {
       });
 
       login(response.data.token, response.data.user);
-      toast.success('Signed in to your Pretty Nails atelier account.');
+      toast.success('Signed in to your Pretty Nails by Atasha account.');
       router.push(redirectTo);
       router.refresh();
     } catch (error: unknown) {
@@ -68,7 +68,7 @@ export function LoginForm() {
         <Link
           href="/"
           className="inline-flex items-center justify-center mb-5 rounded-full focus-visible:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-transform duration-200 hover:scale-[1.03]"
-          aria-label="Pretty Nails atelier home"
+          aria-label="Pretty Nails by Atasha home"
         >
           <StudioMark size="lg" />
         </Link>
@@ -76,7 +76,7 @@ export function LoginForm() {
           Pretty Nails by Atasha · Cebu City
         </span>
         <h1 className="text-2xl sm:text-3xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
-          Client Atelier Sign In
+          Client Sign In
         </h1>
         <p className="mt-2 text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans max-w-sm">
           Access your private reservations, deposit verification status, and loyalty stamps.
@@ -87,10 +87,10 @@ export function LoginForm() {
       <div className="rounded-3xl bg-white/95 dark:bg-stone-900/95 border border-rose-200/80 dark:border-rose-950/60 p-7 sm:p-9 shadow-card backdrop-blur-sm">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 font-sans">
           <Input
-            label="Email address"
-            type="email"
-            autoComplete="email"
-            placeholder="maria@example.com"
+            label="Email or username"
+            type="text"
+            autoComplete="username"
+            placeholder="admin or maria@example.com"
             {...register('email')}
             error={errors.email?.message}
             disabled={isSubmitting}
@@ -144,7 +144,7 @@ export function LoginForm() {
               disabled={isSubmitting}
               className="w-full inline-flex items-center justify-center h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 disabled:opacity-60 text-white font-medium text-base tracking-normal shadow-[0_6px_24px_rgba(76,5,25,0.28)] hover:shadow-[0_8px_32px_rgba(76,5,25,0.4)] border border-rose-800/80 transition-all duration-300 hover:scale-[1.01]"
             >
-              {isSubmitting ? 'Signing in...' : 'Sign In to Atelier'}
+              {isSubmitting ? 'Signing in...' : 'Sign In to Studio'}
             </button>
           </div>
 

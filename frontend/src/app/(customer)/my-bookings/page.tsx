@@ -57,7 +57,6 @@ export default function MyBookingsPage() {
       <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground py-12 sm:py-16 px-4 sm:px-6 lg:px-8 transition-colors selection:bg-rose-200 selection:text-rose-950">
         <div className="max-w-5xl mx-auto space-y-8">
           <div className="space-y-3">
-            <div className="h-4 w-44 bg-rose-200/60 dark:bg-rose-950/60 rounded-full animate-pulse" />
             <div className="h-9 w-64 bg-stone-200/70 dark:bg-stone-800 rounded-xl animate-pulse" />
             <div className="h-4 w-96 bg-stone-200/50 dark:bg-stone-800/60 rounded-md animate-pulse" />
           </div>
@@ -101,9 +100,6 @@ export default function MyBookingsPage() {
       <div className="max-w-5xl mx-auto space-y-10">
         {/* Editorial Page Header */}
         <div>
-          <span className="text-[11px] uppercase tracking-[0.24em] text-rose-800 dark:text-rose-300 font-semibold mb-2 block">
-            Private Atelier Sanctuary · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
             My Appointments
           </h1>
@@ -200,7 +196,7 @@ export default function MyBookingsPage() {
             <div className="flex items-center gap-2.5">
               <Archive className="h-4 w-4 stroke-[1.5] text-rose-800 dark:text-rose-300" />
               <h2 id="past-heading" className="text-xl sm:text-2xl font-serif text-stone-900 dark:text-rose-50 font-normal">
-                Past Atelier Visits
+                Past Studio Visits
               </h2>
               {pastBookings.length > 0 && (
                 <span className="text-xs font-mono tabular-nums px-2.5 py-0.5 rounded-full bg-rose-100/70 dark:bg-rose-950/70 text-rose-900 dark:text-rose-200 border border-rose-200/80 dark:border-rose-950/60 ml-1">
@@ -243,7 +239,7 @@ export default function MyBookingsPage() {
             <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 mb-8 max-w-md mx-auto font-sans leading-relaxed">
               {activeFilter !== 'all'
                 ? `No ${activeFilter.toLowerCase().replace('_', ' ')} appointments found matching your selected filter.`
-                : 'You have not scheduled any private atelier sessions yet. Select a service from our menu to begin your reservation.'}
+                : 'You have not scheduled any studio sessions yet. Select a service from our menu to begin your reservation.'}
             </p>
             <div className="flex justify-center">
               <Link href="/services">

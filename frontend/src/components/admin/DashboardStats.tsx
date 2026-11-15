@@ -25,7 +25,7 @@ export function DashboardStats({ stats, isLoading, reports }: DashboardStatsProp
       id: 'revenue',
       label: 'Monthly revenue',
       value: stats ? formatPrice(stats.totalRevenue) : '₱0.00',
-      meta: 'All-time atelier revenue recorded',
+      meta: 'All-time studio revenue recorded',
       icon: DollarSign,
     },
     {
@@ -37,7 +37,7 @@ export function DashboardStats({ stats, isLoading, reports }: DashboardStatsProp
     },
     {
       id: 'clients',
-      label: 'Atelier clients',
+      label: 'Studio clients',
       value: stats ? stats.totalCustomers.toLocaleString() : '0',
       meta: stats ? `${stats.totalBookings} total bookings recorded` : '0 bookings recorded',
       icon: Users,

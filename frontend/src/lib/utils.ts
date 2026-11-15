@@ -56,6 +56,12 @@ export function formatDateTime(dateString: string, timeString: string): string {
   return `${formatDateShort(dateString)} at ${formatTime(timeString)}`;
 }
 
+export function formatMemberCardId(id: string): string {
+  if (!id) return '';
+  const clean = id.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return `PNA-${clean.slice(0, 8)}`;
+}
+
 export function getStatusColor(status: string): string {
   switch (status) {
     case 'PENDING':

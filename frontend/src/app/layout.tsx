@@ -23,7 +23,7 @@ export const metadata: Metadata = {
     default: 'Pretty Nails by Atasha · Cebu City',
     template: '%s | Pretty Nails by Atasha · Cebu City',
   },
-  description: 'Private 1-on-1 atelier specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
+  description: 'Private 1-on-1 studio specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
   keywords: ['nail salon', 'biab', 'russian manicure', 'structured gel', 'nail art', 'cebu city', 'philippines'],
   authors: [{ name: 'Pretty Nails by Atasha' }],
   creator: 'Pretty Nails by Atasha',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     url: 'https://prettynails.ph',
     siteName: 'Pretty Nails by Atasha',
     title: 'Pretty Nails by Atasha · Cebu City',
-    description: 'Private 1-on-1 atelier specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
+    description: 'Private 1-on-1 studio specializing in structured BIAB overlays, Russian dry manicure, and bespoke nail art in Cebu City.',
     images: [
       {
         url: '/images/og-image.jpg',
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Pretty Nails by Atasha · Cebu City',
-    description: 'Private 1-on-1 atelier specializing in structured BIAB overlays and Russian manicure in Cebu City.',
+    description: 'Private 1-on-1 studio specializing in structured BIAB overlays and Russian manicure in Cebu City.',
     images: ['/images/og-image.jpg'],
   },
   icons: {

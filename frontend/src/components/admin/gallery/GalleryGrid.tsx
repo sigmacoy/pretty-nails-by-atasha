@@ -24,11 +24,11 @@ const CATEGORY_LABELS: Record<string, string> = {
   NAIL_ART: 'Bespoke Hand-Painted Art',
   FRENCH_CONTOUR: 'French Hairline Contour',
   PEDICURE: 'Dry Cuticle Hygiene Care',
-  ADDON: 'Atelier Add-on',
+  ADDON: 'Studio Add-on',
 };
 
 function formatCategory(category?: string): string {
-  if (!category) return 'Untagged Atelier Work';
+  if (!category) return 'Untagged Studio Work';
   return (
     CATEGORY_LABELS[category] ||
     category.charAt(0) + category.slice(1).toLowerCase().replace(/_/g, ' ')
@@ -63,7 +63,7 @@ export function GalleryGrid({
           {emptyMessage}
         </h3>
         <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-sans max-w-sm mx-auto mb-6 leading-relaxed">
-          Upload portfolio photography with style discipline tags and descriptions for atelier clients to discover.
+          Upload portfolio photography with style discipline tags and descriptions for studio clients to discover.
         </p>
         {onAdd && (
           <Button
@@ -97,7 +97,7 @@ export function GalleryGrid({
               Upload design
             </span>
             <span className="text-xs text-stone-500 dark:text-stone-400 mt-1 font-normal max-w-[180px] leading-relaxed">
-              Add new photography to the atelier portfolio
+              Add new photography to the studio portfolio
             </span>
             <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-rose-900 dark:text-rose-300">
               <Plus className="w-3.5 h-3.5 stroke-[1.5]" />
@@ -123,7 +123,7 @@ export function GalleryGrid({
         isOpen={!!previewItem}
         onClose={() => setPreviewItem(null)}
         title={previewItem?.title || 'Design preview'}
-        description="Atelier lookbook design curation details"
+        description="Studio lookbook design curation details"
         size="lg"
       >
         {previewItem && (
@@ -139,7 +139,7 @@ export function GalleryGrid({
             <div className="grid grid-cols-2 gap-3 text-xs p-4 rounded-xl bg-white/60 dark:bg-stone-900/60 border border-rose-200/70 dark:border-rose-950/60">
               <div>
                 <span className="text-stone-500 dark:text-stone-400 font-normal block mb-1">
-                  Atelier discipline
+                  Studio discipline
                 </span>
                 <span className="inline-flex items-center gap-1.5 font-medium text-rose-950 dark:text-rose-200">
                   <Tag className="w-3.5 h-3.5 text-rose-800 dark:text-rose-300" strokeWidth={1.5} />

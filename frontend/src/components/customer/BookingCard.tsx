@@ -345,7 +345,7 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
         {/* Manual Review Clarification & Booking Notes */}
         <div className="mt-4 pt-3.5 border-t border-rose-200/60 dark:border-rose-950/50 text-xs font-sans text-stone-500 dark:text-stone-400 space-y-1.5">
           <p>
-            <span className="font-medium text-rose-900 dark:text-rose-300">Studio deposit policy:</span> All reservations require a deposit via GCash or Maya. Studio staff manually reviews and verifies payment references before confirming your private atelier slot.
+            <span className="font-medium text-rose-900 dark:text-rose-300">Studio deposit policy:</span> All reservations require a deposit via GCash or Maya. Studio staff manually reviews and verifies payment references before confirming your studio appointment slot.
           </p>
           {booking.notes && (
             <p>

@@ -44,7 +44,7 @@ export function CustomerNoteModal({
     setIsSubmitting(true);
     try {
       await adminApi.addCustomerNote(customer.id, { content: note.trim() });
-      toast.success('Client consultation note recorded in atelier records.');
+      toast.success('Client consultation note recorded in studio records.');
       onSaveSuccess?.(customer, nickname.trim() || undefined);
       setNote('');
       setNickname('');

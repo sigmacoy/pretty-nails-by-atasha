@@ -48,7 +48,7 @@ export function ProfileForm() {
         phone: data.phone,
         nickname: data.nickname,
       });
-      toast.success('Client profile preferences updated in atelier records.');
+      toast.success('Client profile preferences updated in studio records.');
       await refreshUser();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };

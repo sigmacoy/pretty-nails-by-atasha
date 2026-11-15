@@ -55,10 +55,6 @@ export function LoyaltyCard({
         {/* Studio Card Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 pb-5 border-b border-rose-200/70 dark:border-rose-950/60">
           <div className="space-y-1">
-            <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.22em] text-rose-800 dark:text-rose-300">
-              <LacquerDropMark className="h-3.5 w-3.5 text-rose-900 dark:text-rose-400 shrink-0" />
-              <span>Pretty Nails by Atasha · Cebu City</span>
-            </div>
             <h2 className="text-2xl sm:text-3xl font-serif text-stone-900 dark:text-rose-50 font-normal tracking-tight">
               Studio Loyalty Stamp Card
             </h2>
@@ -177,7 +173,7 @@ export function LoyaltyCard({
           <div className="flex items-center gap-2.5 p-3 rounded-xl bg-stone-50/80 dark:bg-stone-900/40 border border-rose-200/60 dark:border-rose-950/50">
             <Check className="h-4 w-4 stroke-[1.5] text-rose-800 dark:text-rose-300 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[11px] text-stone-500 dark:text-stone-400">Last Atelier Visit</p>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400">Last Studio Visit</p>
               <p className="font-medium text-stone-800 dark:text-stone-200 truncate tabular-nums">
                 {data.lastStampAt
                   ? formatDate(data.lastStampAt, {
@@ -199,7 +195,7 @@ export function LoyaltyCard({
 /**
  * Tactile debossed stamp well circle:
  * Debossed circular well with inset shadow. Stamped state displays
- * a rich lacquer rose seal impression with atelier monogram.
+ * a rich lacquer rose seal impression with studio monogram.
  */
 function StampWell({
   index,
@@ -246,7 +242,6 @@ export function LoyaltyCardSkeleton() {
     <div className="rounded-3xl border border-rose-200/80 dark:border-rose-950/60 bg-[#FDFBF7] dark:bg-[#1A1316] p-6 sm:p-8 space-y-6">
       <div className="flex justify-between items-start gap-4 pb-5 border-b border-rose-200/70 dark:border-rose-950/60">
         <div className="space-y-2">
-          <div className="h-3 w-32 bg-rose-200/60 dark:bg-rose-950/60 rounded-full animate-pulse" />
           <div className="h-7 w-52 bg-stone-200/80 dark:bg-stone-800 rounded-xl animate-pulse" />
           <div className="h-3.5 w-40 bg-stone-200/60 dark:bg-stone-800/70 rounded-md animate-pulse" />
         </div>

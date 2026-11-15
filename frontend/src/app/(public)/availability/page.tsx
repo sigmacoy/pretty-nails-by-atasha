@@ -104,17 +104,17 @@ export default function AvailabilityPage() {
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1));
 
   return (
-    <div className="min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 lg:py-24">
+    <div className="w-full flex-1 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground transition-colors selection:bg-rose-200 selection:text-rose-950">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         {/* Header */}
-        <div className="mb-10 max-w-3xl">
+        <div className="mb-12 max-w-3xl mx-auto text-center">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-3">
-            Atelier Schedule · Pretty Nails by Atasha · Cebu City
+            Studio Schedule · Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-stone-900 dark:text-rose-50 leading-[1.08]">
-            Private Atelier Appointment Availability
+            Studio Appointment Availability
           </h1>
-          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 font-normal leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-stone-600 dark:text-stone-300 max-w-2xl mx-auto font-normal leading-relaxed">
             Appointments at Pretty Nails by Atasha are exclusive, private 1-on-1 sessions. Select an available date to view 30-minute booking windows. Downpayment verification via GCash or Maya guarantees your reservation.
           </p>
         </div>
@@ -307,7 +307,7 @@ export default function AvailabilityPage() {
                     Select an appointment date
                   </h4>
                   <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 max-w-xs mx-auto leading-relaxed font-sans">
-                    Choose an active day from the calendar to inspect open private 1-on-1 atelier time slots.
+                    Choose an active day from the calendar to inspect open private 1-on-1 studio time slots.
                   </p>
                 </div>
               )}
@@ -318,7 +318,7 @@ export default function AvailabilityPage() {
         {/* CTA Bottom Banner */}
         <div className="mt-14 sm:mt-16 text-center p-8 sm:p-12 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-gradient-to-br from-white via-rose-50/50 to-pink-50/30 dark:from-stone-900 dark:via-rose-950/20 dark:to-stone-900 shadow-card max-w-3xl mx-auto">
           <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Private 1-on-1 Atelier Booking
+            Private 1-on-1 Studio Booking
           </span>
           <h2 className="text-2xl sm:text-3xl font-serif font-normal text-stone-900 dark:text-rose-50 tracking-tight">
             Ready to reserve your appointment?

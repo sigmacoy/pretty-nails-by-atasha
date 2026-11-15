@@ -105,14 +105,14 @@ export default function AdminAvailabilityPage() {
     (data: AvailabilityRequest) => availabilityApi.upsert(data),
     {
       onSuccess: () => {
-        toast.success(editingAvailability ? 'Atelier schedule override updated.' : 'Atelier schedule override saved.');
+        toast.success(editingAvailability ? 'Studio schedule override updated.' : 'Studio schedule override saved.');
         setModalOpen(false);
         setEditingAvailability(null);
         setSelectedDate(null);
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Could not save atelier schedule slot. Check inputs and retry.');
+        toast.error(error.message || 'Could not save studio schedule slot. Check inputs and retry.');
       },
     }
   );
@@ -121,11 +121,11 @@ export default function AdminAvailabilityPage() {
     (id: string) => availabilityApi.delete(id),
     {
       onSuccess: () => {
-        toast.success('Schedule override removed from atelier calendar.');
+        toast.success('Schedule override removed from studio calendar.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Could not remove schedule override from atelier calendar.');
+        toast.error(error.message || 'Could not remove schedule override from studio calendar.');
       },
     }
   );
@@ -189,9 +189,9 @@ export default function AdminAvailabilityPage() {
   const handleSaveWeeklySchedule = () => {
     try {
       localStorage.setItem('pretty_nails_working_hours', JSON.stringify(weeklySchedule));
-      toast.success('Atelier studio operating hours saved.');
+      toast.success('Studio operating hours saved.');
     } catch {
-      toast.error('Could not save atelier operating hours. Check connection and retry.');
+      toast.error('Could not save studio operating hours. Check connection and retry.');
     }
   };
 
@@ -221,7 +221,7 @@ export default function AdminAvailabilityPage() {
         }
       }
 
-      toast.success(`Atelier schedule synced to ${appliedCount} dates in ${format(currentMonth, 'MMMM')}.`);
+      toast.success(`Studio schedule synced to ${appliedCount} dates in ${format(currentMonth, 'MMMM')}.`);
       refetch();
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to sync schedule';
@@ -255,7 +255,7 @@ export default function AdminAvailabilityPage() {
             Pretty Nails by Atasha · Cebu City
           </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-            Private Atelier Availability Schedule
+            Private Studio Availability Schedule
           </h1>
           <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
             Manage weekly operating hours, private 1-on-1 appointment buffer intervals, and holiday blackout periods.
@@ -272,14 +272,14 @@ export default function AdminAvailabilityPage() {
         </div>
       </div>
 
-      {/* Explicit Private 1-on-1 Atelier Scheduling Context Banner */}
+      {/* Explicit Private 1-on-1 Studio Scheduling Context Banner */}
       <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
         <div className="space-y-1.5">
           <span className="text-[11px] uppercase tracking-[0.22em] text-rose-800 dark:text-rose-300 font-semibold block">
             Studio Operating Protocol
           </span>
           <p className="text-sm font-serif text-stone-900 dark:text-rose-50 leading-relaxed max-w-3xl">
-            Private 1-on-1 Atelier: Every slot accommodates one client exclusively. Hospital-grade dry autoclave sterilization intervals are maintained between treatments.
+            Private 1-on-1 Studio: Every slot accommodates one client exclusively. Hospital-grade dry autoclave sterilization intervals are maintained between treatments.
           </p>
         </div>
       </div>
@@ -721,7 +721,7 @@ export default function AdminAvailabilityPage() {
               : 'Edit blackout slot'
             : 'Add date slot or blackout'
         }
-        description="Set working hours or block customer bookings for this date in the atelier calendar"
+        description="Set working hours or block customer bookings for this date in the studio calendar"
         size="md"
       >
         <AvailabilityForm
@@ -817,7 +817,7 @@ function AvailabilityForm({ initialData, defaultDate, onSubmit, onClose, isLoadi
         <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-rose-50/50 dark:bg-rose-950/20 flex items-start gap-3">
           <Lock className="h-4 w-4 text-rose-800 dark:text-rose-300 shrink-0 mt-0.5" strokeWidth={1.5} />
           <p className="text-xs text-rose-900 dark:text-rose-200 leading-relaxed">
-            All appointment bookings will be blocked for this entire date in the atelier booking calendar.
+            All appointment bookings will be blocked for this entire date in the studio booking calendar.
           </p>
         </div>
       ) : (
@@ -858,10 +858,10 @@ function AvailabilityForm({ initialData, defaultDate, onSubmit, onClose, isLoadi
       {/* Note / Reason */}
       <Input
         label="Reason or administrative note"
-        placeholder="e.g. Atelier staff sterilization maintenance or holiday closure"
+        placeholder="e.g. Studio staff sterilization maintenance or holiday closure"
         value={formData.note || ''}
         onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-        helperText="Visible internally to atelier management only."
+        helperText="Visible internally to studio management only."
         className="rounded-xl border-rose-200/80 dark:border-rose-900/60"
       />
 

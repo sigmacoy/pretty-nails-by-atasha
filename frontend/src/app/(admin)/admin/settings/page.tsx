@@ -55,11 +55,11 @@ export default function AdminSettingsPage() {
     (data: LoyaltySettingsDto) => adminApi.updateSettings(data),
     {
       onSuccess: () => {
-        toast.success('Atelier studio configuration updated.');
+        toast.success('Studio configuration updated.');
         refetch();
       },
       onError: (error: Error) => {
-        toast.error(error.message || 'Could not save atelier settings. Check connection and retry.');
+        toast.error(error.message || 'Could not save studio settings. Check connection and retry.');
       },
     }
   );
@@ -83,7 +83,7 @@ export default function AdminSettingsPage() {
   const handleReset = () => {
     if (settingsData?.data) {
       setFormData(settingsData.data);
-      toast.info('Atelier configuration changes reset to saved values.');
+      toast.info('Studio configuration changes reset to saved values.');
     } else {
       setFormData(INITIAL_DEFAULTS);
     }
@@ -134,7 +134,7 @@ export default function AdminSettingsPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-8 max-w-5xl">
-        {/* Domain 1: Atelier Identity & Location */}
+        {/* Domain 1: Studio Identity & Location */}
         <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
           <CardHeader className="border-b border-rose-200/60 dark:border-rose-950/50 pb-5">
             <div className="flex items-center gap-3">
@@ -143,10 +143,10 @@ export default function AdminSettingsPage() {
               </div>
               <div>
                 <CardTitle className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
-                  1. Atelier Identity & Location
+                  1. Studio Identity & Location
                 </CardTitle>
                 <CardDescription className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                  Private sanctuary profile, physical atelier address, and 1-on-1 booking model
+                  Private sanctuary profile, physical studio address, and 1-on-1 booking model
                 </CardDescription>
               </div>
             </div>
@@ -159,7 +159,7 @@ export default function AdminSettingsPage() {
                   Pretty Nails by Atasha · Cebu City
                 </p>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
-                  Private 1-on-1 nail atelier sanctuary
+                  Private 1-on-1 nail studio sanctuary
                 </p>
               </div>
 
@@ -169,13 +169,13 @@ export default function AdminSettingsPage() {
                   Cebu City, Central Visayas, Philippines
                 </p>
                 <p className="text-xs text-stone-500 dark:text-stone-400">
-                  Private residence atelier, exact address provided upon deposit verification
+                  Private residence studio, exact address provided upon deposit verification
                 </p>
               </div>
             </div>
 
             <div className="p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 bg-white/70 dark:bg-stone-900/50 text-xs text-stone-600 dark:text-stone-300 leading-relaxed space-y-1">
-              <p className="font-semibold text-stone-900 dark:text-rose-100">Private 1-on-1 Atelier Model:</p>
+              <p className="font-semibold text-stone-900 dark:text-rose-100">Private 1-on-1 Studio Model:</p>
               <p className="text-stone-600 dark:text-stone-300 font-sans">
                 Each appointment is booked exclusively for one client at a time. No double-booking or walk-in queue overlaps are allowed. A mandatory 15-minute buffer is scheduled between clients for room sanitation and tool sterilization.
               </p>
@@ -389,7 +389,7 @@ export default function AdminSettingsPage() {
                 <Award className="h-5 w-5 text-rose-800 dark:text-rose-300 shrink-0 mt-0.5 stroke-[1.5]" />
                 <div className="text-xs text-stone-600 dark:text-stone-300 leading-relaxed font-sans">
                   <p className="font-semibold text-stone-900 dark:text-rose-100 mb-0.5">Physical Stamp Card Aesthetic Policy:</p>
-                  The standard atelier loyalty card targets <span className="font-mono font-semibold text-rose-900 dark:text-rose-300 tabular-nums">10 stamps</span>. Upon reaching 10 stamps, the customer can redeem this complimentary service during their appointment check-out.
+                  The standard studio loyalty card targets <span className="font-mono font-semibold text-rose-900 dark:text-rose-300 tabular-nums">10 stamps</span>. Upon reaching 10 stamps, the customer can redeem this complimentary service during their appointment check-out.
                 </div>
               </div>
             </div>
@@ -432,7 +432,7 @@ export default function AdminSettingsPage() {
         {/* Save Action Bar */}
         <div className="p-5 rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-[#1A0E15]/90 backdrop-blur-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
           <p className="text-xs text-stone-500 dark:text-stone-400 font-sans">
-            Saved changes apply immediately across all client accounts and atelier booking policies.
+            Saved changes apply immediately across all client accounts and studio booking policies.
           </p>
           <div className="flex items-center gap-3 self-end sm:self-auto">
             {isDirty && (

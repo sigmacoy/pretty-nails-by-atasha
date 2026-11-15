@@ -18,7 +18,7 @@ export interface GalleryFormProps {
   isPending: boolean;
 }
 
-export const ATELIER_CATEGORIES = [
+export const STUDIO_CATEGORIES = [
   { value: 'GEL', label: 'Structured BIAB Overlay' },
   { value: 'EXTENSION', label: 'Japanese Soft Gel Extension' },
   { value: 'VELVET_CAT_EYE', label: 'Velvet Cat-Eye Finish' },
@@ -26,6 +26,8 @@ export const ATELIER_CATEGORIES = [
   { value: 'FRENCH_CONTOUR', label: 'French Hairline Contour' },
   { value: 'PEDICURE', label: 'Dry Cuticle Hygiene Care' },
 ] as const;
+
+export const ATELIER_CATEGORIES = STUDIO_CATEGORIES;
 
 export function GalleryForm({
   isOpen,
@@ -102,7 +104,7 @@ export function GalleryForm({
     }
 
     if (!formData.category) {
-      newErrors.category = 'Atelier discipline category is required';
+      newErrors.category = 'Studio discipline category is required';
     }
 
     setErrors(newErrors);
@@ -141,7 +143,7 @@ export function GalleryForm({
       isOpen={isOpen}
       onClose={onClose}
       title={initialData ? 'Edit design' : 'Upload lookbook design'}
-      description="Curate portfolio design details and atelier discipline tagging for the public lookbook"
+      description="Curate portfolio design details and studio discipline tagging for the public lookbook"
       size="lg"
       showClose={!isPending}
     >
@@ -164,10 +166,10 @@ export function GalleryForm({
         {/* Discipline Tags */}
         <div>
           <label className="block text-xs font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300 mb-2">
-            Atelier discipline
+            Studio discipline
           </label>
           <div className="flex flex-wrap gap-2">
-            {ATELIER_CATEGORIES.map((cat) => {
+            {STUDIO_CATEGORIES.map((cat) => {
               const isSelected = formData.category === cat.value;
               return (
                 <button
@@ -237,8 +239,8 @@ export function GalleryForm({
                   setFormData((prev) => ({ ...prev, imageUrl: '' }));
                   setImagePreview(null);
                 }}
-                helperText="JPEG, PNG, or WebP up to 5MB · High resolution private atelier photography"
-                placeholder="Click or drag atelier photography here"
+                helperText="JPEG, PNG, or WebP up to 5MB · High resolution private studio photography"
+                placeholder="Click or drag studio photography here"
                 error={errors.imageUrl}
                 showPreview={false}
               />
@@ -262,7 +264,7 @@ export function GalleryForm({
                     type="url"
                     value={formData.imageUrl}
                     onChange={handleChange}
-                    placeholder="https://example.com/atelier-design.jpg"
+                    placeholder="https://example.com/studio-design.jpg"
                     error={errors.imageUrl}
                     helperText="Direct URL to external image asset"
                     className="rounded-xl border-rose-200/80 dark:border-rose-900/60 bg-white/90 dark:bg-stone-900/90"
@@ -303,7 +305,7 @@ export function GalleryForm({
               htmlFor="isActive"
               className="text-xs font-medium text-stone-900 dark:text-rose-100 block cursor-pointer"
             >
-              Publish to public atelier lookbook
+              Publish to public lookbook
             </label>
             <p className="text-xs text-stone-600 dark:text-stone-400 font-normal mt-0.5 leading-relaxed">
               When enabled, clients can browse this design in the Pretty Nails by Atasha public lookbook.
