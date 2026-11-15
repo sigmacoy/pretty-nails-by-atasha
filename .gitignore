@@ -60,8 +60,6 @@ coverage/
 pretty-nails-source/
 sims-reference/
 backend/
-src/
-
 ### Claude (local config, not shared) ###
 .claude/worktrees/
 .claude/*.log
