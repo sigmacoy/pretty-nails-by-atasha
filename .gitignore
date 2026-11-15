@@ -40,6 +40,7 @@ build/
 
 ### Build outputs ###
 frontend/.next/
+frontend/.next/**
 frontend/node_modules/
 pretty-nails-backend/target/
 
