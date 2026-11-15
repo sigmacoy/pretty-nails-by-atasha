@@ -59,10 +59,10 @@ coverage/
 ### Reference dirs (external, not part of build) ###
 pretty-nails-source/
 sims-reference/
-backend/
+/backend/
 ### Claude (local config, not shared) ###
 .claude/worktrees/
 .claude/*.log
 
 ### Agent configs (local) ###
-.agents/
+.agents/frontend/.env.local
