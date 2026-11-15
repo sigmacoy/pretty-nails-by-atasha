@@ -278,9 +278,7 @@ export default function AdminBookingsPage() {
     return (
       <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950">
         <div className="pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Pretty Nails by Atasha · Cebu City
-          </span>
+
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
             Appointments Queue
           </h1>
@@ -312,9 +310,6 @@ export default function AdminBookingsPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Pretty Nails by Atasha · Cebu City
-          </span>
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
             Appointments Queue
           </h1>
@@ -345,18 +340,7 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
-      {/* Prominent Studio Policy Banner */}
-      <div className="rounded-2xl border border-rose-300/80 dark:border-rose-900/70 bg-rose-100/60 dark:bg-rose-950/40 p-4 sm:p-5 flex items-start gap-3.5 shadow-[0_2px_12px_rgba(76,5,25,0.05)]">
-        <ShieldCheck className="h-5 w-5 text-rose-800 dark:text-rose-300 shrink-0 mt-0.5 stroke-[1.5]" />
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-rose-950 dark:text-rose-100 uppercase tracking-wide">
-            Studio Reservation Policy
-          </p>
-          <p className="text-xs sm:text-sm text-stone-700 dark:text-stone-300 leading-relaxed font-sans">
-            Manual Deposit Verification: All appointments require manual staff verification of GCash or Maya transfer references. Instant automatic confirmation is never claimed.
-          </p>
-        </div>
-      </div>
+
 
       {/* Quick Filter Tabs */}
       <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-rose-200/70 dark:border-rose-950/60">

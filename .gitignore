@@ -1,10 +1,14 @@
 .DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.pid
+*.seed
+*.pid.lock
 
-HELP.md
 target/
 .mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
 ### STS ###
 .apt_generated
@@ -16,11 +20,10 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+.idea/
 *.iws
 *.iml
 *.ipr
-.idea/
 
 ### NetBeans ###
 /nbproject/private/
@@ -35,36 +38,32 @@ build/
 ### VS Code ###
 .vscode/
 
-### Claude ###
-.claude/worktrees/
-node_modules/
-
-# Local C
-mvnw.cmd
-
-# Build outputs
+### Build outputs ###
 frontend/.next/
 frontend/node_modules/
 pretty-nails-backend/target/
 
-# Environment
+### Environment ###
 *.local.env
+*.local.env.*
 
-# Claude config
-.claude/
+### Coverage ###
+coverage/
+.nyc_output/
 
-# Agent configs
-.agents/
+### Turbo / Vercel ###
+.turbo/
+.vercel/
 
-# Root node_modules
-node_modules/
-
-# Maven wrapper
-mvnw
-mvnw.cmd
-
-# Reference dirs
+### Reference dirs (external, not part of build) ###
 pretty-nails-source/
 sims-reference/
-/backend/
-/src/
+backend/
+src/
+
+### Claude (local config, not shared) ###
+.claude/worktrees/
+.claude/*.log
+
+### Agent configs (local) ###
+.agents/

@@ -251,9 +251,7 @@ export default function AdminAvailabilityPage() {
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
         <div>
-          <span className="text-[11px] uppercase tracking-[0.26em] text-rose-800 dark:text-rose-300 font-semibold block mb-2">
-            Pretty Nails by Atasha · Cebu City
-          </span>
+
           <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
             Private Studio Availability Schedule
           </h1>
@@ -272,17 +270,7 @@ export default function AdminAvailabilityPage() {
         </div>
       </div>
 
-      {/* Explicit Private 1-on-1 Studio Scheduling Context Banner */}
-      <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 shadow-sm">
-        <div className="space-y-1.5">
-          <span className="text-[11px] uppercase tracking-[0.22em] text-rose-800 dark:text-rose-300 font-semibold block">
-            Studio Operating Protocol
-          </span>
-          <p className="text-sm font-serif text-stone-900 dark:text-rose-50 leading-relaxed max-w-3xl">
-            Private 1-on-1 Studio: Every slot accommodates one client exclusively. Hospital-grade dry autoclave sterilization intervals are maintained between treatments.
-          </p>
-        </div>
-      </div>
+
 
       {/* Split Layout: Weekly Working Hours (Left) vs Holiday & Blackout Manager (Right) */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">

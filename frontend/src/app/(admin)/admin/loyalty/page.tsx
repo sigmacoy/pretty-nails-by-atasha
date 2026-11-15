@@ -198,68 +198,7 @@ export default function AdminLoyaltyPage() {
         </div>
       </div>
 
-      {/* Program Rules Summary Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
-              Service rule
-            </span>
-            <CheckCircle className="w-4 h-4 text-rose-700 dark:text-rose-400" strokeWidth={1.5} />
-          </div>
-          <p className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mt-2 tabular-nums">
-            {settings?.stampsPerService || 1} stamp
-          </p>
-          <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-normal">
-            Per completed salon treatment
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
-              Spend bonus
-            </span>
-            <Plus className="w-4 h-4 text-rose-700 dark:text-rose-400" strokeWidth={1.5} />
-          </div>
-          <p className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mt-2 tabular-nums">
-            PHP 500 and PHP 1,000 rules
-          </p>
-          <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-normal">
-            +1 per PHP 500 · +2 per PHP 1,000 spend
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
-              Complimentary reward
-            </span>
-            <Award className="w-4 h-4 text-rose-700 dark:text-rose-400" strokeWidth={1.5} />
-          </div>
-          <p className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mt-2 tabular-nums">
-            {maxStamps} stamps reward
-          </p>
-          <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-normal truncate">
-            {settings?.freeServiceReward || 'Free gel treatment at 10 stamps'}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-5 shadow-sm">
-          <div className="flex items-center justify-between">
-            <span className="text-xs uppercase tracking-wider text-rose-800 dark:text-rose-300 font-semibold">
-              Card validity
-            </span>
-            <Clock className="w-4 h-4 text-rose-700 dark:text-rose-400" strokeWidth={1.5} />
-          </div>
-          <p className="text-xl font-serif font-medium text-stone-900 dark:text-rose-50 mt-2 tabular-nums">
-            {settings?.cardExpiryMonths || 12} months
-          </p>
-          <p className="text-xs text-stone-600 dark:text-stone-400 mt-1 font-normal">
-            12 months validity from last appointment
-          </p>
-        </div>
-      </div>
+      Studio Reservation Policy
 
       {/* Search and Table Container */}
       <div className="space-y-4">
