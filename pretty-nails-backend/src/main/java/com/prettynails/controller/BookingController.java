@@ -64,6 +64,13 @@ public class BookingController {
         return ResponseEntity.ok(cancelledBooking);
     }
 
+    @PutMapping("/bookings/{id}/reschedule")
+    public ResponseEntity<BookingDto> rescheduleBooking(@PathVariable String id, @Valid @RequestBody RescheduleRequest request) {
+        User currentUser = getCurrentUser();
+        BookingDto rescheduledBooking = bookingService.rescheduleBooking(id, currentUser.getId(), request);
+        return ResponseEntity.ok(rescheduledBooking);
+    }
+
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/bookings/{id}/status")
     public ResponseEntity<BookingDto> updateBookingStatus(

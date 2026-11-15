@@ -13,6 +13,7 @@ import com.prettynails.repository.CustomerNoteRepository;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.SettingRepository;
 import com.prettynails.repository.UserRepository;
+import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -36,6 +37,7 @@ public class AdminService {
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final SettingRepository settingRepository;
     private final CustomerNoteRepository customerNoteRepository;
+    private final TimeProvider timeProvider;
 
     private static final String LOYALTY_SETTINGS_KEY = "loyalty_settings";
 
@@ -48,7 +50,7 @@ public class AdminService {
         long totalRevenue = bookingRepository.sumTotalPriceByStatus("COMPLETED");
         long pendingBookings = bookingRepository.countByStatus("PENDING");
 
-        YearMonth currentMonth = YearMonth.now();
+        YearMonth currentMonth = YearMonth.from(timeProvider.today());
         LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
         LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
         long completedThisMonth = bookingRepository.countByStatusAndAppointmentDateBetween("COMPLETED", startOfMonth, endOfMonth);
@@ -70,7 +72,7 @@ public class AdminService {
      */
     public AdminReportsDto getReports(String period) {
         LocalDateTime start;
-        LocalDateTime end = LocalDateTime.now();
+        LocalDateTime end = timeProvider.localNow();
 
         if ("week".equalsIgnoreCase(period)) {
             start = end.minusWeeks(1);

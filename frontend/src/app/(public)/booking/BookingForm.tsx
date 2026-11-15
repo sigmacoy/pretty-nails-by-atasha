@@ -239,7 +239,7 @@ export function BookingForm() {
     setIsLoadingSlots(true);
     try {
       const response = await availabilityApi.getAvailable();
-      const dayAvailability = response.data.find((a) => a.date === date && a.isAvailable);
+      const dayAvailability = response.data.find((a) => a.date.split('T')[0] === date && a.isAvailable);
       let slots: { startTime: string; endTime: string }[] = [];
 
       if (dayAvailability) {
@@ -317,6 +317,33 @@ export function BookingForm() {
       }
       const valid = await step2Form.trigger();
       if (valid && appointmentDate) {
+        // Re-validate slot availability before proceeding to Step 3
+        try {
+          const response = await availabilityApi.getAvailable();
+          const dayAvailability = response.data.find((a) => a.date.split('T')[0] === appointmentDate && a.isAvailable);
+          if (dayAvailability) {
+            const [startHour, startMin] = dayAvailability.startTime.split(':').map(Number);
+            const [endHour, endMin] = dayAvailability.endTime.split(':').map(Number);
+            const slotStartMin = startHour * 60 + startMin;
+            const slotEndMin = endHour * 60 + endMin;
+            const selectedStartMin = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
+            const selectedEndMin = selectedStartMin + 30;
+
+            // Check if selected slot falls within available hours
+            const isSlotInRange = selectedStartMin >= slotStartMin && selectedEndMin <= slotEndMin;
+
+            if (!isSlotInRange) {
+              toast.error('Selected time slot is no longer available. Please choose another time.');
+              return;
+            }
+          } else {
+            // Date is no longer available (blackout/holiday)
+            toast.error('This date is no longer available for booking. Please select another date.');
+            return;
+          }
+        } catch (error) {
+          console.warn('Could not re-validate slot availability:', error);
+        }
         setCurrentStep(3);
       }
     } else if (step === 3) {

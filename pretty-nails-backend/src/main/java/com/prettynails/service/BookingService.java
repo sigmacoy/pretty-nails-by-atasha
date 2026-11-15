@@ -18,6 +18,7 @@ import com.prettynails.repository.ServiceRepository;
 import com.prettynails.repository.ServiceVariantRepository;
 import com.prettynails.repository.UserRepository;
 import com.prettynails.service.LoyaltyService;
+import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final LoyaltyService loyaltyService;
+    private final TimeProvider timeProvider;
 
     private static final int DEFAULT_MAX_SLOTS = 4;
     private static final int DEFAULT_DOWNPAYMENT = 10000; // 100 PHP in centavos
@@ -74,6 +76,13 @@ public class BookingService {
         // 5. If full -> 400
         if (existingBookings >= maxSlots) {
             throw new BadRequestException("This day has reached its maximum queue capacity (" + maxSlots + " clients max).");
+        }
+
+        // 5b. Check for concurrent booking on the specific time slot (race condition prevention)
+        // This provides a more granular check than the daily max slots
+        if (bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                appointmentDateTime, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
+            throw new BadRequestException("This time slot has just been booked. Please select another time.");
         }
 
         // 6. Resolve services: find by ID, fallback by name matching (clean/gel/ext/ped)
@@ -170,7 +179,7 @@ public class BookingService {
                 .status(isDownpaymentWaived || (request.getPaymentReference() != null && !request.getPaymentReference().isEmpty()) ? "PAID" : "PENDING")
                 .method(isDownpaymentWaived ? "LOYALTY_REWARD" : "GCASH")
                 .reference(isDownpaymentWaived ? "LOYALTY_REWARD" : request.getPaymentReference())
-                .verifiedAt(isDownpaymentWaived || (request.getPaymentReference() != null && !request.getPaymentReference().isEmpty()) ? LocalDateTime.now() : null)
+                .verifiedAt(isDownpaymentWaived || (request.getPaymentReference() != null && !request.getPaymentReference().isEmpty()) ? timeProvider.localNow() : null)
                 .build();
         paymentRepository.save(payment);
 
@@ -321,7 +330,7 @@ public class BookingService {
                 .downpayment(booking.getDownpayment())
                 .notes(booking.getNotes())
                 .inspirationImg(booking.getInspirationImg())
-                .createdAt(booking.getCreatedAt() != null ? booking.getCreatedAt().toString() : LocalDateTime.now().toString())
+                .createdAt(booking.getCreatedAt() != null ? booking.getCreatedAt().toString() : timeProvider.localNow().toString())
                 .updatedAt(booking.getUpdatedAt() != null ? booking.getUpdatedAt().toString() : null)
                 .services(serviceDtos)
                 .payment(paymentDto)
@@ -357,7 +366,98 @@ public class BookingService {
             throw new BadRequestException("Only PENDING or CONFIRMED bookings can be cancelled. Current status: " + currentStatus);
         }
 
+        // 24-hour cutoff check - customer cannot cancel within 24 hours of appointment
+        LocalDateTime appointmentDateTime = booking.getAppointmentDate()
+                .withHour(Integer.parseInt(booking.getStartTime().split(":")[0]))
+                .withMinute(Integer.parseInt(booking.getStartTime().split(":")[1]));
+
+        if (!timeProvider.isAtLeast24HoursInFuture(appointmentDateTime)) {
+            throw new BadRequestException("Cancellation requires at least 24 hours notice before the appointment time.");
+        }
+
         booking.setStatus("CANCELLED");
+        booking = bookingRepository.save(booking);
+
+        return mapToBookingDto(booking);
+    }
+
+    /**
+     * Customer reschedules their own booking
+     */
+    @Transactional
+    public BookingDto rescheduleBooking(String bookingId, String userId, RescheduleRequest request) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+
+        // Verify ownership
+        if (!booking.getUserId().equals(userId)) {
+            throw new BadRequestException("You can only reschedule your own bookings");
+        }
+
+        String currentStatus = booking.getStatus();
+        if (!"PENDING".equals(currentStatus) && !"CONFIRMED".equals(currentStatus)) {
+            throw new BadRequestException("Only PENDING or CONFIRMED bookings can be rescheduled. Current status: " + currentStatus);
+        }
+
+        // 24-hour cutoff check - customer cannot reschedule within 24 hours of appointment
+        LocalDateTime currentAppointmentDateTime = booking.getAppointmentDate()
+                .withHour(Integer.parseInt(booking.getStartTime().split(":")[0]))
+                .withMinute(Integer.parseInt(booking.getStartTime().split(":")[1]));
+
+        if (!timeProvider.isAtLeast24HoursInFuture(currentAppointmentDateTime)) {
+            throw new BadRequestException("Rescheduling requires at least 24 hours notice before the appointment time.");
+        }
+
+        // Parse new appointment date and time
+        LocalDate newAppointmentDate = LocalDate.parse(request.getAppointmentDate());
+        LocalDateTime newAppointmentDateTime = newAppointmentDate.atStartOfDay();
+
+        // Check availability for new date
+        LocalDateTime startOfDay = newAppointmentDate.atStartOfDay();
+        LocalDateTime endOfDay = newAppointmentDate.atTime(23, 59, 59, 999_999_999);
+
+        Availability availability = availabilityRepository.findByDateBetweenOrderByDateAsc(startOfDay, endOfDay)
+                .stream().findFirst().orElse(null);
+
+        if (availability != null && !availability.getIsAvailable()) {
+            throw new BadRequestException("The owner is not available on the selected date (marked as holiday or break).");
+        }
+
+        // Check if new time slot is already booked (excluding current booking)
+        if (bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                newAppointmentDateTime, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
+            // Need to check if it's the same booking (same date and time)
+            boolean isSameSlot = booking.getAppointmentDate().equals(newAppointmentDateTime)
+                    && booking.getStartTime().equals(request.getStartTime());
+            if (!isSameSlot) {
+                throw new BadRequestException("The selected time slot is not available. Please choose another time.");
+            }
+        }
+
+        // Check daily max slots for new date
+        long existingBookings = bookingRepository.countByAppointmentDateBetweenAndStatusIn(
+                startOfDay, endOfDay, List.of("PENDING", "CONFIRMED"));
+
+        int maxSlots = availability != null ? availability.getMaxSlots() : DEFAULT_MAX_SLOTS;
+
+        // If moving to a different date, check capacity
+        if (!booking.getAppointmentDate().equals(newAppointmentDateTime)) {
+            if (existingBookings >= maxSlots) {
+                throw new BadRequestException("The selected day has reached its maximum queue capacity (" + maxSlots + " clients max).");
+            }
+        }
+
+        // Calculate endTime if not provided (default 3 hours = 180 minutes)
+        String endTime = request.getEndTime();
+        if (endTime == null || endTime.isEmpty()) {
+            endTime = calculateEndTime(request.getStartTime(), 180);
+        }
+
+        // Update booking
+        booking.setAppointmentDate(newAppointmentDateTime);
+        booking.setStartTime(request.getStartTime());
+        booking.setEndTime(endTime);
+
         booking = bookingRepository.save(booking);
 
         return mapToBookingDto(booking);

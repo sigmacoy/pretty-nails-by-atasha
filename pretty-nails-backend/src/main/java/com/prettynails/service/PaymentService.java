@@ -7,6 +7,7 @@ import com.prettynails.entity.User;
 import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.BookingRepository;
 import com.prettynails.repository.PaymentRepository;
+import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final BookingRepository bookingRepository;
+    private final TimeProvider timeProvider;
 
     public PaymentDto getPaymentByBookingId(String bookingId) {
         Optional<Payment> payment = paymentRepository.findByBookingId(bookingId);
@@ -89,7 +91,7 @@ public class PaymentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
 
         payment.setStatus("PAID");
-        payment.setVerifiedAt(LocalDateTime.now());
+        payment.setVerifiedAt(timeProvider.localNow());
         payment.setVerifiedBy(admin != null ? admin.getId() : "ADMIN");
         payment = paymentRepository.save(payment);
 

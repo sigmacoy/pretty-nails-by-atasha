@@ -67,4 +67,10 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.appointmentDate BETWEEN :start AND :end")
     List<Booking> findByStatusAndAppointmentDateBetween(String status, LocalDateTime start, LocalDateTime end);
+
+    /**
+     * Checks if a booking already exists for the given date and time slot with PENDING or CONFIRMED status.
+     * Used for preventing double-booking race conditions.
+     */
+    boolean existsByAppointmentDateAndStartTimeAndStatusIn(LocalDateTime appointmentDate, String startTime, List<String> statuses);
 }

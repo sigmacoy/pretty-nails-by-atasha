@@ -7,6 +7,7 @@ import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.UserRepository;
 import com.prettynails.security.JwtUtil;
+import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +26,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final AuthenticationManager authenticationManager;
+    private final TimeProvider timeProvider;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -46,7 +48,7 @@ public class AuthService {
         com.prettynails.entity.LoyaltyCard loyaltyCard = com.prettynails.entity.LoyaltyCard.builder()
                 .userId(user.getId())
                 .stampCount(0)
-                .expiresAt(LocalDateTime.now().plusYears(1))
+                .expiresAt(timeProvider.localNow().plusYears(1))
                 .build();
         loyaltyCardRepository.save(loyaltyCard);
 

@@ -160,4 +160,18 @@ public class BookingDtos {
         @NotBlank
         private String status;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RescheduleRequest {
+        @NotBlank
+        private String appointmentDate;
+
+        @NotBlank
+        private String startTime;
+
+        private String endTime;
+    }
 }

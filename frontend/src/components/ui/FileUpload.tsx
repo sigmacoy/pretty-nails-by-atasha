@@ -22,6 +22,66 @@ export interface FileUploadProps {
   showPreview?: boolean;
 }
 
+/**
+ * Compresses an image file client-side to reduce upload size.
+ * Maintains aspect ratio, targets max dimension 1920px, quality 0.85.
+ */
+async function compressImage(file: File, maxDimension = 1920, quality = 0.85): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (!ctx) {
+        reject(new Error('Canvas context not available'));
+        return;
+      }
+
+      let { width, height } = img;
+      const maxDim = Math.max(width, height);
+
+      if (maxDim > maxDimension) {
+        const scale = maxDimension / maxDim;
+        width = Math.round(width * scale);
+        height = Math.round(height * scale);
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      ctx.drawImage(img, 0, 0, width, height);
+
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error('Image compression failed'));
+            return;
+          }
+          const compressedFile = new File([blob], file.name, {
+            type: 'image/jpeg',
+            lastModified: Date.now(),
+          });
+          resolve(compressedFile);
+        },
+        'image/jpeg',
+        quality
+      );
+    };
+
+    img.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Failed to load image for compression'));
+    };
+
+    img.src = objectUrl;
+  });
+}
+
 export const FileUpload: FC<FileUploadProps> = ({
   value,
   onChange,
@@ -99,11 +159,31 @@ export const FileUpload: FC<FileUploadProps> = ({
       // Generate local object URL for instant preview feedback
       const localPreview = URL.createObjectURL(file);
       setPreviewUrl(localPreview);
+
+      // Compress image if it's a JPEG/PNG and larger than 1MB
+      let fileToUpload = file;
+      if (file.size > 1024 * 1024 && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+        setIsUploading(true);
+        setUploadProgress(0);
+        toast.info('Compressing image...');
+        try {
+          const compressed = await compressImage(file);
+          URL.revokeObjectURL(localPreview);
+          const compressedPreview = URL.createObjectURL(compressed);
+          setPreviewUrl(compressedPreview);
+          fileToUpload = compressed;
+          toast.success(`Image compressed from ${(file.size / 1024 / 1024).toFixed(1)}MB to ${(compressed.size / 1024 / 1024).toFixed(1)}MB`);
+        } catch (compressErr) {
+          console.warn('Image compression failed, uploading original:', compressErr);
+          // Fall back to original file
+        }
+      }
+
       setIsUploading(true);
       setUploadProgress(0);
 
       try {
-        const result = await uploadFile(file, (percent) => {
+        const result = await uploadFile(fileToUpload, (percent) => {
           setUploadProgress(percent);
         });
 
@@ -186,6 +266,10 @@ export const FileUpload: FC<FileUploadProps> = ({
         e.stopPropagation();
         e.preventDefault();
       }
+      // Revoke object URL to prevent memory leaks
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setPreviewUrl(null);
       setInternalError(null);
       setUploadProgress(0);
@@ -199,7 +283,7 @@ export const FileUpload: FC<FileUploadProps> = ({
         onChange('');
       }
     },
-    [onChange, onRemove]
+    [onChange, onRemove, previewUrl]
   );
 
   const triggerSelect = useCallback(() => {

@@ -45,7 +45,7 @@ export default function AvailabilityPage() {
 
   const getAvailabilityForDate = (date: Date): AvailabilityDto | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return availabilities.find((a) => a.date === dateStr);
+    return availabilities.find((a) => a.date.split('T')[0] === dateStr);
   };
 
   const isDateAvailable = (date: Date): boolean => {
@@ -55,7 +55,7 @@ export default function AvailabilityPage() {
 
   const hasAvailabilityData = (date: Date): boolean => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return availabilities.some((a) => a.date === dateStr);
+    return availabilities.some((a) => a.date.split('T')[0] === dateStr);
   };
 
   const handleDateClick = (date: Date) => {

@@ -122,6 +122,9 @@ export const bookingsApi = {
 
   cancelBooking: (id: string) => api.delete<import('@/types').BookingDto>(`/bookings/${id}`),
 
+  rescheduleBooking: (id: string, data: { appointmentDate: string; startTime: string; endTime?: string }) =>
+    api.put<import('@/types').BookingDto>(`/bookings/${id}/reschedule`, data),
+
   // Admin
   getAdminBookings: (params?: {
     date?: string;
@@ -170,6 +173,7 @@ export const loyaltyApi = {
 // Availability API
 export const availabilityApi = {
   getAvailable: () => api.get<import('@/types').AvailabilityDto[]>('/availability'),
+  getSlots: (date: string) => api.get<import('@/types').AvailabilitySlotDto[]>('/availability/slots', { params: { date } }),
 
   // Admin
   getAdmin: (params?: { start?: string; end?: string }) =>

@@ -241,6 +241,12 @@ export interface AvailabilityRequest {
   note?: string;
 }
 
+export interface AvailabilitySlotDto {
+  startTime: string;
+  endTime: string;
+  available: boolean;
+}
+
 // ---------- Admin ----------
 export interface AdminStatsDto {
   totalCustomers: number;

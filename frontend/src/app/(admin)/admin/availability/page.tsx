@@ -139,7 +139,7 @@ export default function AdminAvailabilityPage() {
 
   const getAvailabilityForDate = (date: Date): AvailabilityDto | undefined => {
     const dateStr = format(date, 'yyyy-MM-dd');
-    return availabilities.find((a) => a.date === dateStr);
+    return availabilities.find((a) => a.date.split('T')[0] === dateStr);
   };
 
   const handleDateClick = (date: Date) => {
@@ -204,7 +204,7 @@ export default function AdminAvailabilityPage() {
 
       for (const day of daysInCurrentMonth) {
         const dateStr = format(day, 'yyyy-MM-dd');
-        const existing = availabilities.find((a) => a.date === dateStr);
+        const existing = availabilities.find((a) => a.date.split('T')[0] === dateStr);
         if (existing && !existing.isAvailable) continue;
 
         const scheduleForDay = weeklySchedule.find((s) => s.dayOfWeek === day.getDay());

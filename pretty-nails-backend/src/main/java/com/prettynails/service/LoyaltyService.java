@@ -9,6 +9,7 @@ import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.LoyaltyStampRepository;
 import com.prettynails.repository.UserRepository;
+import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +27,7 @@ public class LoyaltyService {
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final LoyaltyStampRepository loyaltyStampRepository;
     private final UserRepository userRepository;
+    private final TimeProvider timeProvider;
 
     /**
      * Adds a stamp to the user's loyalty card when a booking is completed.
@@ -49,7 +51,7 @@ public class LoyaltyService {
 
         // 3. Increment stampCount, update lastStampAt, recalculate expiresAt (12 months from last stamp)
         int newStampCount = loyaltyCard.getStampCount() + 1;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = timeProvider.localNow();
         loyaltyCard.setStampCount(newStampCount);
         loyaltyCard.setLastStampAt(now);
         loyaltyCard.setExpiresAt(now.plusMonths(12));
@@ -159,14 +161,14 @@ public class LoyaltyService {
                     LoyaltyCard newCard = LoyaltyCard.builder()
                             .userId(userId)
                             .stampCount(0)
-                            .expiresAt(LocalDateTime.now().plusYears(1))
+                            .expiresAt(timeProvider.localNow().plusYears(1))
                             .build();
                     return loyaltyCardRepository.save(newCard);
                 });
 
         // Add stamp
         int newStampCount = (loyaltyCard.getStampCount() != null ? loyaltyCard.getStampCount() : 0) + 1;
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = timeProvider.localNow();
         loyaltyCard.setStampCount(newStampCount);
         loyaltyCard.setLastStampAt(now);
         loyaltyCard.setExpiresAt(now.plusMonths(12));
@@ -204,7 +206,7 @@ public class LoyaltyService {
         LoyaltyStamp redemptionStamp = LoyaltyStamp.builder()
                 .cardId(loyaltyCard.getId())
                 .bookingId(bookingId)
-                .earnedAt(LocalDateTime.now())
+                .earnedAt(timeProvider.localNow())
                 .source("REWARD_REDEMPTION")
                 .amount(-stampCountToDeduct)
                 .build();

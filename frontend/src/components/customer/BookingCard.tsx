@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar,
   Clock,
@@ -14,15 +14,16 @@ import {
   ExternalLink,
   Receipt,
   Eye,
+  RotateCcw,
 } from 'lucide-react';
-import { BookingDto, BookingStatus } from '@/types';
+import { BookingDto, BookingStatus, AvailabilitySlotDto } from '@/types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PaymentQRCode } from '@/components/booking/PaymentQRCode';
 import { formatDate, formatTime, formatPrice, isPast } from '@/lib/utils';
 import { useMutation } from '@/hooks/useApi';
-import { bookingsApi, paymentsApi } from '@/lib/api';
+import { bookingsApi, paymentsApi, availabilityApi } from '@/lib/api';
 import { toast } from 'sonner';
 
 export interface BookingCardProps {
@@ -147,11 +148,16 @@ function ServiceList({ services }: { services: BookingDto['services'] }) {
 export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCardProps) {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showInspirationModal, setShowInspirationModal] = useState(false);
+  const [showRescheduleModal, setShowRescheduleModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'GCASH' | 'MAYA'>(
     (booking.payment?.method as 'GCASH' | 'MAYA') || 'GCASH'
   );
   const [reference, setReference] = useState(booking.payment?.reference || '');
   const [isSubmittingPayment, setIsSubmittingPayment] = useState(false);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [rescheduleTime, setRescheduleTime] = useState('');
+  const [availableSlots, setAvailableSlots] = useState<AvailabilitySlotDto[]>([]);
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false);
 
   const { isPending: isCancelling } = useMutation(
     (bookingId: string) => bookingsApi.cancelBooking(bookingId),
@@ -164,6 +170,42 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
       },
     }
   );
+
+  const { mutate: rescheduleBooking, isPending: isRescheduling } = useMutation(
+    ({ bookingId, data }: { bookingId: string; data: { appointmentDate: string; startTime: string; endTime?: string } }) =>
+      bookingsApi.rescheduleBooking(bookingId, data),
+    {
+      onSuccess: () => {
+        toast.success('Appointment rescheduled successfully.');
+        setShowRescheduleModal(false);
+        if (onPaymentSubmitted) {
+          onPaymentSubmitted();
+        }
+      },
+      onError: (error) => {
+        toast.error(error.message || 'Unable to reschedule appointment. Please try again.');
+      },
+    }
+  );
+
+  // Fetch available slots when reschedule date changes
+  useEffect(() => {
+    if (rescheduleDate) {
+      setIsLoadingSlots(true);
+      availabilityApi.getSlots(rescheduleDate)
+        .then((response) => {
+          setAvailableSlots(response.data || []);
+        })
+        .catch(() => {
+          setAvailableSlots([]);
+        })
+        .finally(() => {
+          setIsLoadingSlots(false);
+        });
+    } else {
+      setAvailableSlots([]);
+    }
+  }, [rescheduleDate]);
 
   const handleCancel = async () => {
     if (window.confirm('Are you sure you want to cancel this booking?')) {
@@ -205,6 +247,7 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
   const canCancel = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
   const isPastBooking = isPast(booking.appointmentDate);
   const canSubmitPayment = booking.status === 'PENDING' && downpaymentStatus !== 'PAID';
+  const canReschedule = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
 
   const inspirationUrl =
     booking.inspirationImg ||
@@ -330,6 +373,23 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
               >
                 <XCircle className="h-3.5 w-3.5 stroke-[1.5]" />
                 Cancel Session
+              </button>
+            )}
+
+            {canReschedule && !isPastBooking && (
+              <button
+                type="button"
+                onClick={() => {
+                  // Pre-fill with current date and time
+                  setRescheduleDate(booking.appointmentDate.split('T')[0]);
+                  setRescheduleTime(booking.startTime);
+                  setShowRescheduleModal(true);
+                }}
+                disabled={isRescheduling}
+                className="inline-flex items-center justify-center h-10 px-5 rounded-full border border-rose-300 dark:border-rose-900 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium gap-1.5 transition-colors disabled:opacity-50"
+              >
+                <RotateCcw className="h-3.5 w-3.5 stroke-[1.5]" />
+                Reschedule
               </button>
             )}
 
@@ -475,6 +535,122 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
               </a>
             </div>
           </div>
+        </Modal>
+      )}
+
+      {/* Reschedule Modal */}
+      {showRescheduleModal && (
+        <Modal
+          isOpen={showRescheduleModal}
+          onClose={() => setShowRescheduleModal(false)}
+          title="Reschedule Appointment"
+          description="Select a new date and time for your appointment. Rescheduling requires at least 24 hours notice before the current appointment."
+          size="lg"
+        >
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (rescheduleDate && rescheduleTime) {
+                // Calculate end time (default 3 hours = 180 minutes)
+                const [hours, minutes] = rescheduleTime.split(':').map(Number);
+                const startDate = new Date();
+                startDate.setHours(hours, minutes, 0, 0);
+                const endDate = new Date(startDate.getTime() + 180 * 60 * 1000);
+                const endTime = endDate.toTimeString().slice(0, 5);
+                rescheduleBooking({
+                  bookingId: booking.id,
+                  data: { appointmentDate: rescheduleDate, startTime: rescheduleTime, endTime },
+                });
+              }
+            }}
+            className="space-y-4 pt-2 font-sans"
+          >
+            <div className="space-y-1.5">
+              <label className="block text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100">
+                New date <span className="text-rose-700 dark:text-rose-400">*</span>
+              </label>
+              <input
+                type="date"
+                value={rescheduleDate}
+                onChange={(e) => {
+                  setRescheduleDate(e.target.value);
+                  setRescheduleTime('');
+                  setAvailableSlots([]);
+                }}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full h-11 pl-4 pr-4 border border-rose-200/80 dark:border-rose-950/60 rounded-xl bg-white dark:bg-stone-900 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
+                required
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100">
+                New time <span className="text-rose-700 dark:text-rose-400">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-stone-400">
+                  <Clock className="h-4 w-4 stroke-[1.5]" />
+                </div>
+                <select
+                  value={rescheduleTime}
+                  onChange={(e) => setRescheduleTime(e.target.value)}
+                  disabled={!rescheduleDate || isLoadingSlots}
+                  className="w-full h-11 pl-10 pr-4 border border-rose-200/80 dark:border-rose-950/60 rounded-xl bg-white dark:bg-stone-900 text-foreground text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 disabled:opacity-50"
+                  required
+                >
+                  <option value="">Select a time slot</option>
+                  {availableSlots.map((slot) => (
+                    <option key={slot.startTime} value={slot.startTime}>
+                      {slot.startTime} - {slot.endTime}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {isLoadingSlots && (
+                <p className="text-xs text-rose-800 dark:text-rose-300 flex items-center gap-1.5">
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Loading available slots...
+                </p>
+              )}
+              {availableSlots.length === 0 && rescheduleDate && !isLoadingSlots && (
+                <p className="text-xs text-amber-800 dark:text-amber-300">
+                  No available slots for this date. Please select another date.
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-rose-200/80 dark:border-rose-950/60">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => {
+                  setShowRescheduleModal(false);
+                  setRescheduleDate('');
+                  setRescheduleTime('');
+                  setAvailableSlots([]);
+                }}
+                disabled={isRescheduling}
+                className="rounded-full px-5"
+              >
+                Cancel
+              </Button>
+              <button
+                type="submit"
+                disabled={isRescheduling || !rescheduleDate || !rescheduleTime}
+                className="inline-flex items-center justify-center h-10 px-6 rounded-full bg-rose-900 hover:bg-rose-950 disabled:opacity-60 text-white font-medium text-xs sm:text-sm transition-colors"
+              >
+                {isRescheduling ? (
+                  <>
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                    Rescheduling...
+                  </>
+                ) : (
+                  'Reschedule Appointment'
+                )}
+              </button>
+            </div>
+          </form>
         </Modal>
       )}
     </>
