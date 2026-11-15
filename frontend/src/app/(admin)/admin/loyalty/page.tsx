@@ -54,7 +54,8 @@ export default function AdminLoyaltyPage() {
   // Access .data from Axios response
   const cards = cardsData?.data ?? [];
   const settings = settingsData?.data;
-  const maxStamps = settings?.stampsPerService ? settings.stampsPerService * 10 : 10;
+  const REWARD_THRESHOLD = 10; // Fixed reward threshold (stamps needed for complimentary reward)
+  const maxStamps = REWARD_THRESHOLD;
 
   // Filter cards by search query
   const filteredCards = cards.filter(
@@ -82,7 +83,7 @@ export default function AdminLoyaltyPage() {
       await loyaltyApi.loyaltyAction({
         userId: targetCard.userId,
         action: type,
-        amount: type === 'EXTEND' ? amount * 30 : amount,
+        amount,
       });
 
       const readableAction =

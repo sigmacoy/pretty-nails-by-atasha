@@ -147,8 +147,8 @@ export const galleryApi = {
     api.get<import('@/types').GalleryDto[]>('/gallery', { params }),
 
   // Admin
-  getAdmin: (params?: { search?: string; category?: string }) =>
-    api.get<import('@/types').GalleryDto[]>('/admin/gallery', { params }),
+  getAdmin: (params?: { search?: string; category?: string; page?: number; size?: number }) =>
+    api.get<import('@/types').GalleryDto[] | import('@/types').AdminGalleryPage>('/admin/gallery', { params }),
   create: (data: import('@/types').GalleryRequest) =>
     api.post<import('@/types').GalleryDto>('/admin/gallery', data),
   update: (id: string, data: import('@/types').GalleryRequest) =>

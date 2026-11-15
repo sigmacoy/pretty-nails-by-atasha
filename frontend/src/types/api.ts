@@ -180,6 +180,17 @@ export interface GalleryRequest {
   isActive: boolean;
 }
 
+// Paginated response for admin gallery (mirrors AdminBookingPage structure)
+export interface AdminGalleryPage {
+  content: GalleryDto[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
 // ---------- Loyalty ----------
 export interface LoyaltyCardDto {
   id: string;

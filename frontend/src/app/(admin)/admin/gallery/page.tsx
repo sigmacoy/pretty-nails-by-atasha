@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Upload,
   Search,
@@ -11,6 +11,7 @@ import {
 import { galleryApi } from '@/lib/api';
 import { GalleryDto, GalleryRequest } from '@/types';
 import { useQuery, useMutation } from '@/hooks/useApi';
+import { GALLERY_CATEGORIES } from '@/lib/constants';
 import { toast } from 'sonner';
 import { GalleryGrid, GalleryForm } from '@/components/admin/gallery';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -19,16 +20,25 @@ import { Select, SelectOption } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
+// Paginated response type (matching AdminBookingPage pattern)
+interface AdminGalleryPage {
+  content: GalleryDto[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
 const DEFAULT_PAGE_SIZE = 12;
 
 const categoryOptions: SelectOption[] = [
   { value: '', label: 'All studio disciplines' },
-  { value: 'GEL', label: 'Structured BIAB Overlay' },
-  { value: 'EXTENSION', label: 'Japanese Soft Gel Extension' },
-  { value: 'VELVET_CAT_EYE', label: 'Velvet Cat-Eye Finish' },
-  { value: 'NAIL_ART', label: 'Bespoke Hand-Painted Art' },
-  { value: 'FRENCH_CONTOUR', label: 'French Hairline Contour' },
-  { value: 'PEDICURE', label: 'Dry Cuticle Hygiene Care' },
+  { value: GALLERY_CATEGORIES.GEL, label: 'Structured BIAB Overlay' },
+  { value: GALLERY_CATEGORIES.EXTENSION, label: 'Japanese Soft Gel Extension' },
+  { value: GALLERY_CATEGORIES.PEDICURE, label: 'Dry Cuticle Hygiene Care' },
+  { value: GALLERY_CATEGORIES.NAIL_ART, label: 'Bespoke Hand-Painted Art' },
 ];
 
 export default function AdminGalleryPage() {
@@ -37,23 +47,43 @@ export default function AdminGalleryPage() {
   const [category, setCategory] = useState('');
   const [currentPage, setCurrentPage] = useState(0);
 
-  // Build API params
-  const params = {
+  // Build API params - include pagination for server-side pagination
+  const params = useMemo(() => ({
     search: search || undefined,
     category: category || undefined,
-  };
+    page: currentPage,
+    size: DEFAULT_PAGE_SIZE,
+  }), [search, category, currentPage]);
 
-  // Fetch gallery items - API returns AxiosResponse<GalleryDto[]>
+  // Fetch gallery items - API returns AxiosResponse<GalleryDto[] | AdminGalleryPage>
   const { data, isLoading, isError, error, refetch } = useQuery(
     () => galleryApi.getAdmin(params),
     { enabled: true }
   );
 
-  // Handle pagination - access .data from Axios response
-  const galleryItems = data?.data ?? [];
-  const totalItems = galleryItems.length;
-  const totalPages = Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
-  const paginatedItems = galleryItems.slice(
+  // Handle both array response (GalleryDto[]) and paginated response (AdminGalleryPage)
+  // Check if response has pagination properties (content, totalElements, totalPages)
+  const responseData = data?.data;
+  const isPaginatedResponse = responseData && typeof responseData === 'object' && 'content' in responseData && 'totalElements' in responseData && 'totalPages' in responseData;
+
+  // Define the paginated response shape inline for casting
+  type PaginatedGalleryResponse = {
+    content: GalleryDto[];
+    totalElements: number;
+    totalPages: number;
+    size: number;
+    number: number;
+    first: boolean;
+    last: boolean;
+  };
+
+  const galleryItems = isPaginatedResponse ? (responseData as PaginatedGalleryResponse).content : (responseData ?? []);
+  const totalItems = isPaginatedResponse ? (responseData as PaginatedGalleryResponse).totalElements : galleryItems.length;
+  const totalPages = isPaginatedResponse ? (responseData as PaginatedGalleryResponse).totalPages : Math.ceil(totalItems / DEFAULT_PAGE_SIZE);
+
+  // For paginated response, items are already paginated server-side
+  // For array response, we need client-side pagination
+  const paginatedItems = isPaginatedResponse ? galleryItems : galleryItems.slice(
     currentPage * DEFAULT_PAGE_SIZE,
     (currentPage + 1) * DEFAULT_PAGE_SIZE
   );
