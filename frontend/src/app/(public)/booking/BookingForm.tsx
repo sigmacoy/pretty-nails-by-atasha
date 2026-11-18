@@ -319,30 +319,35 @@ export function BookingForm() {
       if (valid && appointmentDate) {
         // Re-validate slot availability before proceeding to Step 3
         try {
-          const response = await availabilityApi.getAvailable();
-          const dayAvailability = response.data.find((a) => a.date.split('T')[0] === appointmentDate && a.isAvailable);
-          if (dayAvailability) {
-            const [startHour, startMin] = dayAvailability.startTime.split(':').map(Number);
-            const [endHour, endMin] = dayAvailability.endTime.split(':').map(Number);
-            const slotStartMin = startHour * 60 + startMin;
-            const slotEndMin = endHour * 60 + endMin;
-            const selectedStartMin = parseInt(startTime.split(':')[0]) * 60 + parseInt(startTime.split(':')[1]);
-            const selectedEndMin = selectedStartMin + 30;
-
-            // Check if selected slot falls within available hours
-            const isSlotInRange = selectedStartMin >= slotStartMin && selectedEndMin <= slotEndMin;
-
-            if (!isSlotInRange) {
-              toast.error('Selected time slot is no longer available. Please choose another time.');
-              return;
-            }
-          } else {
+          const response = await availabilityApi.getSlots(appointmentDate);
+          const slots = response.data || [];
+          
+          // Find the selected slot
+          const selectedSlot = slots.find((s) => s.startTime === startTime);
+          
+          if (!selectedSlot) {
+            // Slot no longer exists in available slots (date may be fully booked or unavailable)
+            toast.error('This time slot is no longer available. Please select another time.');
+            return;
+          }
+          
+          if (selectedSlot.available === false) {
+            // Slot is now booked by someone else
+            toast.error('This time slot has just been booked. Please choose another time.');
+            return;
+          }
+          
+          // Also check if the date is still available (not a blackout/holiday)
+          const availabilityResponse = await availabilityApi.getAvailable();
+          const dayAvailability = availabilityResponse.data.find((a) => a.date.split('T')[0] === appointmentDate && a.isAvailable);
+          if (!dayAvailability) {
             // Date is no longer available (blackout/holiday)
             toast.error('This date is no longer available for booking. Please select another date.');
             return;
           }
         } catch (error) {
           console.warn('Could not re-validate slot availability:', error);
+          // On error, we allow proceeding but the backend will validate again
         }
         setCurrentStep(3);
       }

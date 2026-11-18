@@ -43,7 +43,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
-                        .requestMatchers("/api/availability").permitAll()
+                        .requestMatchers("/api/availability", "/api/availability/**").permitAll()
                         .requestMatchers("/api/gallery").permitAll()
                         .requestMatchers("/uploads/**", "/api/uploads/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
@@ -59,7 +59,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(customUserDetailsService);
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
     }

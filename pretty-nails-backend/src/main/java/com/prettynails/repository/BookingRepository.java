@@ -73,4 +73,15 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
      * Used for preventing double-booking race conditions.
      */
     boolean existsByAppointmentDateAndStartTimeAndStatusIn(LocalDateTime appointmentDate, String startTime, List<String> statuses);
+
+    /**
+     * Counts bookings for the given date and time slot with specified statuses, excluding a specific booking ID.
+     * Used for confirming a booking without counting itself as a conflict.
+     */
+    @Query("SELECT COUNT(b) FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.startTime = :startTime AND b.status IN :statuses AND b.id != :excludeId")
+    long countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
+            @Param("appointmentDate") LocalDateTime appointmentDate,
+            @Param("startTime") String startTime,
+            @Param("statuses") List<String> statuses,
+            @Param("excludeId") String excludeId);
 }

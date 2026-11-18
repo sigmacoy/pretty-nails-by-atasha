@@ -51,8 +51,8 @@ public class AdminService {
         long pendingBookings = bookingRepository.countByStatus("PENDING");
 
         YearMonth currentMonth = YearMonth.from(timeProvider.today());
-        LocalDateTime startOfMonth = currentMonth.atDay(1).atStartOfDay();
-        LocalDateTime endOfMonth = currentMonth.atEndOfMonth().atTime(23, 59, 59);
+        LocalDateTime startOfMonth = timeProvider.startOfMonth(currentMonth);
+        LocalDateTime endOfMonth = timeProvider.endOfMonth(currentMonth);
         long completedThisMonth = bookingRepository.countByStatusAndAppointmentDateBetween("COMPLETED", startOfMonth, endOfMonth);
 
         long loyaltyActive = loyaltyCardRepository.countByStampCountGreaterThan(0);

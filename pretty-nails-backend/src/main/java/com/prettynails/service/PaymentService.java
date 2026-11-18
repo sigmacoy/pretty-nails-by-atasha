@@ -87,8 +87,14 @@ public class PaymentService {
 
     @Transactional
     public PaymentDto verifyPayment(String paymentId, User admin) {
-        Payment payment = paymentRepository.findById(paymentId)
+        // Use pessimistic locking to prevent concurrent verifications
+        Payment payment = paymentRepository.findByIdWithPessimisticLock(paymentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", paymentId));
+
+        // Double-check status after acquiring lock
+        if ("PAID".equals(payment.getStatus())) {
+            throw new IllegalStateException("Payment has already been verified.");
+        }
 
         payment.setStatus("PAID");
         payment.setVerifiedAt(timeProvider.localNow());

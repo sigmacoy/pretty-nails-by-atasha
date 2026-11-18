@@ -120,7 +120,7 @@ export const bookingsApi = {
 
   getUserBookings: () => api.get<import('@/types').BookingDto[]>('/bookings'),
 
-  cancelBooking: (id: string) => api.delete<import('@/types').BookingDto>(`/bookings/${id}`),
+  cancelBooking: (id: string) => api.put<import('@/types').BookingDto>(`/bookings/${id}/cancel`),
 
   rescheduleBooking: (id: string, data: { appointmentDate: string; startTime: string; endTime?: string }) =>
     api.put<import('@/types').BookingDto>(`/bookings/${id}/reschedule`, data),

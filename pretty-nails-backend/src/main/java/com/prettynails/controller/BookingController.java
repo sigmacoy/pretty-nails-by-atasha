@@ -6,6 +6,7 @@ import com.prettynails.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -25,7 +26,7 @@ public class BookingController {
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("No authenticated user");
+            throw new AccessDeniedException("No authenticated user");
         }
         return (User) authentication.getPrincipal();
     }
@@ -51,7 +52,7 @@ public class BookingController {
 
         // Check if user owns the booking or is admin
         if (!booking.getUserId().equals(currentUser.getId()) && !"ADMIN".equals(currentUser.getRole())) {
-            throw new IllegalStateException("You can only view your own bookings");
+            throw new AccessDeniedException("You can only view your own bookings");
         }
 
         return ResponseEntity.ok(booking);

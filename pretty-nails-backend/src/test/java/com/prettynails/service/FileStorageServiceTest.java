@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.mock.web.MockMultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -174,5 +177,134 @@ class FileStorageServiceTest {
 
         assertNotNull(response);
         assertTrue(response.getUrl().contains("/uploads/"));
+    }
+
+    // ===== Tests for EXIF stripping and dimension validation (Item 4) =====
+
+    @Test
+    void storeFile_whenImageExceedsMaxDimension_shouldThrowBadRequestException() throws IOException {
+        // Create a large image (5000x5000) - exceeds 4000x4000 limit
+        BufferedImage largeImage = new BufferedImage(5000, 5000, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(largeImage, "png", baos);
+        byte[] imageData = baos.toByteArray();
+
+        MockMultipartFile largeFile = new MockMultipartFile(
+                "file",
+                "large.png",
+                "image/png",
+                imageData
+        );
+
+        BadRequestException ex = assertThrows(
+                BadRequestException.class,
+                () -> fileStorageService.storeFile(largeFile)
+        );
+
+        assertTrue(ex.getMessage().contains("exceed maximum allowed size"));
+        assertTrue(ex.getMessage().contains("5000x5000"));
+    }
+
+    @Test
+    void storeFile_whenImageAtMaxDimension_shouldAccept() throws IOException {
+        // Create image at exactly 4000x4000 - should be accepted
+        BufferedImage maxImage = new BufferedImage(4000, 4000, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(maxImage, "png", baos);
+        byte[] imageData = baos.toByteArray();
+
+        MockMultipartFile maxFile = new MockMultipartFile(
+                "file",
+                "max.png",
+                "image/png",
+                imageData
+        );
+
+        UploadResponse response = fileStorageService.storeFile(maxFile);
+
+        assertNotNull(response);
+        assertTrue(response.getUrl().endsWith(".png"));
+    }
+
+    @Test
+    void storeFile_whenImageUnderMaxDimension_shouldAccept() throws IOException {
+        // Create a small image (100x100) - well under limit
+        BufferedImage smallImage = new BufferedImage(100, 100, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(smallImage, "png", baos);
+        byte[] imageData = baos.toByteArray();
+
+        MockMultipartFile smallFile = new MockMultipartFile(
+                "file",
+                "small.png",
+                "image/png",
+                imageData
+        );
+
+        UploadResponse response = fileStorageService.storeFile(smallFile);
+
+        assertNotNull(response);
+        assertTrue(response.getUrl().endsWith(".png"));
+    }
+
+    @Test
+    void storeFile_whenJpegWithExif_shouldStripExifMetadata() throws IOException {
+        // Create a JPEG image
+        BufferedImage jpegImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(jpegImage, "jpeg", baos);
+        byte[] imageData = baos.toByteArray();
+
+        MockMultipartFile jpegFile = new MockMultipartFile(
+                "file",
+                "photo.jpg",
+                "image/jpeg",
+                imageData
+        );
+
+        UploadResponse response = fileStorageService.storeFile(jpegFile);
+
+        assertNotNull(response);
+        assertTrue(response.getUrl().endsWith(".jpg"));
+        // File should be re-encoded (stripping any EXIF)
+        assertTrue(Files.exists(tempDir.resolve(response.getFilename())));
+    }
+
+    @Test
+    void storeFile_whenInvalidImageData_shouldThrowBadRequestException() {
+        MockMultipartFile invalidFile = new MockMultipartFile(
+                "file",
+                "not-an-image.txt",
+                "image/png",
+                "this is not image data".getBytes()
+        );
+
+        BadRequestException ex = assertThrows(
+                BadRequestException.class,
+                () -> fileStorageService.storeFile(invalidFile)
+        );
+
+        assertTrue(ex.getMessage().contains("could not decode image"));
+    }
+
+    @Test
+    void storeFile_whenWebpImage_shouldProcessAndSave() throws IOException {
+        BufferedImage webpImage = new BufferedImage(800, 600, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(webpImage, "webp", baos);
+        byte[] imageData = baos.toByteArray();
+
+        MockMultipartFile webpFile = new MockMultipartFile(
+                "file",
+                "photo.webp",
+                "image/webp",
+                imageData
+        );
+
+        UploadResponse response = fileStorageService.storeFile(webpFile);
+
+        assertNotNull(response);
+        assertTrue(response.getUrl().endsWith(".webp"));
+        assertTrue(Files.exists(tempDir.resolve(response.getFilename())));
     }
 }

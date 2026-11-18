@@ -4,6 +4,7 @@ import com.prettynails.dto.AvailabilityDtos.*;
 import com.prettynails.entity.Availability;
 import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.repository.AvailabilityRepository;
+import com.prettynails.repository.BookingRepository;
 import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class AvailabilityService {
 
     private final AvailabilityRepository availabilityRepository;
+    private final BookingRepository bookingRepository;
     private final TimeProvider timeProvider;
 
     public List<AvailabilityDto> getAvailableDates() {
@@ -36,7 +38,7 @@ public class AvailabilityService {
      * Get available time slots for a specific date
      */
     public List<AvailabilitySlotDto> getAvailableSlots(LocalDate date) {
-        LocalDateTime dateTime = date.atStartOfDay();
+        LocalDateTime dateTime = timeProvider.startOfDay(date);
         Optional<Availability> availability = availabilityRepository.findByDate(dateTime);
 
         if (availability.isEmpty() || !availability.get().getIsAvailable()) {
@@ -58,13 +60,22 @@ public class AvailabilityService {
         int maxSlots = avail.getMaxSlots();
         int slotCount = 0;
 
+        // Statuses that make a slot unavailable
+        List<String> activeStatuses = List.of("PENDING", "CONFIRMED");
+
         while (slotStart.plusMinutes(slotDurationMinutes).isBefore(slotEnd.plusMinutes(1))) {
             if (slotCount >= maxSlots) break;
 
+            String slotStartTime = slotStart.format(formatter);
+
+            // Check if this slot is already booked with PENDING or CONFIRMED status
+            boolean isBooked = bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                    dateTime, slotStartTime, activeStatuses);
+
             slots.add(AvailabilitySlotDto.builder()
-                    .startTime(slotStart.format(formatter))
+                    .startTime(slotStartTime)
                     .endTime(slotStart.plusMinutes(slotDurationMinutes).format(formatter))
-                    .available(true)
+                    .available(!isBooked)
                     .build());
 
             slotStart = slotStart.plusMinutes(slotDurationMinutes);

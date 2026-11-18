@@ -73,4 +73,18 @@ public class TimeProvider {
     public LocalDateTime endOfDay(LocalDate date) {
         return date.atTime(23, 59, 59, 999_999_999);
     }
+
+    /**
+     * Start of the given month in Manila timezone (first day, 00:00:00).
+     */
+    public LocalDateTime startOfMonth(java.time.YearMonth yearMonth) {
+        return yearMonth.atDay(1).atStartOfDay();
+    }
+
+    /**
+     * End of the given month in Manila timezone (last day, 23:59:59.999999999).
+     */
+    public LocalDateTime endOfMonth(java.time.YearMonth yearMonth) {
+        return yearMonth.atEndOfMonth().atTime(23, 59, 59, 999_999_999);
+    }
 }

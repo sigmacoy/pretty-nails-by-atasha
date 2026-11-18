@@ -53,11 +53,11 @@ public class BookingService {
     public BookingResponse createBooking(User user, BookingRequest request) {
         // 1. Parse appointmentDate
         LocalDate appointmentDate = LocalDate.parse(request.getAppointmentDate());
-        LocalDateTime appointmentDateTime = appointmentDate.atStartOfDay();
+        LocalDateTime appointmentDateTime = timeProvider.startOfDay(appointmentDate);
 
         // 2. Check availability (if not available or holiday -> 400)
-        LocalDateTime startOfDay = appointmentDate.atStartOfDay();
-        LocalDateTime endOfDay = appointmentDate.atTime(23, 59, 59, 999_999_999);
+        LocalDateTime startOfDay = timeProvider.startOfDay(appointmentDate);
+        LocalDateTime endOfDay = timeProvider.endOfDay(appointmentDate);
 
         Availability availability = availabilityRepository.findByDateBetweenOrderByDateAsc(startOfDay, endOfDay)
                 .stream().findFirst().orElse(null);
@@ -207,8 +207,8 @@ public class BookingService {
     }
 
     public List<BookingDto> getAllBookings(String status, LocalDate startDate, LocalDate endDate) {
-        LocalDateTime start = startDate != null ? startDate.atStartOfDay() : null;
-        LocalDateTime end = endDate != null ? endDate.atTime(23, 59, 59, 999_999_999) : null;
+        LocalDateTime start = startDate != null ? timeProvider.startOfDay(startDate) : null;
+        LocalDateTime end = endDate != null ? timeProvider.endOfDay(endDate) : null;
 
         List<Booking> bookings;
         if (status != null && !status.isEmpty() && start != null && end != null) {
@@ -232,6 +232,20 @@ public class BookingService {
         String currentStatus = booking.getStatus();
         if (!"PENDING".equals(currentStatus)) {
             throw new BadRequestException("Only PENDING bookings can be confirmed. Current status: " + currentStatus);
+        }
+
+        // Check for conflicting active bookings on the same date and time slot
+        // (excluding the current booking being confirmed)
+        if (bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                booking.getAppointmentDate(), booking.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
+            // Need to check if it's the same booking (the one we're confirming)
+            // Since we're confirming THIS booking, and it's currently PENDING, the query will find it
+            // We need to exclude the current booking ID from the check
+            long conflictCount = bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
+                    booking.getAppointmentDate(), booking.getStartTime(), List.of("PENDING", "CONFIRMED"), bookingId);
+            if (conflictCount > 0) {
+                throw new BadRequestException("Cannot confirm: another PENDING or CONFIRMED booking already holds this date and time slot.");
+            }
         }
 
         booking.setStatus("CONFIRMED");
@@ -410,11 +424,11 @@ public class BookingService {
 
         // Parse new appointment date and time
         LocalDate newAppointmentDate = LocalDate.parse(request.getAppointmentDate());
-        LocalDateTime newAppointmentDateTime = newAppointmentDate.atStartOfDay();
+        LocalDateTime newAppointmentDateTime = timeProvider.startOfDay(newAppointmentDate);
 
         // Check availability for new date
-        LocalDateTime startOfDay = newAppointmentDate.atStartOfDay();
-        LocalDateTime endOfDay = newAppointmentDate.atTime(23, 59, 59, 999_999_999);
+        LocalDateTime startOfDay = timeProvider.startOfDay(newAppointmentDate);
+        LocalDateTime endOfDay = timeProvider.endOfDay(newAppointmentDate);
 
         Availability availability = availabilityRepository.findByDateBetweenOrderByDateAsc(startOfDay, endOfDay)
                 .stream().findFirst().orElse(null);

@@ -257,8 +257,8 @@ public class LoyaltyService {
             case ADD_STAMP -> {
                 int amount = request.getAmount() != null ? request.getAmount() : 1;
                 loyaltyCard.setStampCount(loyaltyCard.getStampCount() + amount);
-                loyaltyCard.setLastStampAt(LocalDateTime.now());
-                loyaltyCard.setExpiresAt(LocalDateTime.now().plusMonths(12));
+                loyaltyCard.setLastStampAt(timeProvider.localNow());
+                loyaltyCard.setExpiresAt(timeProvider.localNow().plusMonths(12));
                 message = amount + " stamp(s) added";
             }
             case REMOVE_STAMP -> {
@@ -266,22 +266,22 @@ public class LoyaltyService {
                 int newCount = Math.max(0, loyaltyCard.getStampCount() - amount);
                 loyaltyCard.setStampCount(newCount);
                 if (newCount > 0) {
-                    loyaltyCard.setLastStampAt(LocalDateTime.now());
-                    loyaltyCard.setExpiresAt(LocalDateTime.now().plusMonths(12));
+                    loyaltyCard.setLastStampAt(timeProvider.localNow());
+                    loyaltyCard.setExpiresAt(timeProvider.localNow().plusMonths(12));
                 }
                 message = amount + " stamp(s) removed";
             }
             case RESET -> {
                 loyaltyCard.setStampCount(0);
                 loyaltyCard.setLastStampAt(null);
-                loyaltyCard.setExpiresAt(LocalDateTime.now().plusYears(1));
+                loyaltyCard.setExpiresAt(timeProvider.localNow().plusYears(1));
                 message = "Loyalty card reset";
             }
             case EXTEND -> {
                 int months = request.getAmount() != null ? request.getAmount() : 12;
-                LocalDateTime base = loyaltyCard.getExpiresAt() != null && loyaltyCard.getExpiresAt().isAfter(LocalDateTime.now())
+                LocalDateTime base = loyaltyCard.getExpiresAt() != null && loyaltyCard.getExpiresAt().isAfter(timeProvider.localNow())
                         ? loyaltyCard.getExpiresAt()
-                        : LocalDateTime.now();
+                        : timeProvider.localNow();
                 loyaltyCard.setExpiresAt(base.plusMonths(months));
                 message = "Expiry extended by " + months + " month(s)";
             }

@@ -21,7 +21,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { PaymentQRCode } from '@/components/booking/PaymentQRCode';
-import { formatDate, formatTime, formatPrice, isPast } from '@/lib/utils';
+import { formatDate, formatTime, formatPrice, isPast, isWithin24HoursManila, isPastManila } from '@/lib/utils';
 import { useMutation } from '@/hooks/useApi';
 import { bookingsApi, paymentsApi, availabilityApi } from '@/lib/api';
 import { toast } from 'sonner';
@@ -245,7 +245,8 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
 
   const downpaymentStatus = getDownpaymentStatus(booking);
   const canCancel = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
-  const isPastBooking = isPast(booking.appointmentDate);
+  const isPastBooking = isPastManila(booking.appointmentDate, booking.startTime);
+  const within24Hours = isWithin24HoursManila(booking.appointmentDate, booking.startTime);
   const canSubmitPayment = booking.status === 'PENDING' && downpaymentStatus !== 'PAID';
   const canReschedule = booking.status === 'PENDING' || booking.status === 'CONFIRMED';
 
@@ -368,8 +369,9 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
               <button
                 type="button"
                 onClick={handleCancel}
-                disabled={isCancelling}
+                disabled={isCancelling || within24Hours}
                 className="inline-flex items-center justify-center h-10 px-5 rounded-full border border-rose-300 dark:border-rose-900 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium gap-1.5 transition-colors disabled:opacity-50"
+                title={within24Hours ? 'Cancellation requires at least 24 hours notice' : ''}
               >
                 <XCircle className="h-3.5 w-3.5 stroke-[1.5]" />
                 Cancel Session
@@ -385,12 +387,20 @@ export function BookingCard({ booking, onCancel, onPaymentSubmitted }: BookingCa
                   setRescheduleTime(booking.startTime);
                   setShowRescheduleModal(true);
                 }}
-                disabled={isRescheduling}
+                disabled={isRescheduling || within24Hours}
                 className="inline-flex items-center justify-center h-10 px-5 rounded-full border border-rose-300 dark:border-rose-900 text-rose-800 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium gap-1.5 transition-colors disabled:opacity-50"
+                title={within24Hours ? 'Rescheduling requires at least 24 hours notice' : ''}
               >
                 <RotateCcw className="h-3.5 w-3.5 stroke-[1.5]" />
                 Reschedule
               </button>
+            )}
+
+            {within24Hours && !isPastBooking && (canCancel || canReschedule) && (
+              <span className="inline-flex items-center h-10 px-4 rounded-full bg-amber-50 dark:bg-amber-950/40 text-xs text-amber-800 dark:text-amber-200 font-medium gap-1.5 border border-amber-200 dark:border-amber-900">
+                <AlertCircle className="h-3.5 w-3.5 stroke-[1.5]" />
+                Within 24 hours - changes not allowed
+              </span>
             )}
 
             {isPastBooking && booking.status !== 'CANCELLED' && booking.status !== 'NO_SHOW' && (

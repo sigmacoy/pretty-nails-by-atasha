@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format, parseISO, isValid } from 'date-fns';
+import { format, parseISO, isValid, addHours } from 'date-fns';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -176,4 +176,49 @@ export function getDaysInMonth(year: number, month: number): number {
 
 export function getFirstDayOfMonth(year: number, month: number): number {
   return new Date(year, month, 1).getDay(); // 0 = Sunday
+}
+
+/**
+ * Checks if a booking appointment is within 24 hours from now in Manila timezone (UTC+8).
+ * Manila does not observe DST, so offset is always +8 hours.
+ * @param appointmentDate - ISO date string (e.g., "2025-12-25T00:00:00.000Z" or "2025-12-25")
+ * @param startTime - Time string in HH:mm format (e.g., "10:00")
+ * @returns true if the appointment is within 24 hours (including past appointments)
+ */
+export function isWithin24HoursManila(appointmentDate: string, startTime: string): boolean {
+  // Parse the appointment date and time in Manila timezone
+  const [hours, minutes] = startTime.split(':').map(Number);
+  
+  // Create a date object in Manila timezone (UTC+8)
+  const appointmentDateObj = parseISO(appointmentDate);
+  // Set the time components
+  appointmentDateObj.setHours(hours, minutes, 0, 0);
+  
+  // Get current time in Manila (UTC+8)
+  const now = new Date();
+  // Convert to Manila time: get UTC time and add 8 hours
+  const manilaNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 3600000));
+  
+  // Calculate the difference in milliseconds
+  const diffMs = appointmentDateObj.getTime() - manilaNow.getTime();
+  const diffHours = diffMs / (1000 * 60 * 60);
+  
+  // Within 24 hours means diffHours <= 24 (and not negative past appointments)
+  // We consider it "within 24 hours" if the appointment is less than 24 hours away
+  return diffHours <= 24 && diffHours > 0;
+}
+
+/**
+ * Checks if a booking appointment is in the past in Manila timezone.
+ */
+export function isPastManila(appointmentDate: string, startTime: string): boolean {
+  const [hours, minutes] = startTime.split(':').map(Number);
+  
+  const appointmentDateObj = parseISO(appointmentDate);
+  appointmentDateObj.setHours(hours, minutes, 0, 0);
+  
+  const now = new Date();
+  const manilaNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 3600000));
+  
+  return appointmentDateObj < manilaNow;
 }

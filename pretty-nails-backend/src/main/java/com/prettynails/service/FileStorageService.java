@@ -10,6 +10,12 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,6 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -26,6 +33,7 @@ import java.util.UUID;
 public class FileStorageService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB in bytes
+    private static final int MAX_DIMENSION = 4000; // max width/height in pixels
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg",
             "image/png",
@@ -76,9 +84,11 @@ public class FileStorageService {
         }
 
         try (InputStream inputStream = file.getInputStream()) {
-            Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+            // Read image and validate dimensions, strip EXIF
+            byte[] processedImage = processImage(inputStream, extension);
+            Files.write(destinationFile, processedImage);
             log.info("File successfully stored: {} (original: {}, size: {} bytes)",
-                    storedFilename, originalFilename, file.getSize());
+                    storedFilename, originalFilename, processedImage.length);
         } catch (IOException e) {
             log.error("Failed to store file: {}", originalFilename, e);
             throw new BadRequestException("Failed to store file: " + e.getMessage());
@@ -91,6 +101,45 @@ public class FileStorageService {
                 .filename(storedFilename)
                 .size(file.getSize())
                 .build();
+    }
+
+    /**
+     * Process the image: validate dimensions and strip EXIF metadata by re-encoding.
+     * @param inputStream the input stream of the uploaded image
+     * @param extension the file extension (jpg, jpeg, png, webp)
+     * @return the processed image bytes
+     * @throws IOException if image processing fails
+     */
+    private byte[] processImage(InputStream inputStream, String extension) throws IOException {
+        // Read the image to validate dimensions
+        BufferedImage image = ImageIO.read(inputStream);
+        if (image == null) {
+            throw new BadRequestException("Invalid image file: could not decode image.");
+        }
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+            throw new BadRequestException(
+                    String.format("Image dimensions (%dx%d) exceed maximum allowed size of %dx%d pixels.",
+                            width, height, MAX_DIMENSION, MAX_DIMENSION));
+        }
+
+        // Re-encode to strip EXIF metadata
+        // Use the same format as the original
+        String formatName = switch (extension.toLowerCase(Locale.ROOT)) {
+            case "jpg", "jpeg" -> "JPEG";
+            case "png" -> "PNG";
+            case "webp" -> "WEBP";
+            default -> "PNG";
+        };
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            // For JPEG, we can optionally set quality; for PNG and WebP, default is fine
+            ImageIO.write(image, formatName, outputStream);
+            return outputStream.toByteArray();
+        }
     }
 
     private void validateFile(MultipartFile file) {

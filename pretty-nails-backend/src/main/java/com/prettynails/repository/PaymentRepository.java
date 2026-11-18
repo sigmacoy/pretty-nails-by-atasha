@@ -1,7 +1,9 @@
 package com.prettynails.repository;
 
 import com.prettynails.entity.Payment;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,6 +16,10 @@ import java.util.Optional;
 public interface PaymentRepository extends JpaRepository<Payment, String> {
 
     Optional<Payment> findByBookingId(String bookingId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Payment p WHERE p.id = :id")
+    Optional<Payment> findByIdWithPessimisticLock(@Param("id") String id);
 
     @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.status = 'PAID' AND p.verifiedAt >= :since")
     Long sumPaidAmountSince(@Param("since") LocalDateTime since);

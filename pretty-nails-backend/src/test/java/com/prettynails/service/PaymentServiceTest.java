@@ -184,4 +184,85 @@ class PaymentServiceTest {
         assertThatThrownBy(() -> paymentService.verifyPayment("non-existent", testAdmin))
                 .isInstanceOf(ResourceNotFoundException.class);
     }
+
+    // ===== Tests for optimistic/pessimistic locking on payment verification (Item 6) =====
+
+    @Test
+    void verifyPayment_whenPaymentAlreadyVerified_shouldThrowIllegalStateException() {
+        testPayment.setStatus("PAID");
+        testPayment.setVerifiedAt(LocalDateTime.now());
+        testPayment.setVerifiedBy("admin-001");
+
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+
+        assertThatThrownBy(() -> paymentService.verifyPayment("pay-001", testAdmin))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already been verified");
+    }
+
+    @Test
+    void verifyPayment_usesPessimisticLockToPreventConcurrentVerification() {
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.findById("booking-001")).thenReturn(Optional.of(testBooking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        paymentService.verifyPayment("pay-001", testAdmin);
+
+        // Verify pessimistic lock was used
+        verify(paymentRepository).findByIdWithPessimisticLock("pay-001");
+    }
+
+    @Test
+    void verifyPayment_whenConcurrentVerificationAttempt_shouldHandleGracefully() {
+        // Simulate two admins trying to verify the same payment
+        // First verification succeeds
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> {
+            Payment p = invocation.getArgument(0);
+            p.setStatus("PAID");
+            return p;
+        });
+        when(bookingRepository.findById("booking-001")).thenReturn(Optional.of(testBooking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PaymentDto result1 = paymentService.verifyPayment("pay-001", testAdmin);
+        assertThat(result1.getStatus()).isEqualTo("PAID");
+
+        // Second verification on already paid payment should throw
+        testPayment.setStatus("PAID");
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+
+        assertThatThrownBy(() -> paymentService.verifyPayment("pay-001", testAdmin))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("already been verified");
+    }
+
+    @Test
+    void verifyPayment_updatesPaymentWithVerifiedAtAndVerifiedBy() {
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.findById("booking-001")).thenReturn(Optional.of(testBooking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        PaymentDto result = paymentService.verifyPayment("pay-001", testAdmin);
+
+        assertThat(result.getVerifiedAt()).isNotNull();
+        assertThat(result.getVerifiedBy()).isEqualTo("admin-999");
+        assertThat(result.getStatus()).isEqualTo("PAID");
+    }
+
+    @Test
+    void verifyPayment_updatesBookingStatusToConfirmed() {
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(bookingRepository.findById("booking-001")).thenReturn(Optional.of(testBooking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        paymentService.verifyPayment("pay-001", testAdmin);
+
+        ArgumentCaptor<Booking> bookingCaptor = ArgumentCaptor.forClass(Booking.class);
+        verify(bookingRepository).save(bookingCaptor.capture());
+        assertThat(bookingCaptor.getValue().getStatus()).isEqualTo("CONFIRMED");
+    }
 }
