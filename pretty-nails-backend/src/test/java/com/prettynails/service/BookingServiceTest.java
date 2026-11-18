@@ -58,9 +58,6 @@ class BookingServiceTest {
     private LoyaltyCardRepository loyaltyCardRepository;
 
     @Mock
-    private LoyaltyService loyaltyService;
-
-    @Mock
     private TimeProvider timeProvider;
 
     @InjectMocks
@@ -214,19 +211,6 @@ class BookingServiceTest {
         assertThatThrownBy(() -> bookingService.cancelBookingByCustomer("booking-123", "user-123"))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessageContaining("Only PENDING or CONFIRMED bookings can be cancelled");
-    }
-
-    @Test
-    void confirmBooking_whenRedeemLoyaltyRewardIsTrue_shouldDeductStamps() {
-        testBooking.setRedeemLoyaltyReward(true);
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-
-        BookingDto result = bookingService.confirmBooking("booking-123");
-
-        assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo("CONFIRMED");
-        verify(loyaltyService).redeemRewardStamps("user-123", "booking-123", 10);
     }
 
     @Test

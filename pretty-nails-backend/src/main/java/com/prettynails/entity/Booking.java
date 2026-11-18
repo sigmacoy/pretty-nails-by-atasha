@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
-@Table(name = "bookings")
+@Table(name = "bookings", uniqueConstraints = @UniqueConstraint(name = "uk_booking_slot_active", columnNames = {"appointment_date", "start_time"}))
 @Getter
 @Setter
 @NoArgsConstructor

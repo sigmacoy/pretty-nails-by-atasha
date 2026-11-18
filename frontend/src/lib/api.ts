@@ -164,6 +164,10 @@ export const loyaltyApi = {
   addStamp: (qrCode: string) =>
     api.post<import('@/types').StampResponse>('/loyalty/stamp', { qrCode }),
 
+  // Staff (for QR scanner)
+  addStampAsStaff: (qrCode: string) =>
+    api.post<import('@/types').StampResponse>('/staff/loyalty/stamp', { qrCode }),
+
   // Admin
   getAllCards: (params?: { search?: string; page?: number; size?: number }) =>
     api.get<import('@/types').AdminLoyaltyCardDto[] | import('@/types').AdminLoyaltyPage>('/admin/loyalty', { params }),

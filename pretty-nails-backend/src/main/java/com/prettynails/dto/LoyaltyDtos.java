@@ -52,6 +52,7 @@ public class LoyaltyDtos {
         private Boolean success;
         private Integer stampCount;
         private String message;
+        private Integer requiredStamps;
     }
 
     @Data

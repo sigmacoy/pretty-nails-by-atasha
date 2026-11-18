@@ -1,0 +1,33 @@
+# Build artifacts
+target/
+*.jar
+*.war
+*.ear
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Git
+.git/
+.gitignore
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
+
+# Local config
+application-local.yml
+application-docker.yml
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Test reports
+target/surefire-reports/
+target/failsafe-reports/

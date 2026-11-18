@@ -52,6 +52,16 @@ public class LoyaltyController {
         return ResponseEntity.ok(response);
     }
 
+    // Staff endpoints (for QR scanner)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
+    @PostMapping("/staff/loyalty/stamp")
+    public ResponseEntity<StampResponse> addStampViaQrAsStaff(@Valid @RequestBody StampRequest request) {
+        // Staff can add stamp using QR code without customer authentication
+        // The QR code contains the booking ID
+        StampResponse response = loyaltyService.addStampViaQrByBookingId(request.getQrCode());
+        return ResponseEntity.ok(response);
+    }
+
     // Admin endpoints
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/admin/loyalty")

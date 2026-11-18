@@ -59,6 +59,12 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     long countByStatusAndAppointmentDateBetween(String status, LocalDateTime start, LocalDateTime end);
 
+    /**
+     * Counts bookings for the given user with the specified status.
+     * Used for no-show policy tracking.
+     */
+    long countByUserIdAndStatus(String userId, String status);
+
     @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = :status")
     Long sumTotalPriceByStatus(String status);
 

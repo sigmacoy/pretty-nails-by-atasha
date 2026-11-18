@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Chrome, Facebook } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/lib/validations';
@@ -12,6 +12,9 @@ import { StudioMark } from '@/components/layout/Header';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+
+const OAUTH_GOOGLE_URL = `${process.env.NEXT_PUBLIC_API_BASE || '/api/backend'}/oauth2/authorization/google`;
+const OAUTH_FACEBOOK_URL = `${process.env.NEXT_PUBLIC_API_BASE || '/api/backend'}/oauth2/authorization/facebook`;
 
 export function LoginForm() {
   const router = useRouter();
@@ -61,6 +64,12 @@ export function LoginForm() {
     }
   };
 
+  const handleOAuthLogin = (providerUrl: string) => {
+    // Store redirect URL in sessionStorage for OAuth callback
+    sessionStorage.setItem('oauth_redirect', redirectTo);
+    window.location.href = providerUrl;
+  };
+
   return (
     <div className="w-full max-w-[440px] mx-auto">
       {/* Studio Brand Header */}
@@ -85,6 +94,40 @@ export function LoginForm() {
 
       {/* Warm Editorial Salon Sheet */}
       <div className="rounded-3xl bg-white/95 dark:bg-stone-900/95 border border-rose-200/80 dark:border-rose-950/60 p-7 sm:p-9 shadow-card backdrop-blur-sm">
+        {/* OAuth Buttons */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <button
+            type="button"
+            onClick={() => handleOAuthLogin(OAUTH_GOOGLE_URL)}
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-200 font-medium text-sm hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Continue with Google"
+          >
+            <Chrome className="h-5 w-5" />
+            <span>Google</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOAuthLogin(OAUTH_FACEBOOK_URL)}
+            disabled={isSubmitting}
+            className="inline-flex items-center justify-center gap-2 h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white/90 dark:bg-stone-800/90 text-stone-700 dark:text-stone-200 font-medium text-sm hover:bg-rose-50/50 dark:hover:bg-rose-950/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Continue with Facebook"
+          >
+            <Facebook className="h-5 w-5" />
+            <span>Facebook</span>
+          </button>
+        </div>
+
+        {/* Divider */}
+        <div className="relative mb-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-rose-200/80 dark:border-rose-950/60" />
+          </div>
+          <div className="relative flex justify-center text-xs">
+            <span className="bg-white/95 dark:bg-stone-900/95 px-4 text-stone-500 dark:text-stone-400">Or continue with email</span>
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5 font-sans">
           <Input
             label="Email or username"

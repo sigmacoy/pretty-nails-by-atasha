@@ -6,6 +6,7 @@ import com.prettynails.entity.LoyaltyStamp;
 import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
 import com.prettynails.exception.ResourceNotFoundException;
+import com.prettynails.repository.BookingRepository;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.LoyaltyStampRepository;
 import com.prettynails.repository.UserRepository;
@@ -27,6 +28,7 @@ public class LoyaltyService {
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final LoyaltyStampRepository loyaltyStampRepository;
     private final UserRepository userRepository;
+    private final BookingRepository bookingRepository;
     private final TimeProvider timeProvider;
 
     /**
@@ -186,6 +188,115 @@ public class LoyaltyService {
         return StampResponse.builder()
                 .success(true)
                 .stampCount(newStampCount)
+                .message("Stamp added successfully")
+                .build();
+    }
+
+    /**
+     * Add stamp via QR code by booking ID (staff facing)
+     * The QR code contains the booking ID, and staff can add a stamp for that booking
+     * without customer authentication.
+     *
+     * QR Code formats supported:
+     * - "BOOKING:<bookingId>"
+     * - "bookingId:stampType:timestamp"
+     */
+    @Transactional
+    public StampResponse addStampViaQrByBookingId(String qrCode) {
+        if (qrCode == null || qrCode.isBlank()) {
+            return StampResponse.builder()
+                    .success(false)
+                    .stampCount(0)
+                    .message("Invalid QR code format")
+                    .build();
+        }
+
+        String bookingId;
+        String stampType = "SERVICE";
+
+        String trimmedQr = qrCode.trim();
+        if (trimmedQr.startsWith("BOOKING:")) {
+            bookingId = trimmedQr.substring("BOOKING:".length()).trim();
+            if (bookingId.isEmpty()) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Invalid QR code format")
+                        .build();
+            }
+            if (bookingId.contains(":")) {
+                String[] subParts = bookingId.split(":");
+                bookingId = subParts[0];
+                if (subParts.length > 1 && !subParts[1].isBlank()) {
+                    stampType = subParts[1];
+                }
+            }
+        } else {
+            String[] parts = trimmedQr.split(":");
+            if (parts.length < 2) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Invalid QR code format")
+                        .build();
+            }
+            bookingId = parts[0];
+            stampType = parts[1];
+        }
+
+        // Check if stamp already exists for this booking
+        if (loyaltyStampRepository.existsByBookingId(bookingId)) {
+            return StampResponse.builder()
+                    .success(false)
+                    .stampCount(0)
+                    .message("Stamp already exists for this booking")
+                    .build();
+        }
+
+        // Find the booking to get the user ID
+        var bookingOpt = bookingRepository.findById(bookingId);
+        if (bookingOpt.isEmpty()) {
+            return StampResponse.builder()
+                    .success(false)
+                    .stampCount(0)
+                    .message("Booking not found")
+                    .build();
+        }
+
+        String userId = bookingOpt.get().getUserId();
+
+        // Get or create loyalty card for the customer
+        LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
+                .orElseGet(() -> {
+                    LoyaltyCard newCard = LoyaltyCard.builder()
+                            .userId(userId)
+                            .stampCount(0)
+                            .expiresAt(timeProvider.localNow().plusYears(1))
+                            .build();
+                    return loyaltyCardRepository.save(newCard);
+                });
+
+        // Add stamp
+        int newStampCount = (loyaltyCard.getStampCount() != null ? loyaltyCard.getStampCount() : 0) + 1;
+        LocalDateTime now = timeProvider.localNow();
+        loyaltyCard.setStampCount(newStampCount);
+        loyaltyCard.setLastStampAt(now);
+        loyaltyCard.setExpiresAt(now.plusMonths(12));
+        loyaltyCardRepository.save(loyaltyCard);
+
+        // Create stamp record
+        LoyaltyStamp stamp = LoyaltyStamp.builder()
+                .cardId(loyaltyCard.getId())
+                .bookingId(bookingId)
+                .earnedAt(now)
+                .source(stampType + "_STAFF")
+                .build();
+        loyaltyStampRepository.save(stamp);
+
+        return StampResponse.builder()
+                .success(true)
+                .stampCount(newStampCount)
+                .requiredStamps(10) // 10 stamps needed for reward
                 .message("Stamp added successfully")
                 .build();
     }

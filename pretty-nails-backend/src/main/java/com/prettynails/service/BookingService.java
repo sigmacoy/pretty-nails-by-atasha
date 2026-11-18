@@ -18,6 +18,7 @@ import com.prettynails.repository.ServiceRepository;
 import com.prettynails.repository.ServiceVariantRepository;
 import com.prettynails.repository.UserRepository;
 import com.prettynails.service.LoyaltyService;
+import com.prettynails.service.NoShowPolicyService;
 import com.prettynails.util.TimeProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -44,6 +45,7 @@ public class BookingService {
     private final UserRepository userRepository;
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final LoyaltyService loyaltyService;
+    private final NoShowPolicyService noShowPolicyService;
     private final TimeProvider timeProvider;
 
     private static final int DEFAULT_MAX_SLOTS = 4;
@@ -271,6 +273,25 @@ public class BookingService {
 
         booking.setStatus("CANCELLED");
         booking = bookingRepository.save(booking);
+
+        return mapToBookingDto(booking);
+    }
+
+    @Transactional
+    public BookingDto markNoShow(String bookingId) {
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+
+        String currentStatus = booking.getStatus();
+        if (!"CONFIRMED".equals(currentStatus)) {
+            throw new BadRequestException("Only CONFIRMED bookings can be marked as NO_SHOW. Current status: " + currentStatus);
+        }
+
+        booking.setStatus("NO_SHOW");
+        booking = bookingRepository.save(booking);
+
+        // Record no-show for policy enforcement
+        noShowPolicyService.recordNoShow(booking.getUserId());
 
         return mapToBookingDto(booking);
     }

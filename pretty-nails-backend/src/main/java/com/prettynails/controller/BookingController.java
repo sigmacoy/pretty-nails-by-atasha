@@ -3,6 +3,7 @@ package com.prettynails.controller;
 import com.prettynails.dto.BookingDtos.*;
 import com.prettynails.entity.User;
 import com.prettynails.service.BookingService;
+import com.prettynails.service.NoShowPolicyService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +23,7 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final NoShowPolicyService noShowPolicyService;
 
     private User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -82,8 +84,16 @@ public class BookingController {
             case "CONFIRMED" -> updatedBooking = bookingService.confirmBooking(id);
             case "COMPLETED" -> updatedBooking = bookingService.completeBooking(id);
             case "CANCELLED" -> updatedBooking = bookingService.cancelBooking(id);
+            case "NO_SHOW" -> updatedBooking = bookingService.markNoShow(id);
             default -> throw new IllegalArgumentException("Invalid status: " + request.getStatus());
         }
+        return ResponseEntity.ok(updatedBooking);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/bookings/{id}/no-show")
+    public ResponseEntity<BookingDto> markNoShow(@PathVariable String id) {
+        BookingDto updatedBooking = bookingService.markNoShow(id);
         return ResponseEntity.ok(updatedBooking);
     }
 
@@ -116,5 +126,12 @@ public class BookingController {
     public ResponseEntity<BookingDto> cancelBooking(@PathVariable String id) {
         BookingDto cancelledBooking = bookingService.cancelBooking(id);
         return ResponseEntity.ok(cancelledBooking);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/admin/users/{userId}/unblock")
+    public ResponseEntity<Void> unblockUser(@PathVariable String userId) {
+        noShowPolicyService.unblockUser(userId);
+        return ResponseEntity.ok().build();
     }
 }

@@ -36,6 +36,21 @@ spring:
     init:
       mode: never
 
+  mail:
+    host: smtp.sendgrid.net
+    port: 587
+    username: apikey
+    password: ${SENDGRID_API_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 jwt:
   secret: ${JWT_SECRET:cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n}
   expiration: ${JWT_EXPIRATION:2592000000}
@@ -55,12 +70,36 @@ app:
     max-file-size: 5242880
     base-url: ""
   email:
+    from-email: ${SENDGRID_FROM_EMAIL:noreply@prettynails.example.com}
     verification-url: http://localhost:3000/verify-email
     reset-url: http://localhost:3000/reset-password
   rate-limit:
     auth:
       requests-per-minute: 10
       requests-per-hour: 100
+  password-policy:
+    min-length: 12
+    min-zxcvbn-score: 3
+    history-size: 5
+    hibp-check-enabled: true
+    hibp-api-url: https://api.pwnedpasswords.com/range/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    oauth:
+      use-pkce-with-authorization-code-grant: true
+  show-actuator: false
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  packages-to-scan: com.prettynails.controller
 
 logging:
   level:

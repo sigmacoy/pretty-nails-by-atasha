@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const PUBLIC_ROUTES = ['/login', '/register'];
+const PUBLIC_ROUTES = ['/login', '/register', '/staff/scanner'];
 const CUSTOMER_ROUTES = ['/my-bookings', '/loyalty', '/profile'];
 
 export function middleware(request: NextRequest) {

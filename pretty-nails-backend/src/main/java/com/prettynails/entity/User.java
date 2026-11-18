@@ -68,6 +68,18 @@ public class User implements UserDetails {
     @Column(name = "phone", length = 20)
     private String phone;
 
+    @Column(name = "oauth2_provider", length = 50)
+    private String oauth2Provider;
+
+    @Column(name = "oauth2_provider_id", length = 255)
+    private String oauth2ProviderId;
+
+    @Column(name = "password_changed_at")
+    private LocalDateTime passwordChangedAt;
+
+    @Column(name = "password_history", columnDefinition = "TEXT")
+    private String passwordHistory;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -114,9 +126,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        if (lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now())) {
-            return false;
-        }
+        // Account lock status is checked via CustomUserDetails which uses UserAccountLockService
+        // with Manila timezone (TimeProvider). This method should not be called directly
+        // for authentication decisions. Always use CustomUserDetailsService to load users.
         return true;
     }
 

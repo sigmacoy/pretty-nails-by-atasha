@@ -1,5 +1,9 @@
 package com.prettynails.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.prettynails.dto.AuthDtos.*;
 import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
@@ -16,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,6 +35,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final TimeProvider timeProvider;
     private final EmailService emailService;
+    private final PasswordPolicyService passwordPolicyService;
 
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final int LOCKOUT_DURATION_MINUTES = 15;
@@ -41,12 +48,27 @@ public class AuthService {
             throw new BadRequestException("Email already registered");
         }
 
+        // Validate password strength
+        var passwordValidation = passwordPolicyService.validate(request.getPassword(), request.getEmail(), request.getName());
+        if (!passwordValidation.isSuccess()) {
+            throw new BadRequestException(passwordValidation.getMessage());
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        String passwordHistoryJson;
+        try {
+            passwordHistoryJson = new ObjectMapper().writeValueAsString(List.of(encodedPassword));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Failed to serialize password history", e);
+        }
         User user = User.builder()
                 .name(request.getName())
                 .email(request.getEmail().toLowerCase().trim())
                 .phone(request.getPhone())
-                .password(passwordEncoder.encode(request.getPassword()))
+                .password(encodedPassword)
                 .role("CUSTOMER")
+                .passwordChangedAt(timeProvider.localNow())
+                .passwordHistory(passwordHistoryJson)
                 .build();
 
         user = userRepository.save(user);
@@ -184,13 +206,25 @@ public class AuthService {
             throw new BadRequestException("Reset token has expired");
         }
 
-        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
-            throw new BadRequestException("New password must be at least 6 characters");
+        // Validate password strength
+        var passwordValidation = passwordPolicyService.validate(request.getNewPassword(), user.getEmail(), user.getName());
+        if (!passwordValidation.isSuccess()) {
+            throw new BadRequestException(passwordValidation.getMessage());
         }
 
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        // Check password history
+        List<String> passwordHistory = parsePasswordHistory(user.getPasswordHistory());
+        if (passwordPolicyService.isPasswordReused(request.getNewPassword(), passwordHistory, passwordEncoder)) {
+            throw new BadRequestException("Password was recently used. Please choose a different password.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(encodedPassword);
         user.setPasswordResetToken(null);
         user.setPasswordResetTokenExpiresAt(null);
+        user.setPasswordChangedAt(timeProvider.localNow());
+        user.setPasswordHistory(updatePasswordHistory(passwordHistory, encodedPassword));
+
         userRepository.save(user);
 
         return new MessageResponse("Password reset successfully");
@@ -243,11 +277,22 @@ public class AuthService {
             throw new BadRequestException("Current password is incorrect");
         }
 
-        if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
-            throw new BadRequestException("New password must be at least 6 characters");
+        // Validate password strength
+        var passwordValidation = passwordPolicyService.validate(request.getNewPassword(), user.getEmail(), user.getName());
+        if (!passwordValidation.isSuccess()) {
+            throw new BadRequestException(passwordValidation.getMessage());
         }
 
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        // Check password history
+        List<String> passwordHistory = parsePasswordHistory(user.getPasswordHistory());
+        if (passwordPolicyService.isPasswordReused(request.getNewPassword(), passwordHistory, passwordEncoder)) {
+            throw new BadRequestException("Password was recently used. Please choose a different password.");
+        }
+
+        String encodedPassword = passwordEncoder.encode(request.getNewPassword());
+        user.setPassword(encodedPassword);
+        user.setPasswordChangedAt(timeProvider.localNow());
+        user.setPasswordHistory(updatePasswordHistory(passwordHistory, encodedPassword));
         userRepository.save(user);
     }
 
@@ -267,5 +312,39 @@ public class AuthService {
                 .image(user.getImage())
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Parses password history from JSON string to List of hashes.
+     * Most recent hash is first in the list.
+     */
+    private List<String> parsePasswordHistory(String json) {
+        if (json == null || json.isBlank()) {
+            return new ArrayList<>();
+        }
+        try {
+            return new ObjectMapper().readValue(json, new TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Updates password history by adding new hash at the beginning
+     * and keeping only the most recent historySize entries.
+     */
+    private String updatePasswordHistory(List<String> history, String newHash) {
+        List<String> updated = new ArrayList<>(history);
+        updated.add(0, newHash);
+        // Keep only the most recent historySize entries
+        int maxSize = passwordPolicyService.getHistorySize();
+        if (updated.size() > maxSize) {
+            updated = updated.subList(0, maxSize);
+        }
+        try {
+            return new ObjectMapper().writeValueAsString(updated);
+        } catch (Exception e) {
+            return "[]";
+        }
     }
 }
