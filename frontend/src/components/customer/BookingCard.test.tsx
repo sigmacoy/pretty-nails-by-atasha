@@ -1,12 +1,29 @@
+import '@testing-library/jest-dom';
+import '@/jest.setup';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BookingCard, getDownpaymentStatus, isWithin24HoursManila, isPastManila } from '@/components/customer/BookingCard';
+import { BookingCard, getDownpaymentStatus } from '@/components/customer/BookingCard';
+import { isWithin24HoursManila, isPastManila } from '@/lib/utils';
 import { BookingDto } from '@/types';
 import { bookingsApi, paymentsApi, availabilityApi } from '@/lib/api';
 import { toast } from 'sonner';
 
 // Mock dependencies
-jest.mock('@/hooks/useApi');
+jest.mock('@/hooks/useApi', () => ({
+  useQuery: jest.fn(),
+  useMutation: jest.fn(() => ({
+    isPending: false,
+    mutate: jest.fn(),
+    mutateAsync: jest.fn(),
+    reset: jest.fn(),
+    data: undefined,
+    error: null,
+    isError: false,
+    isIdle: true,
+    isSuccess: false,
+    status: 'idle',
+  })),
+}));
 jest.mock('@/lib/api');
 jest.mock('sonner');
 
@@ -79,6 +96,8 @@ describe('BookingCard', () => {
     mockAvailabilityApi.getSlots.mockResolvedValue({ data: [] });
     mockToast.success.mockImplementation(() => {});
     mockToast.error.mockImplementation(() => {});
+    // Mock window.confirm to return true for cancel confirmation
+    global.confirm = jest.fn(() => true);
   });
 
   describe('24-hour cutoff logic (Items 8, 9)', () => {
@@ -180,10 +199,13 @@ describe('BookingCard', () => {
         status: 'COMPLETED',
       });
 
-      render(<BookingCard booking={booking} onCancel={mockOnCancel} />);
+      const { container } = render(<BookingCard booking={booking} onCancel={mockOnCancel} />);
 
       expect(screen.queryByText('Within 24 hours - changes not allowed')).not.toBeInTheDocument();
-      expect(screen.getByText('Completed')).toBeInTheDocument();
+      // Use container to find the status badge specifically (first "Completed" is the status badge)
+      const statusBadge = container.querySelector('[class*="bg-stone-100"][class*="border-stone-200"]');
+      expect(statusBadge).toBeInTheDocument();
+      expect(statusBadge).toHaveTextContent('Completed');
     });
   });
 
@@ -267,7 +289,8 @@ describe('BookingCard', () => {
       fireEvent.click(screen.getByText('Reschedule'));
 
       await waitFor(() => {
-        expect(screen.getByText('Reschedule Appointment')).toBeInTheDocument();
+        // Modal title is a heading, submit button is a button - use role to distinguish
+        expect(screen.getByRole('heading', { name: 'Reschedule Appointment' })).toBeInTheDocument();
       });
     });
 
@@ -282,12 +305,13 @@ describe('BookingCard', () => {
         status: 'PENDING',
       });
 
-      render(<BookingCard booking={booking} onCancel={mockOnCancel} />);
+      const { container } = render(<BookingCard booking={booking} onCancel={mockOnCancel} />);
 
       fireEvent.click(screen.getByText('Reschedule'));
 
       await waitFor(() => {
-        const dateInput = screen.getByLabelText('New date *');
+        // Label has no 'for' attribute, so query input directly
+        const dateInput = container.querySelector('input[type="date"]');
         expect(dateInput).toHaveValue(appointmentDate);
       });
     });

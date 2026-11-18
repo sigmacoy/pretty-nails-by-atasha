@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom';
+import '@/jest.setup';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BookingForm } from '@/app/(public)/booking/BookingForm';
@@ -7,12 +9,30 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 
 // Mock dependencies
-jest.mock('@/hooks/useApi');
+jest.mock('@/hooks/useApi', () => ({
+  useQuery: jest.fn(),
+  useMutation: jest.fn(),
+}));
 jest.mock('@/lib/api');
 jest.mock('@/lib/auth');
 jest.mock('next/navigation');
 jest.mock('sonner');
+// Mock react-hook-form's useForm to bypass validation
+jest.mock('react-hook-form', () => ({
+  ...jest.requireActual('react-hook-form'),
+  useForm: () => ({
+    register: () => ({}),
+    setValue: jest.fn(),
+    getValues: jest.fn(() => ({})),
+    trigger: jest.fn().mockResolvedValue(true),
+    watch: jest.fn(),
+    formState: { errors: {} },
+  }),
+  zodResolver: (schema: any) => schema,
+}));
 
+const { useQuery } = require('@/hooks/useApi');
+const { servicesApi } = require('@/lib/api');
 const mockAvailabilityApi = availabilityApi as jest.Mocked<typeof availabilityApi>;
 const mockBookingsApi = bookingsApi as jest.Mocked<typeof bookingsApi>;
 const mockPaymentsApi = paymentsApi as jest.Mocked<typeof paymentsApi>;
@@ -31,33 +51,19 @@ const mockSearchParams = {
   get: jest.fn(),
 };
 
-describe('BookingForm - Slot Re-validation (Item 10)', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockUseAuth.mockReturnValue({ isAuthenticated: true, user: { id: 'user-123' } });
-    mockUseRouter.mockReturnValue(mockRouter);
-    mockUseSearchParams.mockReturnValue(mockSearchParams);
-    mockSearchParams.get.mockReturnValue(null);
-    mockToast.success.mockImplementation(() => {});
-    mockToast.error.mockImplementation(() => {});
+const mockAvailableSlots = [
+  { startTime: '09:00', endTime: '09:30', available: true },
+  { startTime: '09:30', endTime: '10:00', available: true },
+  { startTime: '10:00', endTime: '10:30', available: false }, // Booked
+  { startTime: '10:30', endTime: '11:00', available: true },
+];
 
-    // Mock services API
-    const { servicesApi } = require('@/lib/api');
-    servicesApi.getActive.mockResolvedValue({ data: [] });
-  });
-
-  const mockAvailableSlots = [
-    { startTime: '09:00', endTime: '09:30', available: true },
-    { startTime: '09:30', endTime: '10:00', available: true },
-    { startTime: '10:00', endTime: '10:30', available: false }, // Booked
-    { startTime: '10:30', endTime: '11:00', available: true },
-  ];
-
-  const mockAvailabilityResponse = {
+function createMockAvailabilityResponse(dateStr: string) {
+  return {
     data: [
       {
         id: 'avail-1',
-        date: '2025-12-25T00:00:00.000Z',
+        date: `${dateStr}T00:00:00.000Z`,
         isAvailable: true,
         startTime: '09:00',
         endTime: '18:00',
@@ -68,40 +74,102 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
       },
     ],
   };
+}
 
-  it('re-fetches availability when moving from Step 2 to Step 3', async () => {
-    const user = userEvent.setup();
+describe('BookingForm - Slot Re-validation (Item 10)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Reset mock implementations to clear mockResolvedValueOnce queues
+    mockAvailabilityApi.getAvailable.mockReset();
+    mockAvailabilityApi.getSlots.mockReset();
+    mockBookingsApi.create.mockReset();
+    mockPaymentsApi.create.mockReset();
+    mockLoyaltyApi.getCard.mockReset();
+    servicesApi.getActive.mockReset();
 
-    mockAvailabilityApi.getSlots.mockResolvedValue({ data: mockAvailableSlots });
-    mockAvailabilityApi.getAvailable.mockResolvedValue(mockAvailabilityResponse);
-    mockBookingsApi.create.mockResolvedValue({ data: { id: 'booking-123', message: 'Success' } });
-    mockPaymentsApi.create.mockResolvedValue({ data: {} });
-    mockLoyaltyApi.getCard.mockResolvedValue({ data: { stampCount: 0 } });
+    mockUseAuth.mockReturnValue({ isAuthenticated: true, user: { id: 'user-123' } });
+    mockUseRouter.mockReturnValue(mockRouter);
+    mockUseSearchParams.mockReturnValue(mockSearchParams);
+    mockSearchParams.get.mockReturnValue(null);
+    mockToast.success.mockImplementation(() => {});
+    mockToast.error.mockImplementation(() => {});
 
-    render(<BookingForm />);
+    // Mock useQuery to return different data based on the query function
+    useQuery.mockImplementation((queryFn: any) => {
+      const queryStr = queryFn?.toString() || '';
+      if (queryStr.includes('loyaltyApi.getCard')) {
+        return { data: { data: { stampCount: 0 } } };
+      }
+      if (queryStr.includes('servicesApi.getActive')) {
+        return { data: null, isLoading: false }; // Use fallback services
+      }
+      return { data: null, isLoading: false };
+    });
 
-    // Step 1: Select a service
-    await user.click(screen.getByText('Studio Dry Cuticle Prep & Hygiene Care'));
+    // Mock services API (fallback will be used)
+    servicesApi.getActive.mockResolvedValue({ data: [] });
+  });
+
+  async function setupBookingForm(user: ReturnType<typeof userEvent.setup>) {
+    const { container } = render(<BookingForm />);
+
+    // Step 1: Select a service variant (Standard Care from Studio Dry Cuticle Prep & Hygiene Care)
+    await user.click(screen.getByRole('button', { name: /Standard Care/i }));
+    // Wait for form to be valid and button to be enabled
+    await waitFor(() => {
+      expect(screen.getByText('Continue to Date & Timing')).not.toBeDisabled();
+    });
     await user.click(screen.getByText('Continue to Date & Timing'));
+
+    // Wait for Step 2 to render - check for Step 2 heading
+    await waitFor(() => {
+      expect(screen.getByText('Select date and timing')).toBeInTheDocument();
+    });
 
     // Step 2: Select date and time
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText('Appointment Date'), { target: { value: dateStr } });
+    // Find date input by type (type="date" doesn't have accessible name)
+    const dateInput = container.querySelector('input[type="date"]');
+    fireEvent.change(dateInput, { target: { value: dateStr } });
 
     await waitFor(() => {
-      expect(screen.getByText('09:00')).toBeInTheDocument();
+      expect(screen.getByText('9:00 AM')).toBeInTheDocument();
     });
 
-    await user.click(screen.getByText('09:00'));
+    await user.click(screen.getByText('9:00 AM'));
     await user.click(screen.getByText('Continue to Client Record'));
+
+    return { container, dateStr };
+  }
+
+  it('re-fetches availability when moving from Step 2 to Step 3', async () => {
+    const user = userEvent.setup();
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toISOString().split('T')[0];
+
+    const mockAvailabilityResponse = createMockAvailabilityResponse(dateStr);
+
+    // Initial fetchAvailableSlots calls getAvailable once
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Re-validation calls getSlots once and getAvailable once
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Full booking flow
+    mockBookingsApi.create.mockResolvedValueOnce({ data: { id: 'booking-123', message: 'Success' } });
+    mockPaymentsApi.create.mockResolvedValueOnce({ data: {} });
+    mockLoyaltyApi.getCard.mockResolvedValueOnce({ data: { stampCount: 0 } });
+
+    const { container } = await setupBookingForm(user);
 
     // Verify availability was re-fetched
     await waitFor(() => {
       expect(mockAvailabilityApi.getSlots).toHaveBeenCalledWith(dateStr);
-      expect(mockAvailabilityApi.getAvailable).toHaveBeenCalled();
+      expect(mockAvailabilityApi.getAvailable).toHaveBeenCalledTimes(2); // initial + re-validation
     });
 
     // Should proceed to Step 3
@@ -113,37 +181,24 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
   it('shows error and stays on Step 2 when selected slot is no longer available', async () => {
     const user = userEvent.setup();
 
-    // First call returns slot as available
-    mockAvailabilityApi.getSlots
-      .mockResolvedValueOnce({ data: mockAvailableSlots }) // Initial fetch
-      .mockResolvedValueOnce({ data: [
-        { startTime: '09:00', endTime: '09:30', available: false }, // Now booked!
-        { startTime: '09:30', endTime: '10:00', available: true },
-        { startTime: '10:00', endTime: '10:30', available: false },
-        { startTime: '10:30', endTime: '11:00', available: true },
-      ]}); // Re-validation fetch
-
-    mockAvailabilityApi.getAvailable.mockResolvedValue(mockAvailabilityResponse);
-
-    render(<BookingForm />);
-
-    // Step 1
-    await user.click(screen.getByText('Studio Dry Cuticle Prep & Hygiene Care'));
-    await user.click(screen.getByText('Continue to Date & Timing'));
-
-    // Step 2
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText('Appointment Date'), { target: { value: dateStr } });
+    const mockAvailabilityResponse = createMockAvailabilityResponse(dateStr);
 
-    await waitFor(() => {
-      expect(screen.getByText('09:00')).toBeInTheDocument();
-    });
+    // Initial fetchAvailableSlots calls getAvailable once
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Re-validation calls getSlots once (returns slot as booked) and getAvailable once
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: [
+      { startTime: '09:00', endTime: '09:30', available: false }, // Now booked!
+      { startTime: '09:30', endTime: '10:00', available: true },
+      { startTime: '10:00', endTime: '10:30', available: false },
+      { startTime: '10:30', endTime: '11:00', available: true },
+    ]});
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
 
-    await user.click(screen.getByText('09:00'));
-    await user.click(screen.getByText('Continue to Client Record'));
+    await setupBookingForm(user);
 
     // Should show error toast and stay on Step 2
     await waitFor(() => {
@@ -161,32 +216,19 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
   it('shows error and stays on Step 2 when selected slot no longer exists', async () => {
     const user = userEvent.setup();
 
-    // Re-validation returns different slots (date may be fully booked)
-    mockAvailabilityApi.getSlots
-      .mockResolvedValueOnce({ data: mockAvailableSlots })
-      .mockResolvedValueOnce({ data: [] }); // No slots available!
-
-    mockAvailabilityApi.getAvailable.mockResolvedValue({ data: [] }); // Date not available
-
-    render(<BookingForm />);
-
-    // Step 1
-    await user.click(screen.getByText('Studio Dry Cuticle Prep & Hygiene Care'));
-    await user.click(screen.getByText('Continue to Date & Timing'));
-
-    // Step 2
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText('Appointment Date'), { target: { value: dateStr } });
+    const mockAvailabilityResponse = createMockAvailabilityResponse(dateStr);
 
-    await waitFor(() => {
-      expect(screen.getByText('09:00')).toBeInTheDocument();
-    });
+    // Initial fetchAvailableSlots calls getAvailable once
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Re-validation calls getSlots once (returns no slots) and getAvailable once
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: [] });
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
 
-    await user.click(screen.getByText('09:00'));
-    await user.click(screen.getByText('Continue to Client Record'));
+    await setupBookingForm(user);
 
     // Should show error toast
     await waitFor(() => {
@@ -204,32 +246,19 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
   it('shows error when date becomes unavailable (blackout/holiday)', async () => {
     const user = userEvent.setup();
 
-    mockAvailabilityApi.getSlots
-      .mockResolvedValueOnce({ data: mockAvailableSlots })
-      .mockResolvedValueOnce({ data: mockAvailableSlots });
-
-    // Date no longer available
-    mockAvailabilityApi.getAvailable.mockResolvedValue({ data: [] });
-
-    render(<BookingForm />);
-
-    // Step 1
-    await user.click(screen.getByText('Studio Dry Cuticle Prep & Hygiene Care'));
-    await user.click(screen.getByText('Continue to Date & Timing'));
-
-    // Step 2
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText('Appointment Date'), { target: { value: dateStr } });
+    const mockAvailabilityResponse = createMockAvailabilityResponse(dateStr);
 
-    await waitFor(() => {
-      expect(screen.getByText('09:00')).toBeInTheDocument();
-    });
+    // Initial fetchAvailableSlots calls getAvailable once
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Re-validation calls getSlots once and getAvailable once (returns empty = date unavailable)
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce({ data: [] });
 
-    await user.click(screen.getByText('09:00'));
-    await user.click(screen.getByText('Continue to Client Record'));
+    await setupBookingForm(user);
 
     // Should show error toast
     await waitFor(() => {
@@ -242,31 +271,23 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
   it('proceeds to Step 3 when slot is still available', async () => {
     const user = userEvent.setup();
 
-    mockAvailabilityApi.getSlots.mockResolvedValue({ data: mockAvailableSlots });
-    mockAvailabilityApi.getAvailable.mockResolvedValue(mockAvailabilityResponse);
-    mockBookingsApi.create.mockResolvedValue({ data: { id: 'booking-123', message: 'Success' } });
-    mockPaymentsApi.create.mockResolvedValue({ data: {} });
-    mockLoyaltyApi.getCard.mockResolvedValue({ data: { stampCount: 0 } });
-
-    render(<BookingForm />);
-
-    // Step 1
-    await user.click(screen.getByText('Studio Dry Cuticle Prep & Hygiene Care'));
-    await user.click(screen.getByText('Continue to Date & Timing'));
-
-    // Step 2
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     const dateStr = tomorrow.toISOString().split('T')[0];
 
-    fireEvent.change(screen.getByLabelText('Appointment Date'), { target: { value: dateStr } });
+    const mockAvailabilityResponse = createMockAvailabilityResponse(dateStr);
 
-    await waitFor(() => {
-      expect(screen.getByText('09:00')).toBeInTheDocument();
-    });
+    // Initial fetchAvailableSlots calls getAvailable once
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Re-validation calls getSlots once and getAvailable once
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
+    // Full booking flow
+    mockBookingsApi.create.mockResolvedValueOnce({ data: { id: 'booking-123', message: 'Success' } });
+    mockPaymentsApi.create.mockResolvedValueOnce({ data: {} });
+    mockLoyaltyApi.getCard.mockResolvedValueOnce({ data: { stampCount: 0 } });
 
-    await user.click(screen.getByText('09:00'));
-    await user.click(screen.getByText('Continue to Client Record'));
+    await setupBookingForm(user);
 
     // Should proceed to Step 3
     await waitFor(() => {

@@ -54,6 +54,9 @@ class AuthServiceTest {
     @Mock
     private EmailService emailService;
 
+    @Mock
+    private PasswordPolicyService passwordPolicyService;
+
     @InjectMocks
     private AuthService authService;
 
@@ -64,6 +67,13 @@ class AuthServiceTest {
     @BeforeEach
     void setUp() {
         lenient().when(timeProvider.localNow()).thenReturn(LocalDateTime.now());
+        lenient().doReturn(PasswordPolicyService.ValidationResult.builder()
+                        .success(true)
+                        .message("Password meets all requirements")
+                        .zxcvbnScore(3)
+                        .build())
+                .when(passwordPolicyService).validate(anyString(), any(String[].class));
+
         registerRequest = RegisterRequest.builder()
                 .name("Test User")
                 .email("test@example.com")
@@ -265,6 +275,11 @@ class AuthServiceTest {
     void changePassword_whenNewPasswordTooShort_shouldThrowBadRequestException() {
         when(userRepository.findById("user-123")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("oldPassword123", testUser.getPassword())).thenReturn(true);
+        lenient().doReturn(PasswordPolicyService.ValidationResult.builder()
+                        .success(false)
+                        .message("Password must be at least 12 characters long")
+                        .build())
+                .when(passwordPolicyService).validate(anyString(), any(String[].class));
 
         ChangePasswordRequest request = ChangePasswordRequest.builder()
                 .currentPassword("oldPassword123")
@@ -273,6 +288,6 @@ class AuthServiceTest {
 
         assertThatThrownBy(() -> authService.changePassword("user-123", request))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("New password must be at least 6 characters");
+                .hasMessage("Password must be at least 12 characters long");
     }
 }

@@ -232,6 +232,7 @@
                         --add-opens=org.eclipse.angus.jakarta.mail/jakarta.mail=ALL-UNNAMED
                         --add-opens=jakarta.activation/jakarta.activation=ALL-UNNAMED
                         -Dmockito.inline.mockmaker=true
+                        -Dnet.bytebuddy.experimental=true
                     </argLine>
                 </configuration>
             </plugin>

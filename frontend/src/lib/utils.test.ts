@@ -1,3 +1,5 @@
+import '@testing-library/jest-dom';
+import '@/jest.setup';
 import {
   isWithin24HoursManila,
   isPastManila,
