@@ -13,7 +13,6 @@ env:
 jobs:
   backend-test:
     runs-on: ubuntu-latest
-    # Enable Testcontainers support in GitHub Actions
     services:
       postgres:
         image: postgres:16-alpine
@@ -29,8 +28,6 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v4
-      # Enable Docker for Testcontainers
-      - uses: testcontainers/testcontainers-action@v1
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -38,14 +35,11 @@ jobs:
           cache: 'maven'
       - name: Run backend tests
         working-directory: ./pretty-nails-backend
-        run: ./mvnw test
+        run: ./mvnw test -Dspring.datasource.url=jdbc:postgresql://localhost:5432/testdb -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.testcontainers.enabled=false
         env:
           DB_PASSWORD: test
           JWT_SECRET: test-secret-key-for-testing-must-be-at-least-256-bits-long
           SPRING_PROFILES_ACTIVE: test
-          # Tell Testcontainers to reuse the service container
-          TESTCONTAINERS_RYUK_DISABLED: "true"
-          TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE: "/var/run/docker.sock"
 
   frontend-test:
     runs-on: ubuntu-latest
