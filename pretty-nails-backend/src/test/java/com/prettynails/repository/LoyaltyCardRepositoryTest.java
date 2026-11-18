@@ -2,51 +2,39 @@ package com.prettynails.repository;
 
 import com.prettynails.entity.LoyaltyCard;
 import com.prettynails.entity.User;
+import com.prettynails.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.context.TestPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest
-@Testcontainers
-@TestPropertySource(locations = "classpath:application-test.yml")
-class LoyaltyCardRepositoryTest {
-
-    @Container
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
-            .withDatabaseName("testdb")
-            .withUsername("test")
-            .withPassword("test");
-
-    @DynamicPropertySource
-    static void configureProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-        registry.add("spring.datasource.username", postgres::getUsername);
-        registry.add("spring.datasource.password", postgres::getPassword);
-        registry.add("spring.datasource.driver-class-name", () -> "org.testcontainers.jdbc.ContainerDatabaseDriver");
-    }
+class LoyaltyCardRepositoryTest extends IntegrationTestBase {
 
     @Autowired
     private LoyaltyCardRepository loyaltyCardRepository;
 
     @Autowired
-    private TestEntityManager entityManager;
+    private UserRepository userRepository;
+
+    private User createTestUser(String email, String role) {
+        User user = User.builder()
+                .email(email)
+                .name("Test User")
+                .phone("1234567890")
+                .password("encoded")
+                .role(role)
+                .build();
+        return userRepository.save(user);
+    }
 
     @Test
     void findByUserId_whenCardExists_shouldReturnCard() {
         // Given
-        String userId = "user-123";
+        User user = createTestUser("user123@example.com", "CUSTOMER");
+        String userId = user.getId();
         LoyaltyCard card = LoyaltyCard.builder()
                 .userId(userId)
                 .stampCount(5)
@@ -54,7 +42,7 @@ class LoyaltyCardRepositoryTest {
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
-        entityManager.persistAndFlush(card);
+        loyaltyCardRepository.save(card);
 
         // When
         Optional<LoyaltyCard> found = loyaltyCardRepository.findByUserId(userId);
@@ -77,7 +65,8 @@ class LoyaltyCardRepositoryTest {
     @Test
     void stampCounting_whenIncrementingStamps_shouldUpdateCount() {
         // Given
-        String userId = "user-123";
+        User user = createTestUser("user123@example.com", "CUSTOMER");
+        String userId = user.getId();
         LoyaltyCard card = LoyaltyCard.builder()
                 .userId(userId)
                 .stampCount(3)
@@ -85,13 +74,12 @@ class LoyaltyCardRepositoryTest {
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
-        entityManager.persistAndFlush(card);
+        loyaltyCardRepository.save(card);
 
         // When
         card.setStampCount(4);
         card.setLastStampAt(LocalDateTime.now());
-        entityManager.persistAndFlush(card);
-        entityManager.clear();
+        loyaltyCardRepository.save(card);
 
         // Then
         Optional<LoyaltyCard> found = loyaltyCardRepository.findByUserId(userId);
@@ -102,7 +90,8 @@ class LoyaltyCardRepositoryTest {
     @Test
     void stampCounting_whenRedeemingStamps_shouldDeductCount() {
         // Given
-        String userId = "user-123";
+        User user = createTestUser("user123@example.com", "CUSTOMER");
+        String userId = user.getId();
         LoyaltyCard card = LoyaltyCard.builder()
                 .userId(userId)
                 .stampCount(9)
@@ -110,12 +99,11 @@ class LoyaltyCardRepositoryTest {
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
-        entityManager.persistAndFlush(card);
+        loyaltyCardRepository.save(card);
 
         // When - redeem 9 stamps for free service
         card.setStampCount(0);
-        entityManager.persistAndFlush(card);
-        entityManager.clear();
+        loyaltyCardRepository.save(card);
 
         // Then
         Optional<LoyaltyCard> found = loyaltyCardRepository.findByUserId(userId);
@@ -126,7 +114,8 @@ class LoyaltyCardRepositoryTest {
     @Test
     void stampExpiry_whenCardExpires_shouldHavePastExpiryDate() {
         // Given
-        String userId = "user-123";
+        User user = createTestUser("user123@example.com", "CUSTOMER");
+        String userId = user.getId();
         LoyaltyCard card = LoyaltyCard.builder()
                 .userId(userId)
                 .stampCount(5)
@@ -134,7 +123,7 @@ class LoyaltyCardRepositoryTest {
                 .expiresAt(LocalDateTime.now().minusMonths(1))
                 .build();
 
-        entityManager.persistAndFlush(card);
+        loyaltyCardRepository.save(card);
 
         // When/Then
         Optional<LoyaltyCard> found = loyaltyCardRepository.findByUserId(userId);
@@ -145,27 +134,31 @@ class LoyaltyCardRepositoryTest {
     @Test
     void countByStampCountGreaterThan_shouldCountCorrectly() {
         // Given
+        User user1 = createTestUser("user1@example.com", "CUSTOMER");
+        User user2 = createTestUser("user2@example.com", "CUSTOMER");
+        User user3 = createTestUser("user3@example.com", "CUSTOMER");
+
         LoyaltyCard card1 = LoyaltyCard.builder()
-                .userId("user-1")
+                .userId(user1.getId())
                 .stampCount(3)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
         LoyaltyCard card2 = LoyaltyCard.builder()
-                .userId("user-2")
+                .userId(user2.getId())
                 .stampCount(7)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
         LoyaltyCard card3 = LoyaltyCard.builder()
-                .userId("user-3")
+                .userId(user3.getId())
                 .stampCount(9)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
-        entityManager.persistAndFlush(card1);
-        entityManager.persistAndFlush(card2);
-        entityManager.persistAndFlush(card3);
+        loyaltyCardRepository.save(card1);
+        loyaltyCardRepository.save(card2);
+        loyaltyCardRepository.save(card3);
 
         // When
         long count = loyaltyCardRepository.countByStampCountGreaterThan(5);
@@ -177,64 +170,37 @@ class LoyaltyCardRepositoryTest {
     @Test
     void findCustomerCards_shouldExcludeAdminAndOwner() {
         // Given
-        User adminUser = User.builder()
-                .id("admin-1")
-                .email("admin@prettynails.com")
-                .name("Admin User")
-                .phone("1111111111")
-                .password("encoded")
-                .role("ADMIN")
-                .build();
-
-        User ownerUser = User.builder()
-                .id("owner-1")
-                .email("owner@prettynails.com")
-                .name("Atasha Owner")
-                .phone("2222222222")
-                .password("encoded")
-                .role("ADMIN")
-                .build();
-
-        User customerUser = User.builder()
-                .id("customer-1")
-                .email("customer@example.com")
-                .name("Regular Customer")
-                .phone("3333333333")
-                .password("encoded")
-                .role("CUSTOMER")
-                .build();
-
-        entityManager.persistAndFlush(adminUser);
-        entityManager.persistAndFlush(ownerUser);
-        entityManager.persistAndFlush(customerUser);
+        User adminUser = createTestUser("admin@prettynails.com", "ADMIN");
+        User ownerUser = createTestUser("owner@prettynails.com", "ADMIN");
+        User customerUser = createTestUser("customer@example.com", "CUSTOMER");
 
         LoyaltyCard adminCard = LoyaltyCard.builder()
-                .userId("admin-1")
+                .userId(adminUser.getId())
                 .stampCount(0)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
         LoyaltyCard ownerCard = LoyaltyCard.builder()
-                .userId("owner-1")
+                .userId(ownerUser.getId())
                 .stampCount(0)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
         LoyaltyCard customerCard = LoyaltyCard.builder()
-                .userId("customer-1")
+                .userId(customerUser.getId())
                 .stampCount(5)
                 .expiresAt(LocalDateTime.now().plusMonths(11))
                 .build();
 
-        entityManager.persistAndFlush(adminCard);
-        entityManager.persistAndFlush(ownerCard);
-        entityManager.persistAndFlush(customerCard);
+        loyaltyCardRepository.save(adminCard);
+        loyaltyCardRepository.save(ownerCard);
+        loyaltyCardRepository.save(customerCard);
 
         // When
         var results = loyaltyCardRepository.findCustomerCards();
 
         // Then
         assertThat(results).hasSize(1);
-        assertThat(results.get(0).getUserId()).isEqualTo("customer-1");
+        assertThat(results.get(0).getUserId()).isEqualTo(customerUser.getId());
     }
 }

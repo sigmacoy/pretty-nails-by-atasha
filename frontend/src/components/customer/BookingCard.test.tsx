@@ -133,15 +133,29 @@ describe('BookingCard', () => {
   });
 
   describe('24-hour cutoff logic (Items 8, 9)', () => {
+    // Helper to create Manila date/time strings from a base Manila time
+    const createManilaDateTime = (baseManilaTime: Date, offsetHours: number): { dateStr: string; timeStr: string } => {
+      const targetTime = new Date(baseManilaTime.getTime() + offsetHours * 60 * 60 * 1000);
+      // Format as Manila local date/time (system is in Manila timezone)
+      // Use local date components to get Manila date
+      const year = targetTime.getFullYear();
+      const month = String(targetTime.getMonth() + 1).padStart(2, '0');
+      const day = String(targetTime.getDate()).padStart(2, '0');
+      const hours = String(targetTime.getHours()).padStart(2, '0');
+      const minutes = String(targetTime.getMinutes()).padStart(2, '0');
+      const dateStr = `${year}-${month}-${day}`;
+      const timeStr = `${hours}:${minutes}`;
+      return { dateStr, timeStr };
+    };
+
     it('disables cancel button when within 24 hours of appointment', () => {
       // Create a booking that's 12 hours in the future (Manila time)
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 12);
-      const appointmentDate = futureDate.toISOString().split('T')[0];
+      const manilaNow = new Date(); // Current Manila time
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, 12);
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'PENDING',
       });
 
@@ -153,13 +167,12 @@ describe('BookingCard', () => {
     });
 
     it('disables reschedule button when within 24 hours of appointment', () => {
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 12);
-      const appointmentDate = futureDate.toISOString().split('T')[0];
+      const manilaNow = new Date();
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, 12);
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'PENDING',
       });
 
@@ -171,13 +184,12 @@ describe('BookingCard', () => {
     });
 
     it('shows "Within 24 hours - changes not allowed" message when within 24 hours', () => {
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 12);
-      const appointmentDate = futureDate.toISOString().split('T')[0];
+      const manilaNow = new Date();
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, 12);
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'PENDING',
       });
 
@@ -187,13 +199,12 @@ describe('BookingCard', () => {
     });
 
     it('enables cancel button when more than 24 hours from appointment', () => {
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 48);
-      const appointmentDate = futureDate.toISOString().split('T')[0];
+      const manilaNow = new Date();
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, 48);
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'PENDING',
       });
 
@@ -204,13 +215,12 @@ describe('BookingCard', () => {
     });
 
     it('enables reschedule button when more than 24 hours from appointment', () => {
-      const futureDate = new Date();
-      futureDate.setHours(futureDate.getHours() + 48);
-      const appointmentDate = futureDate.toISOString().split('T')[0];
+      const manilaNow = new Date();
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, 48);
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'PENDING',
       });
 
@@ -221,13 +231,12 @@ describe('BookingCard', () => {
     });
 
     it('does not show 24-hour warning for past bookings', () => {
-      const pastDate = new Date();
-      pastDate.setDate(pastDate.getDate() - 1);
-      const appointmentDate = pastDate.toISOString().split('T')[0];
+      const manilaNow = new Date();
+      const { dateStr, timeStr } = createManilaDateTime(manilaNow, -24); // 24 hours ago
 
       const booking = createMockBooking({
-        appointmentDate: `${appointmentDate}T00:00:00.000Z`,
-        startTime: '10:00',
+        appointmentDate: `${dateStr}T00:00:00.000Z`,
+        startTime: timeStr,
         status: 'COMPLETED',
       });
 

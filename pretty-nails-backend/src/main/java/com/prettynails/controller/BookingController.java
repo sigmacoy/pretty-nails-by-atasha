@@ -2,6 +2,7 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.BookingDtos.*;
 import com.prettynails.entity.User;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.BookingService;
 import com.prettynails.service.NoShowPolicyService;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,14 @@ public class BookingController {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new AccessDeniedException("No authenticated user");
         }
-        return (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        if (principal instanceof User user) {
+            return user;
+        }
+        throw new AccessDeniedException("No authenticated user");
     }
 
     @PostMapping("/bookings")

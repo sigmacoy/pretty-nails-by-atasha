@@ -3,6 +3,7 @@ package com.prettynails.controller;
 import com.prettynails.dto.AuthDtos.*;
 import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,11 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new BadRequestException("User not authenticated");
         }
-        if (authentication.getPrincipal() instanceof User user) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        if (principal instanceof User user) {
             return user;
         }
         throw new BadRequestException("User not authenticated");

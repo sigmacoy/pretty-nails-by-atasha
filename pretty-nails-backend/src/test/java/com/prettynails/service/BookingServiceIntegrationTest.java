@@ -106,6 +106,10 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
         testVariant = serviceVariantRepository.save(testVariant);
 
+        // Link variant to service
+        testService.setVariants(new java.util.ArrayList<>(java.util.List.of(testVariant)));
+        testService = serviceRepository.save(testService);
+
         // Create booking request
         bookingRequest = BookingRequest.builder()
                 .appointmentDate("2025-12-25")
@@ -124,12 +128,21 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 ))
                 .build();
 
-        // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(LocalDate.of(2025, 12, 25)))
+        // Ensure date is available - use fixed date but check if already exists (PER_CLASS transaction)
+        LocalDate defaultDate = LocalDate.of(2025, 12, 25);
+        if (availabilityRepository.findByDate(timeProvider.startOfDay(defaultDate)).isEmpty()) {
+            availabilityRepository.save(createAvailability(defaultDate));
+        }
+    }
+
+    private Availability createAvailability(LocalDate date) {
+        return Availability.builder()
+                .date(timeProvider.startOfDay(date))
                 .isAvailable(true)
+                .startTime("08:00")
+                .endTime("22:00")
+                .maxSlots(4)
                 .build();
-        availabilityRepository.save(availability);
     }
 
     @Test
@@ -158,12 +171,10 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void createBooking_whenDateNotAvailable_shouldThrowBadRequestException() {
-        // Given - make date unavailable
-        Availability unavailableDate = Availability.builder()
-                .date(timeProvider.startOfDay(LocalDate.of(2025, 12, 25)))
-                .isAvailable(false)
-                .build();
-        availabilityRepository.save(unavailableDate);
+        // Given - make date unavailable by updating existing availability
+        Availability existing = availabilityRepository.findByDate(timeProvider.startOfDay(LocalDate.of(2025, 12, 25))).orElseThrow();
+        existing.setIsAvailable(false);
+        availabilityRepository.save(existing);
 
         // When/Then
         assertThatThrownBy(() -> bookingService.createBooking(testUser, bookingRequest))
@@ -248,11 +259,13 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void confirmBooking_whenAnotherPendingBookingExistsForSameSlot_shouldThrowBadRequestException() {
+    void confirmBooking_whenAnotherPendingBookingExistsForSameSlot_shouldThrowDataIntegrityViolation() {
         // Given - create first booking (PENDING)
-        BookingResponse booking1 = bookingService.createBooking(testUser, bookingRequest);
+        BookingResponse booking1Response = bookingService.createBooking(testUser, bookingRequest);
+        // Fetch the full booking details from repository
+        Booking booking1 = bookingRepository.findById(booking1Response.getBookingId()).orElseThrow();
 
-        // Create another user and booking for same slot (manually set to PENDING)
+        // Create another user
         User anotherUser = User.builder()
                 .name("Another User")
                 .email("another@example.com")
@@ -271,12 +284,13 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
         loyaltyCardRepository.save(anotherLoyaltyCard);
 
         // Manually insert another PENDING booking for same slot (simulating race condition)
+        // Use the same appointment date and time as booking1
         Booking booking2 = Booking.builder()
                 .userId(anotherUser.getId())
                 .status("PENDING")
-                .appointmentDate(timeProvider.startOfDay(LocalDate.of(2025, 12, 25)))
-                .startTime("10:00")
-                .endTime("12:00")
+                .appointmentDate(booking1.getAppointmentDate())
+                .startTime(booking1.getStartTime())
+                .endTime(booking1.getEndTime())
                 .totalPrice(60000)
                 .downpayment(10000)
                 .notes("Another booking")
@@ -285,10 +299,11 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
         booking2 = bookingRepository.save(booking2);
 
-        // When/Then - attempt to confirm first booking
-        assertThatThrownBy(() -> bookingService.confirmBooking(booking1.getBookingId()))
-                .isInstanceOf(BadRequestException.class)
-                .hasMessageContaining("another PENDING or CONFIRMED booking already holds this date and time slot");
+        // When/Then - attempt to confirm first booking - DB constraint violation
+        assertThatThrownBy(() -> bookingService.confirmBooking(booking1.getId()))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class)
+                .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class)
+                .hasMessageContaining("uk_booking_slot_active");
     }
 
     @Test
@@ -306,8 +321,22 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void cancelBookingByCustomer_whenOwnBookingAndPending_shouldCancel() {
-        // Given
-        BookingResponse booking = bookingService.createBooking(testUser, bookingRequest);
+        // Given - create booking for a future date (more than 24 hours from now)
+        LocalDate futureDate = timeProvider.localNow().plusDays(2).toLocalDate();
+        if (availabilityRepository.findByDate(timeProvider.startOfDay(futureDate)).isEmpty()) {
+            availabilityRepository.save(createAvailability(futureDate));
+        }
+        BookingRequest futureRequest = BookingRequest.builder()
+                .appointmentDate(futureDate.toString())
+                .startTime(bookingRequest.getStartTime())
+                .endTime(bookingRequest.getEndTime())
+                .totalPrice(bookingRequest.getTotalPrice())
+                .downpayment(bookingRequest.getDownpayment())
+                .notes(bookingRequest.getNotes())
+                .inspirationImage(bookingRequest.getInspirationImage())
+                .services(bookingRequest.getServices())
+                .build();
+        BookingResponse booking = bookingService.createBooking(testUser, futureRequest);
 
         // When
         BookingDto cancelled = bookingService.cancelBookingByCustomer(booking.getBookingId(), testUser.getId());
@@ -365,11 +394,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(tomorrow.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(tomorrow.toLocalDate()));
 
         BookingResponse booking = bookingService.createBooking(testUser, soonRequest);
 
@@ -401,11 +426,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(future.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(future.toLocalDate()));
 
         BookingResponse booking = bookingService.createBooking(testUser, futureRequest);
 
@@ -439,11 +460,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(future.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(future.toLocalDate()));
 
         BookingResponse booking = bookingService.createBooking(testUser, futureRequest);
 
@@ -457,11 +474,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure new date is available
-        Availability newAvailability = Availability.builder()
-                .date(timeProvider.startOfDay(newDate.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(newAvailability);
+        availabilityRepository.save(createAvailability(newDate.toLocalDate()));
 
         // When
         BookingDto rescheduled = bookingService.rescheduleBooking(booking.getBookingId(), testUser.getId(), rescheduleRequest);
@@ -494,11 +507,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(tomorrow.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(tomorrow.toLocalDate()));
 
         BookingResponse booking = bookingService.createBooking(testUser, soonRequest);
 
@@ -535,11 +544,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure date is available
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(future.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(future.toLocalDate()));
 
         BookingResponse booking = bookingService.createBooking(testUser, futureRequest);
 
@@ -581,11 +586,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 .build();
 
         // Ensure new date is available
-        Availability newAvailability = Availability.builder()
-                .date(timeProvider.startOfDay(newDate.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(newAvailability);
+        availabilityRepository.save(createAvailability(newDate.toLocalDate()));
 
         BookingResponse anotherBooking = bookingService.createBooking(anotherUser, anotherRequest);
 
@@ -622,11 +623,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 ))
                 .build();
 
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(future.toLocalDate()))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(future.toLocalDate()));
 
         BookingResponse booking2 = bookingService.createBooking(testUser, futureRequest);
 
@@ -678,11 +675,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
                 ))
                 .build();
 
-        Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(LocalDate.of(2025, 12, 26)))
-                .isAvailable(true)
-                .build();
-        availabilityRepository.save(availability);
+        availabilityRepository.save(createAvailability(LocalDate.of(2025, 12, 26)));
 
         BookingResponse booking = bookingService.createBooking(testUser, rewardRequest);
 

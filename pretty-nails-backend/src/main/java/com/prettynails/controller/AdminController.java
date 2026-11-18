@@ -2,13 +2,16 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.AdminDtos.*;
 import com.prettynails.entity.User;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.AdminService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,11 +24,18 @@ public class AdminController {
     private final AdminService adminService;
 
     private User getCurrentUser() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("No authenticated user");
+            throw new AccessDeniedException("No authenticated user");
         }
-        return (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        if (principal instanceof User user) {
+            return user;
+        }
+        throw new AccessDeniedException("No authenticated user");
     }
 
     @GetMapping("/stats")

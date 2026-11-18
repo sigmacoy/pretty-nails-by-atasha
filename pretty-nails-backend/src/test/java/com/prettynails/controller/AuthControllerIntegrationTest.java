@@ -29,9 +29,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-test.yml")
 @Transactional
 class AuthControllerIntegrationTest extends IntegrationTestBase {
 
@@ -69,7 +67,7 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
                 .name("Test User")
                 .email("test@example.com")
                 .phone("1234567890")
-                .password(passwordEncoder.encode("password123"))
+                .password(passwordEncoder.encode("Password123!"))
                 .role("CUSTOMER")
                 .emailVerified(LocalDateTime.now())
                 .build();
@@ -195,10 +193,10 @@ class AuthControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getCurrentUser_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
-        // When/Then
+    void getCurrentUser_whenNotAuthenticated_shouldReturnForbidden() throws Exception {
+        // When/Then - Spring Security returns 403 when no authentication is present
         mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

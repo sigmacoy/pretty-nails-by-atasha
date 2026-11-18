@@ -34,9 +34,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
 @AutoConfigureMockMvc
-@TestPropertySource(locations = "classpath:application-test.yml")
 @Transactional
 class BookingControllerIntegrationTest extends IntegrationTestBase {
 
@@ -124,6 +122,9 @@ class BookingControllerIntegrationTest extends IntegrationTestBase {
         Availability availability = Availability.builder()
                 .date(timeProvider.startOfDay(LocalDate.of(2025, 12, 25)))
                 .isAvailable(true)
+                .startTime("08:00")
+                .endTime("22:00")
+                .maxSlots(4)
                 .build();
         availabilityRepository.save(availability);
     }
@@ -168,7 +169,7 @@ class BookingControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void createBooking_whenNotAuthenticated_shouldReturnUnauthorized() throws Exception {
+    void createBooking_whenNotAuthenticated_shouldReturnForbidden() throws Exception {
         // Given
         BookingRequest request = BookingRequest.builder()
                 .appointmentDate("2025-12-25")
@@ -185,11 +186,11 @@ class BookingControllerIntegrationTest extends IntegrationTestBase {
                 ))
                 .build();
 
-        // When/Then
+        // When/Then - Spring Security returns 403 when no authentication is present
         mockMvc.perform(post("/api/bookings")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 
     @Test

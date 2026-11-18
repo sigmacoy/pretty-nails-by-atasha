@@ -181,44 +181,51 @@ export function getFirstDayOfMonth(year: number, month: number): number {
 /**
  * Checks if a booking appointment is within 24 hours from now in Manila timezone (UTC+8).
  * Manila does not observe DST, so offset is always +8 hours.
- * @param appointmentDate - ISO date string (e.g., "2025-12-25T00:00:00.000Z" or "2025-12-25")
- * @param startTime - Time string in HH:mm format (e.g., "10:00")
- * @returns true if the appointment is within 24 hours (including past appointments)
+ * @param appointmentDate - Date string in Manila time (e.g., "2025-12-25" or "2025-12-25T00:00:00.000Z")
+ * @param startTime - Time string in HH:mm format (e.g., "10:00") in Manila time
+ * @returns true if the appointment is within 24 hours (excluding past appointments)
  */
 export function isWithin24HoursManila(appointmentDate: string, startTime: string): boolean {
-  // Parse the appointment date and time in Manila timezone
+  // Parse the appointment date and time in Manila timezone (UTC+8)
   const [hours, minutes] = startTime.split(':').map(Number);
-  
-  // Create a date object in Manila timezone (UTC+8)
-  const appointmentDateObj = parseISO(appointmentDate);
-  // Set the time components
-  appointmentDateObj.setHours(hours, minutes, 0, 0);
-  
-  // Get current time in Manila (UTC+8)
+
+  // Extract date components (handle both "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ" formats)
+  const datePart = appointmentDate.split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+
+  // Create date at the specified Manila time, converted to UTC
+  // Manila time = UTC+8, so UTC time = Manila time - 8 hours
+  const appointmentDateObj = new Date(Date.UTC(year, month - 1, day, hours - 8, minutes, 0, 0));
+
+  // Current time as UTC timestamp (represents the same instant as Manila now)
   const now = new Date();
-  // Convert to Manila time: get UTC time and add 8 hours
-  const manilaNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 3600000));
-  
+
   // Calculate the difference in milliseconds
-  const diffMs = appointmentDateObj.getTime() - manilaNow.getTime();
+  const diffMs = appointmentDateObj.getTime() - now.getTime();
   const diffHours = diffMs / (1000 * 60 * 60);
-  
+
   // Within 24 hours means diffHours <= 24 (and not negative past appointments)
-  // We consider it "within 24 hours" if the appointment is less than 24 hours away
   return diffHours <= 24 && diffHours > 0;
 }
 
 /**
  * Checks if a booking appointment is in the past in Manila timezone.
+ * @param appointmentDate - Date string in Manila time (e.g., "2025-12-25" or "2025-12-25T00:00:00.000Z")
+ * @param startTime - Time string in HH:mm format (e.g., "10:00") in Manila time
  */
 export function isPastManila(appointmentDate: string, startTime: string): boolean {
   const [hours, minutes] = startTime.split(':').map(Number);
-  
-  const appointmentDateObj = parseISO(appointmentDate);
-  appointmentDateObj.setHours(hours, minutes, 0, 0);
-  
+
+  // Extract date components (handle both "YYYY-MM-DD" and "YYYY-MM-DDTHH:mm:ss.sssZ" formats)
+  const datePart = appointmentDate.split('T')[0];
+  const [year, month, day] = datePart.split('-').map(Number);
+
+  // Create date at the specified Manila time, converted to UTC
+  // Manila time = UTC+8, so UTC time = Manila time - 8 hours
+  const appointmentDateObj = new Date(Date.UTC(year, month - 1, day, hours - 8, minutes, 0, 0));
+
+  // Current time as UTC timestamp
   const now = new Date();
-  const manilaNow = new Date(now.getTime() + (now.getTimezoneOffset() * 60000) + (8 * 3600000));
-  
-  return appointmentDateObj < manilaNow;
+
+  return appointmentDateObj < now;
 }

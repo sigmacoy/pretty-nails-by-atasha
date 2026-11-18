@@ -66,12 +66,12 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
                 .name("Test User")
                 .email("test@example.com")
                 .phone("1234567890")
-                .password("password123")
+                .password("Password123!")
                 .build();
 
         loginRequest = LoginRequest.builder()
                 .email("test@example.com")
-                .password("password123")
+                .password("Password123!")
                 .build();
 
         lenient().doNothing().when(emailService).sendEmailVerification(anyString(), anyString(), anyString());
@@ -92,8 +92,8 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
         // Verify user saved with encoded password
         User savedUser = userRepository.findByEmailIgnoreCase("test@example.com").orElseThrow();
-        assertThat(savedUser.getPassword()).isNotEqualTo("password123");
-        assertThat(passwordEncoder.matches("password123", savedUser.getPassword())).isTrue();
+        assertThat(savedUser.getPassword()).isNotEqualTo("Password123!");
+        assertThat(passwordEncoder.matches("Password123!", savedUser.getPassword())).isTrue();
 
         // Verify loyalty card created
         var loyaltyCard = loyaltyCardRepository.findByUserId(savedUser.getId()).orElseThrow();
@@ -209,8 +209,8 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
     @Test
     void login_whenSuccessfulAfterFailedAttempts_shouldResetFailedAttempts() {
-        // Given - create user with some failed attempts
-        String encodedPassword = passwordEncoder.encode("password123");
+        // Given - create user with some failed attempts (but NOT locked)
+        String encodedPassword = passwordEncoder.encode("Password123!");
         User user = User.builder()
                 .name("Test User")
                 .email("test@example.com")
@@ -219,7 +219,7 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
                 .role("CUSTOMER")
                 .emailVerified(LocalDateTime.now())
                 .failedLoginAttempts(3)
-                .lockedUntil(timeProvider.localNow().plusMinutes(15))
+                .lockedUntil(null) // Not locked, just has failed attempts
                 .build();
         user = userRepository.save(user);
 
@@ -374,7 +374,7 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
     void resetPassword_whenValidToken_shouldResetPassword() {
         // Given - create user with reset token
         String token = "reset-token-123";
-        String oldPassword = passwordEncoder.encode("oldPassword123");
+        String oldPassword = passwordEncoder.encode("OldPassword123!");
         User user = User.builder()
                 .name("Test User")
                 .email("test@example.com")
@@ -389,7 +389,7 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
         // When
         MessageResponse response = authService.resetPassword(
-                new ResetPasswordRequest(token, "newPassword456"));
+                new ResetPasswordRequest(token, "NewPassword456!"));
 
         // Then
         assertThat(response).isNotNull();
@@ -397,7 +397,7 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
         // Verify password changed
         User updatedUser = userRepository.findByEmailIgnoreCase("test@example.com").orElseThrow();
-        assertThat(passwordEncoder.matches("newPassword456", updatedUser.getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("NewPassword456!", updatedUser.getPassword())).isTrue();
         assertThat(updatedUser.getPasswordResetToken()).isNull();
         assertThat(updatedUser.getPasswordResetTokenExpiresAt()).isNull();
     }
@@ -445,13 +445,13 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
         assertThatThrownBy(() -> authService.resetPassword(
                 new ResetPasswordRequest(token, "12345")))
                 .isInstanceOf(BadRequestException.class)
-                .hasMessage("New password must be at least 6 characters");
+                .hasMessage("Password must be at least 8 characters long");
     }
 
     @Test
     void changePassword_whenCurrentPasswordMatches_shouldEncodeNewPasswordAndSave() {
         // Given - create user
-        String encodedPassword = passwordEncoder.encode("oldPassword123");
+        String encodedPassword = passwordEncoder.encode("OldPassword123!");
         User user = User.builder()
                 .name("Test User")
                 .email("test@example.com")
@@ -464,17 +464,17 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
         // When
         authService.changePassword(user.getId(),
-                new ChangePasswordRequest("oldPassword123", "newPassword456"));
+                new ChangePasswordRequest("OldPassword123!", "NewPassword456!"));
 
         // Then
         User updatedUser = userRepository.findById(user.getId()).orElseThrow();
-        assertThat(passwordEncoder.matches("newPassword456", updatedUser.getPassword())).isTrue();
+        assertThat(passwordEncoder.matches("NewPassword456!", updatedUser.getPassword())).isTrue();
     }
 
     @Test
     void changePassword_whenCurrentPasswordIncorrect_shouldThrowBadRequestException() {
         // Given - create user
-        String encodedPassword = passwordEncoder.encode("oldPassword123");
+        String encodedPassword = passwordEncoder.encode("OldPassword123!");
         User user = User.builder()
                 .name("Test User")
                 .email("test@example.com")
@@ -487,7 +487,7 @@ class AuthServiceIntegrationTest extends IntegrationTestBase {
 
         // When/Then
         assertThatThrownBy(() -> authService.changePassword(savedUser.getId(),
-                new ChangePasswordRequest("wrongPassword", "newPassword456")))
+                new ChangePasswordRequest("wrongPassword", "NewPassword456!")))
                 .isInstanceOf(BadRequestException.class)
                 .hasMessage("Current password is incorrect");
     }

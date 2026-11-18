@@ -10,46 +10,88 @@ import {
 } from '@/lib/utils';
 
 describe('Timezone utilities (Manila timezone)', () => {
+  // Use a fixed reference time to avoid flakiness and timezone issues
+  // Reference: 2025-12-25T10:00:00.000Z (which is 2025-12-25 18:00 Manila time)
+  const REFERENCE_UTC = '2025-12-25T10:00:00.000Z';
+  const REFERENCE_MANILA_DATE = '2025-12-25';
+  const REFERENCE_MANILA_TIME = '18:00';
+
+  // Helper to create Manila date/time strings from a base Manila time (in UTC timestamp)
+  const createManilaDateTimeFromUTC = (baseUTC: string, offsetHours: number): { dateStr: string; timeStr: string } => {
+    const base = new Date(baseUTC);
+    // Base UTC time represents Manila time = UTC+8
+    // So Manila hours = UTC hours + 8
+    const manilaHours = (base.getUTCHours() + 8) % 24;
+    const manilaDate = base.getUTCDate();
+    const manilaMonth = base.getUTCMonth() + 1;
+    const manilaYear = base.getUTCFullYear();
+
+    // Create target Manila time by adding offset hours
+    const targetManila = new Date(Date.UTC(manilaYear, manilaMonth - 1, manilaDate, manilaHours, base.getUTCMinutes()));
+    targetManila.setTime(targetManila.getTime() + offsetHours * 60 * 60 * 1000);
+
+    return {
+      dateStr: `${targetManila.getUTCFullYear()}-${String(targetManila.getUTCMonth() + 1).padStart(2, '0')}-${String(targetManila.getUTCDate()).padStart(2, '0')}`,
+      timeStr: `${String(targetManila.getUTCHours()).padStart(2, '0')}:${String(targetManila.getUTCMinutes()).padStart(2, '0')}`,
+    };
+  };
+
+  // Debug test to verify fake timers work
+  it('debug: fake timers should work', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(REFERENCE_UTC));
+    const now = new Date();
+    expect(now.toISOString()).toBe(REFERENCE_UTC);
+    jest.useRealTimers();
+  });
+
+  // Debug test to check utility functions see fake time
+  it('debug: utility functions should see fake time', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(REFERENCE_UTC));
+
+    // Call a utility function that uses new Date()
+    const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, 1);
+    console.log('Test: dateStr=', dateStr, 'timeStr=', timeStr);
+    console.log('Test: REFERENCE_UTC=', REFERENCE_UTC);
+
+    const result = isPastManila(dateStr, timeStr);
+    console.log('Test: isPastManila result=', result);
+
+    jest.useRealTimers();
+    // Just verify it runs
+    expect(true).toBe(true);
+  });
+
   describe('isWithin24HoursManila', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(REFERENCE_UTC));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('returns true when appointment is within 24 hours in Manila time', () => {
-      // Create a date that's definitely within 24 hours from now in Manila
-      const manilaNow = new Date();
-      // Add 8 hours to get Manila time (UTC+8)
-      const manilaOffset = 8 * 60 * 60 * 1000;
-      const manilaTime = new Date(manilaNow.getTime() + manilaOffset + manilaNow.getTimezoneOffset() * 60000);
-
-      const futureManila = new Date(manilaTime.getTime() + 12 * 60 * 60 * 1000); // 12 hours ahead
-
-      const dateStr = futureManila.toISOString().split('T')[0];
-      const timeStr = futureManila.toTimeString().slice(0, 5);
+      // 12 hours ahead in Manila time from reference
+      const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, 12);
 
       const result = isWithin24HoursManila(dateStr, timeStr);
       expect(result).toBe(true);
     });
 
     it('returns false when appointment is more than 24 hours in Manila time', () => {
-      const manilaNow = new Date();
-      const manilaOffset = 8 * 60 * 60 * 1000;
-      const manilaTime = new Date(manilaNow.getTime() + manilaOffset + manilaNow.getTimezoneOffset() * 60000);
-
-      const futureManila = new Date(manilaTime.getTime() + 48 * 60 * 60 * 1000); // 48 hours ahead
-
-      const dateStr = futureManila.toISOString().split('T')[0];
-      const timeStr = futureManila.toTimeString().slice(0, 5);
+      // 48 hours ahead in Manila time from reference
+      const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, 48);
 
       const result = isWithin24HoursManila(dateStr, timeStr);
       expect(result).toBe(false);
     });
 
     it('returns false for past appointments', () => {
-      const manilaNow = new Date();
-      const manilaOffset = 8 * 60 * 60 * 1000;
-      const manilaTime = new Date(manilaNow.getTime() + manilaOffset + manilaNow.getTimezoneOffset() * 60000);
-
-      const pastManila = new Date(manilaTime.getTime() - 1 * 60 * 60 * 1000); // 1 hour ago
-
-      const dateStr = pastManila.toISOString().split('T')[0];
-      const timeStr = pastManila.toTimeString().slice(0, 5);
+      // 1 hour behind in Manila time from reference
+      const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, -1);
 
       const result = isWithin24HoursManila(dateStr, timeStr);
       expect(result).toBe(false);
@@ -57,29 +99,26 @@ describe('Timezone utilities (Manila timezone)', () => {
   });
 
   describe('isPastManila', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date(REFERENCE_UTC));
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
     it('returns true for past appointments in Manila time', () => {
-      const manilaNow = new Date();
-      const manilaOffset = 8 * 60 * 60 * 1000;
-      const manilaTime = new Date(manilaNow.getTime() + manilaOffset + manilaNow.getTimezoneOffset() * 60000);
-
-      const pastManila = new Date(manilaTime.getTime() - 1 * 60 * 60 * 1000);
-
-      const dateStr = pastManila.toISOString().split('T')[0];
-      const timeStr = pastManila.toTimeString().slice(0, 5);
+      // 1 hour behind in Manila time from reference
+      const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, -1);
 
       const result = isPastManila(dateStr, timeStr);
       expect(result).toBe(true);
     });
 
     it('returns false for future appointments in Manila time', () => {
-      const manilaNow = new Date();
-      const manilaOffset = 8 * 60 * 60 * 1000;
-      const manilaTime = new Date(manilaNow.getTime() + manilaOffset + manilaNow.getTimezoneOffset() * 60000);
-
-      const futureManila = new Date(manilaTime.getTime() + 1 * 60 * 60 * 1000);
-
-      const dateStr = futureManila.toISOString().split('T')[0];
-      const timeStr = futureManila.toTimeString().slice(0, 5);
+      // 1 hour ahead in Manila time from reference
+      const { dateStr, timeStr } = createManilaDateTimeFromUTC(REFERENCE_UTC, 1);
 
       const result = isPastManila(dateStr, timeStr);
       expect(result).toBe(false);

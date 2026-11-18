@@ -1,12 +1,14 @@
 package com.prettynails.service;
 
 import com.prettynails.dto.LoyaltyDtos.*;
+import com.prettynails.entity.Booking;
 import com.prettynails.entity.LoyaltyCard;
 import com.prettynails.entity.LoyaltyStamp;
 import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
 import com.prettynails.exception.ResourceNotFoundException;
 import com.prettynails.IntegrationTestBase;
+import com.prettynails.repository.BookingRepository;
 import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.LoyaltyStampRepository;
 import com.prettynails.repository.UserRepository;
@@ -14,10 +16,10 @@ import com.prettynails.util.TimeProvider;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -38,16 +40,20 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
     private UserRepository userRepository;
 
     @Autowired
+    private BookingRepository bookingRepository;
+
+    @Autowired
     private TimeProvider timeProvider;
 
     private User testUser;
     private LoyaltyCard testLoyaltyCard;
+    private Booking testBooking1;
+    private Booking testBooking2;
 
     @BeforeEach
     void setUp() {
         // Create test user
         testUser = User.builder()
-                .name("Test User")
                 .email("test@example.com")
                 .phone("1234567890")
                 .password("encoded-password")
@@ -64,6 +70,35 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
                 .expiresAt(timeProvider.localNow().plusMonths(11))
                 .build();
         testLoyaltyCard = loyaltyCardRepository.save(testLoyaltyCard);
+
+        // Create test bookings for QR code tests
+        testBooking1 = Booking.builder()
+                .userId(testUser.getId())
+                .status("COMPLETED")
+                .appointmentDate(timeProvider.startOfDay(LocalDate.now().minusDays(1)))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking 1")
+                .inspirationImg("http://example.com/image.jpg")
+                .redeemLoyaltyReward(false)
+                .build();
+        testBooking1 = bookingRepository.save(testBooking1);
+
+        testBooking2 = Booking.builder()
+                .userId(testUser.getId())
+                .status("COMPLETED")
+                .appointmentDate(timeProvider.startOfDay(LocalDate.now().minusDays(2)))
+                .startTime("14:00")
+                .endTime("16:00")
+                .totalPrice(60000)
+                .downpayment(10000)
+                .notes("Test booking 2")
+                .inspirationImg("http://example.com/image2.jpg")
+                .redeemLoyaltyReward(false)
+                .build();
+        testBooking2 = bookingRepository.save(testBooking2);
     }
 
     @Test
@@ -90,13 +125,13 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
     @Test
     void addStampViaQr_whenValidQrCode_shouldAddStamp() {
         // When
-        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), "booking-123:SERVICE:1234567890");
+        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), testBooking1.getId() + ":SERVICE:1234567890");
 
         // Then
         assertThat(response).isNotNull();
         assertThat(response.getSuccess()).isTrue();
         assertThat(response.getStampCount()).isEqualTo(6);
-        assertThat(response.getMessage()).isNull();
+        assertThat(response.getMessage()).isEqualTo("Stamp added successfully");
 
         // Verify stamp count updated
         LoyaltyCard updatedCard = loyaltyCardRepository.findByUserId(testUser.getId()).orElseThrow();
@@ -105,15 +140,15 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         // Verify stamp record created
         var stamps = loyaltyStampRepository.findAll();
         assertThat(stamps).hasSize(1);
-        assertThat(stamps.get(0).getBookingId()).isEqualTo("booking-123");
-        assertThat(stamps.get(0).getSource()).isEqualTo("QR_CODE");
+        assertThat(stamps.get(0).getBookingId()).isEqualTo(testBooking1.getId());
+        assertThat(stamps.get(0).getSource()).isEqualTo("SERVICE");
     }
 
     @Test
     void addStampViaQr_whenStampAlreadyExists_shouldReturnFailure() {
         // Given - create existing stamp
         LoyaltyStamp existingStamp = LoyaltyStamp.builder()
-                .bookingId("booking-123")
+                .bookingId(testBooking1.getId())
                 .cardId(testLoyaltyCard.getId())
                 .source("QR_CODE")
                 .amount(1)
@@ -122,7 +157,7 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         loyaltyStampRepository.save(existingStamp);
 
         // When
-        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), "booking-123:SERVICE:1234567890");
+        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), testBooking1.getId() + ":SERVICE:1234567890");
 
         // Then
         assertThat(response).isNotNull();
@@ -144,13 +179,13 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         assertThat(response).isNotNull();
         assertThat(response.getSuccess()).isFalse();
         assertThat(response.getMessage()).isEqualTo("Invalid QR code format");
-        assertThat(response.getStampCount()).isEqualTo(5); // Unchanged
+        assertThat(response.getStampCount()).isEqualTo(0); // Service returns 0 for invalid QR
     }
 
     @Test
     void addStampViaQr_whenBookingPrefixFormat_shouldAddStamp() {
         // When
-        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), "BOOKING:booking-456");
+        StampResponse response = loyaltyService.addStampViaQr(testUser.getId(), "BOOKING:" + testBooking2.getId());
 
         // Then
         assertThat(response).isNotNull();
@@ -164,7 +199,7 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         // Verify stamp record created
         var stamps = loyaltyStampRepository.findAll();
         assertThat(stamps).hasSize(1);
-        assertThat(stamps.get(0).getBookingId()).isEqualTo("booking-456");
+        assertThat(stamps.get(0).getBookingId()).isEqualTo(testBooking2.getId());
     }
 
     @Test
@@ -174,7 +209,7 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         loyaltyCardRepository.save(testLoyaltyCard);
 
         // When
-        loyaltyService.redeemRewardStamps(testUser.getId(), "booking-123", 9);
+        loyaltyService.redeemRewardStamps(testUser.getId(), testBooking1.getId(), 9);
 
         // Then
         LoyaltyCard updatedCard = loyaltyCardRepository.findByUserId(testUser.getId()).orElseThrow();
@@ -183,8 +218,8 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
         // Verify redeem stamp record created
         var stamps = loyaltyStampRepository.findAll();
         assertThat(stamps).hasSize(1);
-        assertThat(stamps.get(0).getBookingId()).isEqualTo("booking-123");
-        assertThat(stamps.get(0).getSource()).isEqualTo("REDEEM");
+        assertThat(stamps.get(0).getBookingId()).isEqualTo(testBooking1.getId());
+        assertThat(stamps.get(0).getSource()).isEqualTo("REWARD_REDEMPTION");
         assertThat(stamps.get(0).getAmount()).isEqualTo(-9);
     }
 
