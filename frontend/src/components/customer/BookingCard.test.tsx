@@ -4,9 +4,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BookingCard, getDownpaymentStatus } from '@/components/customer/BookingCard';
 import { isWithin24HoursManila, isPastManila } from '@/lib/utils';
-import { BookingDto } from '@/types';
+import { BookingDto, BookingServiceDto, ServiceDto, PaymentDto } from '@/types';
 import { bookingsApi, paymentsApi, availabilityApi } from '@/lib/api';
 import { toast } from 'sonner';
+import type { AxiosResponse } from 'axios';
 
 // Mock dependencies
 jest.mock('@/hooks/useApi', () => ({
@@ -32,58 +33,89 @@ const mockPaymentsApi = paymentsApi as jest.Mocked<typeof paymentsApi>;
 const mockAvailabilityApi = availabilityApi as jest.Mocked<typeof availabilityApi>;
 const mockToast = toast as jest.Mocked<typeof toast>;
 
-const createMockBooking = (overrides: Partial<BookingDto> = {}): BookingDto => ({
-  id: 'booking-123',
-  userId: 'user-123',
-  status: 'PENDING',
-  appointmentDate: '2025-12-25T00:00:00.000Z',
-  startTime: '10:00',
-  endTime: '12:00',
-  totalPrice: 50000,
-  downpayment: 10000,
-  notes: 'Test notes',
-  inspirationImg: null,
-  createdAt: '2025-12-01T10:00:00.000Z',
-  updatedAt: null,
-  services: [
-    {
-      id: 'bs-1',
-      bookingId: 'booking-123',
-      serviceId: 'service-1',
-      variantId: 'variant-1',
-      quantity: 1,
-      price: 50000,
-      service: {
-        id: 'service-1',
-        name: 'Gel Manicure',
-        category: 'GEL',
-        description: 'Gel manicure service',
-        basePrice: 50000,
-        duration: 60,
-        isActive: true,
-        variants: [],
-        createdAt: '',
-        updatedAt: '',
-      },
-    },
-  ],
-  payment: {
-    id: 'pay-1',
-    bookingId: 'booking-123',
+function createMockBooking(overrides: Partial<BookingDto> = {}): BookingDto {
+  const baseBooking: BookingDto = {
+    id: 'booking-123',
     userId: 'user-123',
-    amount: 10000,
     status: 'PENDING',
-    method: 'GCASH',
-    reference: null,
-    verifiedAt: null,
-    verifiedBy: null,
+    appointmentDate: '2025-12-25T00:00:00.000Z',
+    startTime: '10:00',
+    endTime: '12:00',
+    totalPrice: 50000,
+    downpayment: 10000,
+    notes: 'Test notes',
+    inspirationImg: undefined,
     createdAt: '2025-12-01T10:00:00.000Z',
-    updatedAt: null,
-  },
-  loyaltyStamps: [],
-  redeemLoyaltyReward: false,
-  ...overrides,
-});
+    updatedAt: '',
+    services: [
+      {
+        id: 'bs-1',
+        serviceId: 'service-1',
+        variantId: 'variant-1',
+        quantity: 1,
+        price: 50000,
+        service: {
+          id: 'service-1',
+          name: 'Gel Manicure',
+          category: 'GEL',
+          description: 'Gel manicure service',
+          basePrice: 50000,
+          duration: 60,
+          isActive: true,
+          variants: [],
+          createdAt: '',
+          updatedAt: '',
+        },
+      },
+    ],
+    payment: {
+      id: 'pay-1',
+      bookingId: 'booking-123',
+      userId: 'user-123',
+      amount: 10000,
+      status: 'PENDING',
+      method: 'GCASH',
+      reference: undefined,
+      verifiedAt: undefined,
+      verifiedBy: undefined,
+      createdAt: '2025-12-01T10:00:00.000Z',
+      updatedAt: undefined,
+    },
+    redeemLoyaltyReward: false,
+    ...overrides,
+  };
+  return baseBooking;
+}
+
+function createMockSlotsResponse(): AxiosResponse<{ startTime: string; endTime: string; available: boolean }[]> {
+  return {
+    data: [],
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockCancelResponse(): AxiosResponse<BookingDto> {
+  return {
+    data: createMockBooking({ status: 'CANCELLED' }),
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockRescheduleResponse(): AxiosResponse<BookingDto> {
+  return {
+    data: createMockBooking(),
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
 
 describe('BookingCard', () => {
   const mockOnCancel = jest.fn();
@@ -91,11 +123,11 @@ describe('BookingCard', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBookingsApi.cancelBooking.mockResolvedValue({ data: {} });
-    mockBookingsApi.rescheduleBooking.mockResolvedValue({ data: {} });
-    mockAvailabilityApi.getSlots.mockResolvedValue({ data: [] });
-    mockToast.success.mockImplementation(() => {});
-    mockToast.error.mockImplementation(() => {});
+    mockBookingsApi.cancelBooking.mockResolvedValue(createMockCancelResponse());
+    mockBookingsApi.rescheduleBooking.mockResolvedValue(createMockRescheduleResponse());
+    mockAvailabilityApi.getSlots.mockResolvedValue(createMockSlotsResponse());
+    mockToast.success.mockImplementation(() => 'toast-id');
+    mockToast.error.mockImplementation(() => 'toast-id');
     // Mock window.confirm to return true for cancel confirmation
     global.confirm = jest.fn(() => true);
   });
@@ -241,7 +273,7 @@ describe('BookingCard', () => {
       const booking = createMockBooking({
         payment: {
           ...createMockBooking().payment!,
-          reference: null,
+          reference: undefined,
           status: 'PENDING',
         },
       });
@@ -312,6 +344,7 @@ describe('BookingCard', () => {
       await waitFor(() => {
         // Label has no 'for' attribute, so query input directly
         const dateInput = container.querySelector('input[type="date"]');
+        if (!dateInput) throw new Error('Date input not found');
         expect(dateInput).toHaveValue(appointmentDate);
       });
     });
@@ -327,7 +360,7 @@ describe('Utility functions', () => {
       const timeStr = futureDate.toTimeString().slice(0, 5);
 
       // Note: This test uses the actual Manila timezone calculation
-      // The result depends on the current system timezone
+      // The result depends on the current test environment timezone
       const result = isWithin24HoursManila(dateStr, timeStr);
       // We can't assert a specific value without knowing the test environment timezone
       expect(typeof result).toBe('boolean');
@@ -373,7 +406,7 @@ describe('Utility functions', () => {
 
     it('returns UNPAID when no payment reference', () => {
       const booking = createMockBooking({
-        payment: { ...createMockBooking().payment!, reference: null, status: 'PENDING' },
+        payment: { ...createMockBooking().payment!, reference: undefined, status: 'PENDING' },
       });
       expect(getDownpaymentStatus(booking)).toBe('UNPAID');
     });

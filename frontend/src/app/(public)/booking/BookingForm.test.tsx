@@ -3,10 +3,12 @@ import '@/jest.setup';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BookingForm } from '@/app/(public)/booking/BookingForm';
-import { availabilityApi, bookingsApi, paymentsApi, loyaltyApi } from '@/lib/api';
+import { availabilityApi, bookingsApi, paymentsApi, loyaltyApi, servicesApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
+import type { AvailabilityDto, AvailabilitySlotDto, BookingDto, PaymentResponse, LoyaltyCardDto, UserDto, BookingServiceDto, ServiceDto } from '@/types';
+import type { AxiosResponse } from 'axios';
 
 // Mock dependencies
 jest.mock('@/hooks/useApi', () => ({
@@ -32,11 +34,11 @@ jest.mock('react-hook-form', () => ({
 }));
 
 const { useQuery } = require('@/hooks/useApi');
-const { servicesApi } = require('@/lib/api');
 const mockAvailabilityApi = availabilityApi as jest.Mocked<typeof availabilityApi>;
 const mockBookingsApi = bookingsApi as jest.Mocked<typeof bookingsApi>;
 const mockPaymentsApi = paymentsApi as jest.Mocked<typeof paymentsApi>;
 const mockLoyaltyApi = loyaltyApi as jest.Mocked<typeof loyaltyApi>;
+const mockServicesApi = servicesApi as jest.Mocked<typeof servicesApi>;
 const mockUseAuth = useAuth as jest.MockedFunction<typeof useAuth>;
 const mockUseRouter = useRouter as jest.MockedFunction<typeof useRouter>;
 const mockUseSearchParams = useSearchParams as jest.MockedFunction<typeof useSearchParams>;
@@ -45,20 +47,37 @@ const mockToast = toast as jest.Mocked<typeof toast>;
 const mockRouter = {
   push: jest.fn(),
   refresh: jest.fn(),
+  back: jest.fn(),
+  forward: jest.fn(),
+  replace: jest.fn(),
+  prefetch: jest.fn(),
 };
 
 const mockSearchParams = {
   get: jest.fn(),
+  append: jest.fn(),
+  delete: jest.fn(),
+  set: jest.fn(),
+  sort: jest.fn(),
+  forEach: jest.fn(),
+  entries: jest.fn(),
+  keys: jest.fn(),
+  values: jest.fn(),
+  has: jest.fn(),
+  toString: jest.fn(),
+  size: 0,
+  getAll: jest.fn(),
+  [Symbol.iterator]: jest.fn(),
 };
 
-const mockAvailableSlots = [
+const mockAvailableSlots: AvailabilitySlotDto[] = [
   { startTime: '09:00', endTime: '09:30', available: true },
   { startTime: '09:30', endTime: '10:00', available: true },
   { startTime: '10:00', endTime: '10:30', available: false }, // Booked
   { startTime: '10:30', endTime: '11:00', available: true },
 ];
 
-function createMockAvailabilityResponse(dateStr: string) {
+function createMockAvailabilityResponse(dateStr: string): AxiosResponse<AvailabilityDto[]> {
   return {
     data: [
       {
@@ -68,11 +87,93 @@ function createMockAvailabilityResponse(dateStr: string) {
         startTime: '09:00',
         endTime: '18:00',
         maxSlots: 4,
-        note: null,
+        note: undefined,
         createdAt: '',
         updatedAt: '',
       },
     ],
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockSlotsResponse(slots: AvailabilitySlotDto[] = mockAvailableSlots): AxiosResponse<AvailabilitySlotDto[]> {
+  return {
+    data: slots,
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockBookingResponse(): AxiosResponse<BookingDto> {
+  return {
+    data: {
+      id: 'booking-123',
+      userId: 'user-123',
+      status: 'PENDING',
+      appointmentDate: '2025-12-25T00:00:00.000Z',
+      startTime: '10:00',
+      endTime: '12:00',
+      totalPrice: 50000,
+      downpayment: 10000,
+      notes: 'Test notes',
+      inspirationImg: undefined,
+      createdAt: '2025-12-01T10:00:00.000Z',
+      updatedAt: '',
+      services: [],
+      payment: undefined,
+      redeemLoyaltyReward: false,
+    },
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockPaymentResponse(): AxiosResponse<PaymentResponse> {
+  return {
+    data: {
+      id: 'pay-1',
+      bookingId: 'booking-123',
+      status: 'PENDING',
+      message: 'Payment created',
+    },
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockLoyaltyResponse(): AxiosResponse<LoyaltyCardDto> {
+  return {
+    data: {
+      id: 'loyalty-1',
+      userId: 'user-123',
+      stampCount: 0,
+      expiresAt: '2026-12-31T00:00:00.000Z',
+      createdAt: '2025-12-01T10:00:00.000Z',
+      updatedAt: '',
+    },
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
+  };
+}
+
+function createMockServicesResponse(): AxiosResponse<ServiceDto[]> {
+  return {
+    data: [],
+    status: 200,
+    statusText: 'OK',
+    headers: {},
+    config: {} as any,
   };
 }
 
@@ -85,14 +186,29 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     mockBookingsApi.create.mockReset();
     mockPaymentsApi.create.mockReset();
     mockLoyaltyApi.getCard.mockReset();
-    servicesApi.getActive.mockReset();
+    mockServicesApi.getActive.mockReset();
 
-    mockUseAuth.mockReturnValue({ isAuthenticated: true, user: { id: 'user-123' } });
+    const mockUser: UserDto = {
+      id: 'user-123',
+      name: 'Test User',
+      email: 'test@example.com',
+      role: 'CUSTOMER',
+      createdAt: '2025-12-01T10:00:00.000Z',
+    };
+    mockUseAuth.mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      isAuthenticated: true,
+      isAdmin: false,
+      login: jest.fn(),
+      logout: jest.fn(),
+      refreshUser: jest.fn().mockResolvedValue(undefined),
+    });
     mockUseRouter.mockReturnValue(mockRouter);
     mockUseSearchParams.mockReturnValue(mockSearchParams);
     mockSearchParams.get.mockReturnValue(null);
-    mockToast.success.mockImplementation(() => {});
-    mockToast.error.mockImplementation(() => {});
+    mockToast.success.mockImplementation(() => 'toast-id');
+    mockToast.error.mockImplementation(() => 'toast-id');
 
     // Mock useQuery to return different data based on the query function
     useQuery.mockImplementation((queryFn: any) => {
@@ -107,7 +223,7 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     });
 
     // Mock services API (fallback will be used)
-    servicesApi.getActive.mockResolvedValue({ data: [] });
+    mockServicesApi.getActive.mockResolvedValue(createMockServicesResponse());
   });
 
   async function setupBookingForm(user: ReturnType<typeof userEvent.setup>) {
@@ -133,6 +249,7 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
 
     // Find date input by type (type="date" doesn't have accessible name)
     const dateInput = container.querySelector('input[type="date"]');
+    if (!dateInput) throw new Error('Date input not found');
     fireEvent.change(dateInput, { target: { value: dateStr } });
 
     await waitFor(() => {
@@ -157,12 +274,12 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     // Initial fetchAvailableSlots calls getAvailable once
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Re-validation calls getSlots once and getAvailable once
-    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce(createMockSlotsResponse());
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Full booking flow
-    mockBookingsApi.create.mockResolvedValueOnce({ data: { id: 'booking-123', message: 'Success' } });
-    mockPaymentsApi.create.mockResolvedValueOnce({ data: {} });
-    mockLoyaltyApi.getCard.mockResolvedValueOnce({ data: { stampCount: 0 } });
+    mockBookingsApi.create.mockResolvedValueOnce(createMockBookingResponse());
+    mockPaymentsApi.create.mockResolvedValueOnce(createMockPaymentResponse());
+    mockLoyaltyApi.getCard.mockResolvedValueOnce(createMockLoyaltyResponse());
 
     const { container } = await setupBookingForm(user);
 
@@ -190,12 +307,12 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     // Initial fetchAvailableSlots calls getAvailable once
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Re-validation calls getSlots once (returns slot as booked) and getAvailable once
-    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: [
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce(createMockSlotsResponse([
       { startTime: '09:00', endTime: '09:30', available: false }, // Now booked!
       { startTime: '09:30', endTime: '10:00', available: true },
       { startTime: '10:00', endTime: '10:30', available: false },
       { startTime: '10:30', endTime: '11:00', available: true },
-    ]});
+    ]));
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
 
     await setupBookingForm(user);
@@ -225,7 +342,7 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     // Initial fetchAvailableSlots calls getAvailable once
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Re-validation calls getSlots once (returns no slots) and getAvailable once
-    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: [] });
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce(createMockSlotsResponse([]));
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
 
     await setupBookingForm(user);
@@ -255,8 +372,14 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     // Initial fetchAvailableSlots calls getAvailable once
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Re-validation calls getSlots once and getAvailable once (returns empty = date unavailable)
-    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
-    mockAvailabilityApi.getAvailable.mockResolvedValueOnce({ data: [] });
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce(createMockSlotsResponse());
+    mockAvailabilityApi.getAvailable.mockResolvedValueOnce({
+      data: [],
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config: {} as any,
+    });
 
     await setupBookingForm(user);
 
@@ -280,12 +403,12 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
     // Initial fetchAvailableSlots calls getAvailable once
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Re-validation calls getSlots once and getAvailable once
-    mockAvailabilityApi.getSlots.mockResolvedValueOnce({ data: mockAvailableSlots });
+    mockAvailabilityApi.getSlots.mockResolvedValueOnce(createMockSlotsResponse());
     mockAvailabilityApi.getAvailable.mockResolvedValueOnce(mockAvailabilityResponse);
     // Full booking flow
-    mockBookingsApi.create.mockResolvedValueOnce({ data: { id: 'booking-123', message: 'Success' } });
-    mockPaymentsApi.create.mockResolvedValueOnce({ data: {} });
-    mockLoyaltyApi.getCard.mockResolvedValueOnce({ data: { stampCount: 0 } });
+    mockBookingsApi.create.mockResolvedValueOnce(createMockBookingResponse());
+    mockPaymentsApi.create.mockResolvedValueOnce(createMockPaymentResponse());
+    mockLoyaltyApi.getCard.mockResolvedValueOnce(createMockLoyaltyResponse());
 
     await setupBookingForm(user);
 
