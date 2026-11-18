@@ -244,9 +244,9 @@ class BookingServiceTest {
 
     @Test
     void createBooking_whenSlotAlreadyBookedPending_shouldThrowBadRequestException() {
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any()))
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any()))
                 .thenReturn(true); // Slot already taken by PENDING booking
 
         var testService = new com.prettynails.entity.Service();
@@ -255,7 +255,7 @@ class BookingServiceTest {
         testService.setBasePrice(50000);
         testService.setVariants(List.of());
 
-        when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
+        lenient().when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
 
         assertThatThrownBy(() -> bookingService.createBooking(testUser, bookingRequest))
                 .isInstanceOf(BadRequestException.class)
@@ -264,9 +264,9 @@ class BookingServiceTest {
 
     @Test
     void createBooking_whenSlotAlreadyBookedConfirmed_shouldThrowBadRequestException() {
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any()))
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any()))
                 .thenReturn(true); // Slot already taken by CONFIRMED booking
 
         var testService = new com.prettynails.entity.Service();
@@ -275,7 +275,7 @@ class BookingServiceTest {
         testService.setBasePrice(50000);
         testService.setVariants(List.of());
 
-        when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
+        lenient().when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
 
         assertThatThrownBy(() -> bookingService.createBooking(testUser, bookingRequest))
                 .isInstanceOf(BadRequestException.class)
@@ -285,8 +285,26 @@ class BookingServiceTest {
     @Test
     void confirmBooking_whenAnotherPendingBookingExistsForSameSlot_shouldThrowBadRequestException() {
         // Another booking (different ID) already holds this slot as PENDING
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
+        Booking testBookingForConfirm = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForConfirm));
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                any(), anyString(), any())).thenReturn(true);
+        lenient().when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
                 any(), anyString(), any(), anyString())).thenReturn(1L);
 
         assertThatThrownBy(() -> bookingService.confirmBooking("booking-123"))
@@ -296,8 +314,26 @@ class BookingServiceTest {
 
     @Test
     void confirmBooking_whenAnotherConfirmedBookingExistsForSameSlot_shouldThrowBadRequestException() {
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
+        Booking testBookingForConfirm = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForConfirm));
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                any(), anyString(), any())).thenReturn(true);
+        lenient().when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
                 any(), anyString(), any(), anyString())).thenReturn(1L);
 
         assertThatThrownBy(() -> bookingService.confirmBooking("booking-123"))
@@ -307,10 +343,28 @@ class BookingServiceTest {
 
     @Test
     void confirmBooking_whenOnlyCurrentBookingExistsForSlot_shouldConfirmSuccessfully() {
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
+        Booking testBookingForConfirm = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForConfirm));
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
+                any(), anyString(), any())).thenReturn(true);
+        lenient().when(bookingRepository.countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
                 any(), anyString(), any(), anyString())).thenReturn(0L); // No OTHER bookings
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBookingForConfirm);
 
         BookingDto result = bookingService.confirmBooking("booking-123");
 
@@ -323,54 +377,73 @@ class BookingServiceTest {
     @Test
     void createBooking_usesTimeProviderForStartOfDay() {
         LocalDateTime manilaStartOfDay = LocalDateTime.of(2025, 12, 25, 0, 0);
-        when(timeProvider.startOfDay(LocalDate.of(2025, 12, 25))).thenReturn(manilaStartOfDay);
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
+        lenient().when(timeProvider.startOfDay(LocalDate.of(2025, 12, 25))).thenReturn(manilaStartOfDay);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
 
         var testService = new com.prettynails.entity.Service();
         testService.setId("service-1");
         testService.setName("Test Service");
         testService.setBasePrice(50000);
         testService.setVariants(List.of());
-        when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(bookingServiceRepository.save(any())).thenReturn(null);
-        when(paymentRepository.save(any(Payment.class))).thenReturn(null);
+        lenient().when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        lenient().when(bookingServiceRepository.save(any())).thenReturn(null);
+        lenient().when(paymentRepository.save(any(Payment.class))).thenReturn(null);
 
         bookingService.createBooking(testUser, bookingRequest);
 
-        // Verify TimeProvider.startOfDay was called for the appointment date
-        verify(timeProvider).startOfDay(LocalDate.of(2025, 12, 25));
+        // Verify TimeProvider.startOfDay was called for the appointment date (at least once)
+        verify(timeProvider, atLeastOnce()).startOfDay(LocalDate.of(2025, 12, 25));
         // Verify the appointment date was set using Manila timezone start of day
         verify(bookingRepository).save(argThat(b -> b.getAppointmentDate().equals(manilaStartOfDay)));
     }
 
     @Test
     void createBooking_usesTimeProviderForAvailabilityDateRange() {
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
 
         var testService = new com.prettynails.entity.Service();
         testService.setId("service-1");
         testService.setName("Test Service");
         testService.setBasePrice(50000);
         testService.setVariants(List.of());
-        when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(bookingServiceRepository.save(any())).thenReturn(null);
-        when(paymentRepository.save(any(Payment.class))).thenReturn(null);
+        lenient().when(serviceRepository.findById("service-1")).thenReturn(Optional.of(testService));
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        lenient().when(bookingServiceRepository.save(any())).thenReturn(null);
+        lenient().when(paymentRepository.save(any(Payment.class))).thenReturn(null);
 
         bookingService.createBooking(testUser, bookingRequest);
 
-        // Verify availability check uses TimeProvider.startOfDay and endOfDay
-        verify(timeProvider).startOfDay(LocalDate.of(2025, 12, 25));
-        verify(timeProvider).endOfDay(LocalDate.of(2025, 12, 25));
+        // Verify availability check uses TimeProvider.startOfDay and endOfDay (at least once each)
+        verify(timeProvider, atLeastOnce()).startOfDay(LocalDate.of(2025, 12, 25));
+        verify(timeProvider, atLeastOnce()).endOfDay(LocalDate.of(2025, 12, 25));
     }
 
     @Test
     void rescheduleBooking_usesTimeProviderForNewDate() {
+        Booking testBookingForReschedule = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        LocalDateTime newStartOfDay = LocalDateTime.of(2025, 12, 26, 0, 0);
+        LocalDateTime newEndOfDay = LocalDateTime.of(2025, 12, 26, 23, 59, 59, 999_999_999);
+
         BookingRequest rescheduleRequest = BookingRequest.builder()
                 .appointmentDate("2025-12-26")
                 .startTime("14:00")
@@ -379,12 +452,14 @@ class BookingServiceTest {
                 .downpayment(10000)
                 .build();
 
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForReschedule));
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
+        lenient().when(timeProvider.startOfDay(LocalDate.of(2025, 12, 26))).thenReturn(newStartOfDay);
+        lenient().when(timeProvider.endOfDay(LocalDate.of(2025, 12, 26))).thenReturn(newEndOfDay);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBookingForReschedule);
 
         // Need a real TimeProvider for the date parsing to work with mocked startOfDay
         // The service uses LocalDate.parse then timeProvider.startOfDay
@@ -394,7 +469,8 @@ class BookingServiceTest {
                 .startTime("14:00")
                 .build());
 
-        verify(timeProvider).startOfDay(LocalDate.of(2025, 12, 26));
+        // Service calls startOfDay twice (once for newAppointmentDateTime, once for startOfDay variable)
+        verify(timeProvider, times(2)).startOfDay(LocalDate.of(2025, 12, 26));
         verify(timeProvider).endOfDay(LocalDate.of(2025, 12, 26));
     }
 
@@ -433,11 +509,24 @@ class BookingServiceTest {
     @Test
     void rescheduleBooking_within24Hours_shouldThrowBadRequestException() {
         LocalDateTime appointmentSoon = LocalDateTime.now().plusHours(12);
-        testBooking.setAppointmentDate(appointmentSoon.withHour(10).withMinute(0));
-        testBooking.setStartTime("10:00");
+        Booking testBookingForReschedule = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(appointmentSoon.withHour(10).withMinute(0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(false);
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForReschedule));
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(false);
 
         assertThatThrownBy(() -> bookingService.rescheduleBooking("booking-123", "user-123",
                 RescheduleRequest.builder().appointmentDate("2025-12-26").startTime("14:00").build()))
@@ -448,21 +537,40 @@ class BookingServiceTest {
     @Test
     void rescheduleBooking_moreThan24Hours_shouldAllowReschedule() {
         LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48);
-        testBooking.setAppointmentDate(appointmentLater.withHour(10).withMinute(0));
-        testBooking.setStartTime("10:00");
+        Booking testBookingForReschedule = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(appointmentLater.withHour(10).withMinute(0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        LocalDateTime newStartOfDay = LocalDateTime.of(2025, 12, 26, 0, 0);
+        LocalDateTime newEndOfDay = LocalDateTime.of(2025, 12, 26, 23, 59, 59, 999_999_999);
+
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForReschedule));
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
+        lenient().when(timeProvider.startOfDay(LocalDate.of(2025, 12, 26))).thenReturn(newStartOfDay);
+        lenient().when(timeProvider.endOfDay(LocalDate.of(2025, 12, 26))).thenReturn(newEndOfDay);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(false);
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBookingForReschedule);
 
         BookingDto result = bookingService.rescheduleBooking("booking-123", "user-123",
                 RescheduleRequest.builder().appointmentDate("2025-12-26").startTime("14:00").build());
 
         assertThat(result).isNotNull();
-        assertThat(result.getAppointmentDate()).isEqualTo("2025-12-26T00:00:00");
+        // LocalDateTime.toString() omits seconds when zero, so format is "2025-12-26T00:00"
+        assertThat(result.getAppointmentDate()).isEqualTo("2025-12-26T00:00");
     }
 
     // ===== Tests for rescheduleBooking slot conflict check (Item 5) =====
@@ -470,14 +578,27 @@ class BookingServiceTest {
     @Test
     void rescheduleBooking_whenNewSlotAlreadyBookedByAnother_shouldThrowBadRequestException() {
         LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48);
-        testBooking.setAppointmentDate(appointmentLater.withHour(10).withMinute(0));
-        testBooking.setStartTime("10:00");
+        Booking testBookingForReschedule = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(appointmentLater.withHour(10).withMinute(0))
+                .startTime("10:00")
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
 
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(true); // New slot taken
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForReschedule));
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(true); // New slot taken
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
 
         assertThatThrownBy(() -> bookingService.rescheduleBooking("booking-123", "user-123",
                 RescheduleRequest.builder().appointmentDate("2025-12-26").startTime("14:00").build()))
@@ -487,19 +608,41 @@ class BookingServiceTest {
 
     @Test
     void rescheduleBooking_whenMovingToSameSlot_shouldAllow() {
-        LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48);
-        testBooking.setAppointmentDate(appointmentLater.withHour(10).withMinute(0));
-        testBooking.setStartTime("10:00");
+        // Use a fixed date for consistency
+        LocalDate testDate = LocalDate.of(2025, 12, 26);
+        LocalDateTime testAppointmentDate = testDate.atStartOfDay(); // 00:00 - start of day
+        LocalDateTime appointmentLater = testAppointmentDate.plusHours(48); // Future date for 24-hour check
 
-        when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
-        when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
-        when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
-        when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(true); // Same slot (current booking)
-        when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
-        when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        Booking testBookingForReschedule = Booking.builder()
+                .id("booking-123")
+                .userId("user-123")
+                .status("PENDING")
+                .appointmentDate(testAppointmentDate) // Start of day (00:00)
+                .startTime("10:00") // Actual start time
+                .endTime("12:00")
+                .totalPrice(50000)
+                .downpayment(10000)
+                .notes("Test booking")
+                .inspirationImg("http://example.com/image.jpg")
+                .services(List.of())
+                .redeemLoyaltyReward(false)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        LocalDateTime newStartOfDay = testAppointmentDate; // Same date
+        LocalDateTime newEndOfDay = testDate.atTime(23, 59, 59, 999_999_999);
+
+        lenient().when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBookingForReschedule));
+        lenient().when(timeProvider.isAtLeast24HoursInFuture(any())).thenReturn(true);
+        lenient().when(timeProvider.startOfDay(testDate)).thenReturn(newStartOfDay);
+        lenient().when(timeProvider.endOfDay(testDate)).thenReturn(newEndOfDay);
+        lenient().when(availabilityRepository.findByDateBetweenOrderByDateAsc(any(), any())).thenReturn(List.of());
+        lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), any())).thenReturn(true); // Same slot (current booking)
+        lenient().when(bookingRepository.countByAppointmentDateBetweenAndStatusIn(any(), any(), any())).thenReturn(0L);
+        lenient().when(bookingRepository.save(any(Booking.class))).thenReturn(testBookingForReschedule);
 
         BookingDto result = bookingService.rescheduleBooking("booking-123", "user-123",
-                RescheduleRequest.builder().appointmentDate("2025-12-26").startTime("10:00").build());
+                RescheduleRequest.builder().appointmentDate(testDate.toString()).startTime("10:00").build());
 
         assertThat(result).isNotNull();
     }

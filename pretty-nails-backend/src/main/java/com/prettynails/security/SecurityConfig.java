@@ -1,5 +1,6 @@
 package com.prettynails.security;
 
+import com.prettynails.config.RateLimitConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -31,6 +32,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomUserDetailsService customUserDetailsService;
+    private final RateLimitFilter rateLimitFilter;
 
     @Value("${app.cors.allowed-origins}")
     private String allowedOrigins;
@@ -41,7 +43,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers("/api/auth/register", "/api/auth/login",
+                                "/api/auth/verify-email", "/api/auth/resend-verification",
+                                "/api/auth/forgot-password", "/api/auth/reset-password").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/services", "/api/services/**").permitAll()
                         .requestMatchers("/api/availability", "/api/availability/**").permitAll()
                         .requestMatchers("/api/gallery").permitAll()
@@ -52,6 +56,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

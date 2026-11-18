@@ -54,6 +54,13 @@ app:
     dir: uploads
     max-file-size: 5242880
     base-url: ""
+  email:
+    verification-url: http://localhost:3000/verify-email
+    reset-url: http://localhost:3000/reset-password
+  rate-limit:
+    auth:
+      requests-per-minute: 10
+      requests-per-hour: 100
 
 logging:
   level:

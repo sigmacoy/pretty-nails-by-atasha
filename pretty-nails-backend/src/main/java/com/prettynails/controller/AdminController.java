@@ -73,4 +73,20 @@ public class AdminController {
         CustomerNoteDto note = adminService.addCustomerNote(userId, request.getContent(), currentUser.getId());
         return ResponseEntity.ok(note);
     }
+
+    @PutMapping("/customers/notes/{noteId}")
+    public ResponseEntity<CustomerNoteDto> updateCustomerNote(
+            @PathVariable String noteId,
+            @Valid @RequestBody CustomerNoteRequest request) {
+        User currentUser = getCurrentUser();
+        CustomerNoteDto note = adminService.updateCustomerNote(noteId, request.getContent(), currentUser.getId());
+        return ResponseEntity.ok(note);
+    }
+
+    @DeleteMapping("/customers/notes/{noteId}")
+    public ResponseEntity<Void> deleteCustomerNote(@PathVariable String noteId) {
+        User currentUser = getCurrentUser();
+        adminService.deleteCustomerNote(noteId, currentUser.getId());
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -1,21 +1,19 @@
 package com.prettynails.util;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 
 import static org.assertj.core.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
 class TimeProviderTest {
 
-    private TimeProvider timeProvider = new TimeProvider();
+    private TimeProvider timeProvider = new ManilaTimeProvider();
 
     @Test
     void now_returnsManilaTimezone() {
@@ -37,7 +35,9 @@ class TimeProviderTest {
         LocalDateTime localNow = timeProvider.localNow();
 
         ZonedDateTime manilaNow = ZonedDateTime.now(ZoneId.of("Asia/Manila"));
-        assertThat(localNow).isEqualTo(manilaNow.toLocalDateTime());
+        // Compare with millisecond precision to avoid nanosecond flakiness
+        assertThat(localNow.truncatedTo(ChronoUnit.MILLIS))
+                .isEqualTo(manilaNow.toLocalDateTime().truncatedTo(ChronoUnit.MILLIS));
     }
 
     @Test

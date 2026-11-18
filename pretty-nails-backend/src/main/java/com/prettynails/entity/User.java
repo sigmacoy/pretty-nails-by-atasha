@@ -32,6 +32,24 @@ public class User implements UserDetails {
     @Column(name = "email_verified")
     private LocalDateTime emailVerified;
 
+    @Column(name = "email_verification_token", length = 255)
+    private String emailVerificationToken;
+
+    @Column(name = "email_verification_token_expires_at")
+    private LocalDateTime emailVerificationTokenExpiresAt;
+
+    @Column(name = "password_reset_token", length = 255)
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expires_at")
+    private LocalDateTime passwordResetTokenExpiresAt;
+
+    @Column(name = "failed_login_attempts")
+    private Integer failedLoginAttempts = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
     @Column(name = "name", length = 100)
     private String name;
 
@@ -96,6 +114,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
+        if (lockedUntil != null && lockedUntil.isAfter(LocalDateTime.now())) {
+            return false;
+        }
         return true;
     }
 
@@ -106,6 +127,6 @@ public class User implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return emailVerified != null;
     }
 }

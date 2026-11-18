@@ -14,6 +14,7 @@ import com.prettynails.repository.LoyaltyCardRepository;
 import com.prettynails.repository.SettingRepository;
 import com.prettynails.repository.UserRepository;
 import com.prettynails.util.TimeProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -38,6 +39,7 @@ public class AdminService {
     private final SettingRepository settingRepository;
     private final CustomerNoteRepository customerNoteRepository;
     private final TimeProvider timeProvider;
+    private final ObjectMapper objectMapper;
 
     private static final String LOYALTY_SETTINGS_KEY = "loyalty_settings";
 
@@ -134,9 +136,11 @@ public class AdminService {
     public LoyaltySettingsDto getLoyaltySettings() {
         Optional<Setting> setting = settingRepository.findByKey(LOYALTY_SETTINGS_KEY);
         if (setting.isPresent()) {
-            // Parse JSON settings
-            // For simplicity, we'll use defaults if parsing fails
-            return parseSettings(setting.get().getValue());
+            try {
+                return objectMapper.readValue(setting.get().getValue(), LoyaltySettingsDto.class);
+            } catch (Exception e) {
+                // Fall back to defaults if parsing fails
+            }
         }
         // Return defaults
         return LoyaltySettingsDto.builder()
@@ -153,15 +157,13 @@ public class AdminService {
      */
     @Transactional
     public LoyaltySettingsDto updateLoyaltySettings(LoyaltySettingsDto settings) {
-        // Convert to JSON string (simplified - in production use ObjectMapper)
-        String json = String.format(
-                "{\"stampsPerService\":%d,\"stampsPerAmount\":%d,\"amountThreshold\":%d,\"freeServiceReward\":\"%s\",\"cardExpiryMonths\":%d}",
-                settings.getStampsPerService(),
-                settings.getStampsPerAmount(),
-                settings.getAmountThreshold(),
-                settings.getFreeServiceReward(),
-                settings.getCardExpiryMonths()
-        );
+        // Convert to JSON string using ObjectMapper
+        String json;
+        try {
+            json = objectMapper.writeValueAsString(settings);
+        } catch (Exception e) {
+            throw new BadRequestException("Failed to serialize loyalty settings");
+        }
 
         Setting setting = settingRepository.findByKey(LOYALTY_SETTINGS_KEY)
                 .orElse(Setting.builder().key(LOYALTY_SETTINGS_KEY).description("Loyalty program settings").build());
@@ -216,6 +218,44 @@ public class AdminService {
         return mapToCustomerNoteDto(note, admin);
     }
 
+    /**
+     * Update customer note
+     */
+    @Transactional
+    public CustomerNoteDto updateCustomerNote(String noteId, String content, String adminId) {
+        CustomerNote note = customerNoteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("CustomerNote", "id", noteId));
+
+        // Verify the note belongs to the admin (optional - for security)
+        if (!note.getAdminId().equals(adminId)) {
+            throw new BadRequestException("You can only update your own notes");
+        }
+
+        note.setContent(content);
+        note = customerNoteRepository.save(note);
+
+        User admin = userRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", adminId));
+
+        return mapToCustomerNoteDto(note, admin);
+    }
+
+    /**
+     * Delete customer note
+     */
+    @Transactional
+    public void deleteCustomerNote(String noteId, String adminId) {
+        CustomerNote note = customerNoteRepository.findById(noteId)
+                .orElseThrow(() -> new ResourceNotFoundException("CustomerNote", "id", noteId));
+
+        // Verify the note belongs to the admin (optional - for security)
+        if (!note.getAdminId().equals(adminId)) {
+            throw new BadRequestException("You can only delete your own notes");
+        }
+
+        customerNoteRepository.delete(note);
+    }
+
     private CustomerListDto mapToCustomerListDto(User user) {
         long bookingCount = bookingRepository.countByUserId(user.getId());
         Optional<LoyaltyCard> loyaltyCard = loyaltyCardRepository.findByUserId(user.getId());
@@ -241,27 +281,5 @@ public class AdminService {
                 .nickname(note.getNickname())
                 .createdAt(note.getCreatedAt())
                 .build();
-    }
-
-    private LoyaltySettingsDto parseSettings(String json) {
-        try {
-            // Simple JSON parsing - in production use ObjectMapper
-            // For now, return defaults
-            return LoyaltySettingsDto.builder()
-                    .stampsPerService(1)
-                    .stampsPerAmount(1)
-                    .amountThreshold(100000)
-                    .freeServiceReward("Free Basic Manicure")
-                    .cardExpiryMonths(12)
-                    .build();
-        } catch (Exception e) {
-            return LoyaltySettingsDto.builder()
-                    .stampsPerService(1)
-                    .stampsPerAmount(1)
-                    .amountThreshold(100000)
-                    .freeServiceReward("Free Basic Manicure")
-                    .cardExpiryMonths(12)
-                    .build();
-        }
     }
 }

@@ -159,7 +159,7 @@ class PaymentServiceTest {
 
     @Test
     void verifyPayment_whenPaymentExists_shouldMarkPaidAndConfirmBooking() {
-        when(paymentRepository.findById("pay-001")).thenReturn(Optional.of(testPayment));
+        when(paymentRepository.findByIdWithPessimisticLock("pay-001")).thenReturn(Optional.of(testPayment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(bookingRepository.findById("booking-001")).thenReturn(Optional.of(testBooking));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -179,7 +179,7 @@ class PaymentServiceTest {
 
     @Test
     void verifyPayment_whenPaymentNotFound_shouldThrowException() {
-        when(paymentRepository.findById("non-existent")).thenReturn(Optional.empty());
+        when(paymentRepository.findByIdWithPessimisticLock("non-existent")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> paymentService.verifyPayment("non-existent", testAdmin))
                 .isInstanceOf(ResourceNotFoundException.class);

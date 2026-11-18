@@ -101,4 +101,50 @@ public class AuthDtos {
     public static class MessageResponse {
         private String message;
     }
+
+    // ===== Email Verification =====
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class VerifyEmailRequest {
+        @NotBlank
+        private String token;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResendVerificationRequest {
+        @NotBlank
+        @Email
+        private String email;
+    }
+
+    // ===== Password Reset =====
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ForgotPasswordRequest {
+        @NotBlank
+        @Email
+        private String email;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordRequest {
+        @NotBlank
+        private String token;
+
+        @NotBlank
+        @Size(min = 6)
+        private String newPassword;
+    }
 }

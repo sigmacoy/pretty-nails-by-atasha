@@ -24,6 +24,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,6 +50,9 @@ class AuthServiceTest {
 
     @Mock
     private TimeProvider timeProvider;
+
+    @Mock
+    private EmailService emailService;
 
     @InjectMocks
     private AuthService authService;
@@ -90,14 +94,16 @@ class AuthServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(loyaltyCardRepository.save(any())).thenReturn(null);
         when(jwtUtil.generateToken(any(User.class))).thenReturn("jwt-token");
+        doNothing().when(emailService).sendEmailVerification(anyString(), anyString(), anyString());
 
         AuthResponse response = authService.register(registerRequest);
 
         assertThat(response).isNotNull();
         assertThat(response.getToken()).isEqualTo("jwt-token");
         assertThat(response.getUser().getEmail()).isEqualTo("test@example.com");
-        verify(userRepository).save(any(User.class));
+        verify(userRepository, times(2)).save(any(User.class));
         verify(loyaltyCardRepository).save(any());
+        verify(emailService).sendEmailVerification(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -125,8 +131,6 @@ class AuthServiceTest {
 
     @Test
     void login_whenUserNotFound_shouldThrowResourceNotFoundException() {
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenReturn(authentication);
         when(userRepository.findByEmailIgnoreCase(loginRequest.getEmail())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(loginRequest))

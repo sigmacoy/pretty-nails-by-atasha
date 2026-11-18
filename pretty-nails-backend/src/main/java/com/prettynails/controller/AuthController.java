@@ -58,5 +58,33 @@ public class AuthController {
         authService.changePassword(user.getId(), request);
         return ResponseEntity.ok(new MessageResponse("Password changed successfully"));
     }
+
+    // ===== Email Verification =====
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<MessageResponse> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        MessageResponse response = authService.verifyEmail(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/resend-verification")
+    public ResponseEntity<MessageResponse> resendVerification(@Valid @RequestBody ResendVerificationRequest request) {
+        MessageResponse response = authService.resendVerificationEmail(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // ===== Password Reset =====
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<MessageResponse> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        MessageResponse response = authService.forgotPassword(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<MessageResponse> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        MessageResponse response = authService.resetPassword(request);
+        return ResponseEntity.ok(response);
+    }
 }
 

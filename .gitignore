@@ -61,8 +61,7 @@ pretty-nails-source/
 sims-reference/
 /backend/
 ### Claude (local config, not shared) ###
-.claude/worktrees/
-.claude/*.log
+.claude/
 
 ### Agent configs (local) ###
 .agents/
