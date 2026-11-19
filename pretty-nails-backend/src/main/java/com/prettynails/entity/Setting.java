@@ -21,10 +21,10 @@ public class Setting {
     @Column(name = "id", nullable = false, updatable = false)
     private String id;
 
-    @Column(name = "key", nullable = false, unique = true, length = 100)
+    @Column(name = "\"key\"", nullable = false, unique = true, length = 100)
     private String key;
 
-    @Column(name = "value", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "\"value\"", nullable = false, columnDefinition = "TEXT")
     private String value;
 
     @Column(name = "description", columnDefinition = "TEXT")

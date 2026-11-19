@@ -1,5 +1,20 @@
 import { z } from 'zod';
 
+// Common weak passwords to reject (matches backend)
+const COMMON_PASSWORDS = new Set([
+  'password', 'password123', '123456', '123456789', 'qwerty',
+  'abc123', 'letmein', 'welcome', 'admin', 'admin123',
+  'prettynails', 'prettynails123', 'nailsalon', 'nailsalon123',
+  'philippines', 'manila', 'password1', 'passw0rd',
+  'password1234', 'password123!', 'Password123', 'Password123!',
+]);
+
+// Patterns for complexity requirements (matches backend)
+const UPPERCASE_PATTERN = /[A-Z]/;
+const LOWERCASE_PATTERN = /[a-z]/;
+const DIGIT_PATTERN = /\d/;
+const SPECIAL_CHAR_PATTERN = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/;
+
 // Auth validations
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -8,7 +23,14 @@ export const registerSchema = z.object({
     (val) => !val || /^[\d\s\-\+\(\)]{10,}$/.test(val),
     'Invalid phone number'
   ),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long')
+    .refine((val) => UPPERCASE_PATTERN.test(val), 'Password must contain at least one uppercase letter')
+    .refine((val) => LOWERCASE_PATTERN.test(val), 'Password must contain at least one lowercase letter')
+    .refine((val) => DIGIT_PATTERN.test(val), 'Password must contain at least one digit')
+    .refine((val) => SPECIAL_CHAR_PATTERN.test(val), 'Password must contain at least one special character (!@#$%^&*...)')
+    .refine((val) => !COMMON_PASSWORDS.has(val.toLowerCase()), 'Password is too common. Please choose a more unique password.'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',

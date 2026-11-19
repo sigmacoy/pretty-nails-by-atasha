@@ -38,6 +38,8 @@ export function Header() {
   const { user, isAuthenticated, isAdmin, logout } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isUserMenuAnimating, setIsUserMenuAnimating] = useState(false);
+  const [isMenuAnimating, setIsMenuAnimating] = useState(false);
 
   const navigation = [
     { name: 'Home', href: '/' },
@@ -96,7 +98,14 @@ export function Header() {
                 variant="ghost"
                 size="sm"
                 className="relative h-9 w-9 rounded-full p-0 border border-stone-200/60 dark:border-stone-700/60"
-                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                onClick={() => {
+                  if (isUserMenuOpen) {
+                    setIsUserMenuAnimating(true);
+                    setTimeout(() => setIsUserMenuOpen(false), 120);
+                  } else {
+                    setIsUserMenuOpen(true);
+                  }
+                }}
                 aria-expanded={isUserMenuOpen}
                 aria-haspopup="true"
                 aria-label="User menu"
@@ -109,14 +118,21 @@ export function Header() {
                 />
               </Button>
 
-              {isUserMenuOpen && (
+              {(isUserMenuOpen || isUserMenuAnimating) && (
                 <>
                   <div
                     className="fixed inset-0 z-40"
-                    onClick={() => setIsUserMenuOpen(false)}
+                    onClick={() => {
+                      if (!isUserMenuAnimating) {
+                        setIsUserMenuAnimating(true);
+                        setTimeout(() => setIsUserMenuOpen(false), 120);
+                      }
+                    }}
                     aria-hidden="true"
                   />
-                  <div className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-1.5 shadow-float z-50">
+                  <div className={`absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-stone-200/80 dark:border-stone-800/80 bg-card p-1.5 shadow-float z-50 ${
+                    isUserMenuAnimating ? 'animate-dropdown-exit' : 'animate-dropdown-enter'
+                  }`}>
                     <div className="px-3 py-2 border-b border-stone-200/60 dark:border-stone-800/60 mb-1">
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">{user?.name}</p>
                       <p className="text-xs text-stone-500 dark:text-stone-400 truncate">{user?.email}</p>
@@ -129,7 +145,10 @@ export function Header() {
                       <Link
                         href="/admin"
                         className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
-                        onClick={() => setIsUserMenuOpen(false)}
+                        onClick={() => {
+                          setIsUserMenuAnimating(true);
+                          setTimeout(() => setIsUserMenuOpen(false), 120);
+                        }}
                       >
                         <LayoutDashboard className="h-4 w-4 stroke-[1.5] text-stone-500" />
                         Admin dashboard
@@ -140,7 +159,10 @@ export function Header() {
                           key={link.name}
                           href={link.href}
                           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
-                          onClick={() => setIsUserMenuOpen(false)}
+                          onClick={() => {
+                            setIsUserMenuAnimating(true);
+                            setTimeout(() => setIsUserMenuOpen(false), 120);
+                          }}
                         >
                           <link.icon className="h-4 w-4 stroke-[1.5] text-stone-500" />
                           {link.name}
@@ -152,7 +174,8 @@ export function Header() {
                     <button
                       onClick={() => {
                         logout();
-                        setIsUserMenuOpen(false);
+                        setIsUserMenuAnimating(true);
+                        setTimeout(() => setIsUserMenuOpen(false), 120);
                       }}
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                     >
@@ -184,7 +207,14 @@ export function Header() {
 
           <button
             className="lg:hidden p-2 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => {
+              if (isMenuOpen) {
+                setIsMenuAnimating(true);
+                setTimeout(() => setIsMenuOpen(false), 180);
+              } else {
+                setIsMenuOpen(true);
+              }
+            }}
             aria-expanded={isMenuOpen}
             aria-controls="mobile-menu"
             aria-label="Toggle navigation menu"
@@ -194,8 +224,10 @@ export function Header() {
         </div>
       </nav>
 
-      {isMenuOpen && (
-        <div id="mobile-menu" className="lg:hidden border-t border-stone-200/80 dark:border-stone-800/80 bg-background/98 px-4 py-4 space-y-1">
+      {(isMenuOpen || isMenuAnimating) && (
+        <div id="mobile-menu" className={`lg:hidden border-t border-stone-200/80 dark:border-stone-800/80 bg-background/98 px-4 py-4 space-y-1 ${
+          isMenuAnimating ? 'animate-dropdown-exit' : 'animate-dropdown-enter'
+        }`}>
           {navigation.map((item) => (
             <Link
               key={item.name}
@@ -206,7 +238,10 @@ export function Header() {
                   ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
                   : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
               )}
-              onClick={() => setIsMenuOpen(false)}
+              onClick={() => {
+                setIsMenuAnimating(true);
+                setTimeout(() => setIsMenuOpen(false), 180);
+              }}
             >
               {item.name}
             </Link>
@@ -218,7 +253,10 @@ export function Header() {
                 <Link
                   href="/admin"
                   className="block px-3 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={() => {
+                    setIsMenuAnimating(true);
+                    setTimeout(() => setIsMenuOpen(false), 180);
+                  }}
                 >
                   Admin dashboard
                 </Link>
@@ -228,7 +266,10 @@ export function Header() {
                     key={link.name}
                     href={link.href}
                     className="block px-3 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
-                    onClick={() => setIsMenuOpen(false)}
+                    onClick={() => {
+                      setIsMenuAnimating(true);
+                      setTimeout(() => setIsMenuOpen(false), 180);
+                    }}
                   >
                     {link.name}
                   </Link>
@@ -237,7 +278,8 @@ export function Header() {
               <button
                 onClick={() => {
                   logout();
-                  setIsMenuOpen(false);
+                  setIsMenuAnimating(true);
+                  setTimeout(() => setIsMenuOpen(false), 180);
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
               >
@@ -248,12 +290,18 @@ export function Header() {
             <div className="flex flex-col gap-2 pt-3 border-t border-stone-200/80 dark:border-stone-800/80 mt-2">
               <Link
                 href="/login"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={() => {
+                  setIsMenuAnimating(true);
+                  setTimeout(() => setIsMenuOpen(false), 180);
+                }}
                 className="w-full text-center py-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-700 dark:text-stone-300"
               >
                 Sign In
               </Link>
-              <Link href="/booking" onClick={() => setIsMenuOpen(false)}>
+              <Link href="/booking" onClick={() => {
+                setIsMenuAnimating(true);
+                setTimeout(() => setIsMenuOpen(false), 180);
+              }}>
                 <button
                   type="button"
                   className="w-full py-2.5 rounded-full text-xs font-medium uppercase tracking-[0.14em] bg-rose-900 hover:bg-rose-950 text-white dark:bg-rose-100 dark:text-stone-950 shadow-xs"
