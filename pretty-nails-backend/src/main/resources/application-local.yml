@@ -1,6 +1,64 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/prettynails
-    username: ${DB_USER:${USER}}
-    password: ${DB_PASSWORD:}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:prettynails;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=5m
+
+bucket4j:
+  cache:
+    config:
+      type: caffeine
+
+jwt:
+  secret: cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n
+  expiration: 2592000000
+
+server:
+  port: 8080
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+  admin:
+    email: admin@prettynails.local
+    password: admin123
+    phone: +639000000000
+  upload:
+    dir: uploads
+    max-file-size: 5242880
+    base-url: http://localhost:8080
+  email:
+    verification-url: http://localhost:3000/verify-email
+    reset-url: http://localhost:3000/reset-password
+    from-email: noreply@prettynails.local
+  rate-limit:
+    auth:
+      requests-per-minute: 10
+      requests-per-hour: 100
+  password-policy:
+    min-length: 8
+    min-zxcvbn-score: 1
+    hibp-check-enabled: false
+    history-size: 5

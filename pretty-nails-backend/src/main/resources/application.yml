@@ -78,8 +78,8 @@ app:
       requests-per-minute: 10
       requests-per-hour: 100
   password-policy:
-    min-length: 12
-    min-zxcvbn-score: 3
+    min-length: 8
+    min-zxcvbn-score: 1
     history-size: 5
     hibp-check-enabled: true
     hibp-api-url: https://api.pwnedpasswords.com/range/
