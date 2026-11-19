@@ -1,7 +1,10 @@
 name: CD
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
     branches: [main]
   workflow_dispatch:
     inputs:
@@ -21,7 +24,8 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment || 'production' }}
+    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -32,12 +36,20 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Determine image tag
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+          fi
       - name: Pull backend image
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ github.sha }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-backend:${{ steps.tag.outputs.tag }}
       - name: Pull frontend image
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ github.sha }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-frontend:${{ steps.tag.outputs.tag }}
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
