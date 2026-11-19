@@ -1,7 +1,9 @@
-
 erDiagram
     %% ============================================================
     %% Pretty Nails Nail Salon Booking System - Entity Relationship Diagram
+    %% ============================================================
+    %% Generated from: pretty-nails-backend/src/main/java/com/prettynails/entity/
+    %% 17 entities as of 2026-11-19
     %% ============================================================
 
     %% ============================================================
@@ -10,14 +12,24 @@ erDiagram
 
     User {
         UUID id PK
-        String email
-        Boolean emailVerified
+        String email UK
         String name
         String nickname
         String password
         String image
         String role
         String phone
+        String oauth2Provider
+        String oauth2ProviderId
+        DateTime emailVerified
+        String emailVerificationToken
+        DateTime emailVerificationTokenExpiresAt
+        String passwordResetToken
+        DateTime passwordResetTokenExpiresAt
+        Integer failedLoginAttempts
+        DateTime lockedUntil
+        DateTime passwordChangedAt
+        String passwordHistory
         DateTime createdAt
         DateTime updatedAt
     }
@@ -27,10 +39,10 @@ erDiagram
         UUID userId FK
         String type
         String provider
-        String providerAccountId
+        String providerAccountId UK
         String refreshToken
         String accessToken
-        DateTime expiresAt
+        Integer expiresAt
         String tokenType
         String scope
         String idToken
@@ -41,10 +53,10 @@ erDiagram
 
     Service {
         UUID id PK
-        String name
+        String name UK
         String category
         String description
-        BigDecimal basePrice
+        Integer basePrice
         Integer duration
         Boolean isActive
         DateTime createdAt
@@ -55,7 +67,7 @@ erDiagram
         UUID id PK
         UUID serviceId FK
         String name
-        BigDecimal price
+        Integer price
         DateTime createdAt
         DateTime updatedAt
     }
@@ -64,13 +76,14 @@ erDiagram
         UUID id PK
         UUID userId FK
         String status
-        Date appointmentDate
-        Time startTime
-        Time endTime
-        BigDecimal totalPrice
-        BigDecimal downpayment
+        DateTime appointmentDate
+        String startTime
+        String endTime
+        Integer totalPrice
+        Integer downpayment
         String notes
         String inspirationImg
+        Boolean redeemLoyaltyReward
         DateTime createdAt
         DateTime updatedAt
     }
@@ -81,31 +94,32 @@ erDiagram
         UUID serviceId FK
         UUID variantId FK
         Integer quantity
-        BigDecimal price
+        Integer price
         DateTime createdAt
         DateTime updatedAt
     }
 
     Payment {
         UUID id PK
-        UUID bookingId FK,UK
+        UUID bookingId FK UK
         UUID userId FK
-        BigDecimal amount
+        Integer amount
         String status
         String method
         String reference
         DateTime verifiedAt
-        UUID verifiedBy FK
+        String verifiedBy
+        Long version
         DateTime createdAt
         DateTime updatedAt
     }
 
     Availability {
         UUID id PK
-        Date date
+        DateTime date UK
         Boolean isAvailable
-        Time startTime
-        Time endTime
+        String startTime
+        String endTime
         Integer maxSlots
         String note
         DateTime createdAt
@@ -114,7 +128,7 @@ erDiagram
 
     LoyaltyCard {
         UUID id PK
-        UUID userId FK,UK
+        UUID userId FK UK
         Integer stampCount
         DateTime lastStampAt
         DateTime expiresAt
@@ -133,6 +147,20 @@ erDiagram
         DateTime updatedAt
     }
 
+    Notification {
+        UUID id PK
+        UUID userId FK
+        String type
+        String title
+        String message
+        JSON data
+        String actionUrl
+        Integer priority
+        Boolean read
+        DateTime readAt
+        DateTime createdAt
+    }
+
     CustomerNote {
         UUID id PK
         UUID userId FK
@@ -145,7 +173,7 @@ erDiagram
 
     Session {
         UUID id PK
-        String sessionToken
+        String sessionToken UK
         UUID userId FK
         DateTime expires
         DateTime createdAt
@@ -155,7 +183,7 @@ erDiagram
     VerificationToken {
         UUID id PK
         String identifier
-        String token
+        String token UK
         DateTime expires
         DateTime createdAt
     }
@@ -173,11 +201,26 @@ erDiagram
 
     Setting {
         UUID id PK
-        String key
+        String key UK
         String value
         String description
         DateTime createdAt
         DateTime updatedAt
+    }
+
+    AuditLog {
+        UUID id PK
+        UUID userId FK
+        String userEmail
+        String userRole
+        String action
+        String entityType
+        String entityId
+        String description
+        JSON metadata
+        String ipAddress
+        String userAgent
+        DateTime createdAt
     }
 
     %% ============================================================
@@ -205,8 +248,8 @@ erDiagram
     %% User - Payment (One-to-Many: User 1 --- * Payment)
     User ||--o{ Payment : "payments"
 
-    %% User - Payment as admin verifier (One-to-Many: User 1 --- * Payment)
-    User ||--o{ Payment : "verifiedPayments"
+    %% User - AuditLog (One-to-Many: User 1 --- * AuditLog)
+    User ||--o{ AuditLog : "auditLogs"
 
     %% Service - ServiceVariant (One-to-Many: Service 1 --- * ServiceVariant)
     Service ||--o{ ServiceVariant : "variants"
@@ -229,8 +272,20 @@ erDiagram
     %% LoyaltyCard - LoyaltyStamp (One-to-Many: LoyaltyCard 1 --- * LoyaltyStamp)
     LoyaltyCard ||--o{ LoyaltyStamp : "stamps"
 
+    %% Notification - User (Many-to-One: Notification * --- 1 User)
+    Notification }o--|| User : "user"
+
     %% ============================================================
-    %% LEGEND (as comments)
+    %% INDEXES (key ones)
+    %% ============================================================
+    %% Notification: idx_notification_user_id, idx_notification_type, idx_notification_read, idx_notification_created_at, idx_notification_user_read
+    %% AuditLog: idx_audit_log_user_id, idx_audit_log_action, idx_audit_log_entity, idx_audit_log_created_at
+    %% Account: unique(provider, provider_account_id)
+    %% Availability: unique(date)
+    %% VerificationToken: unique(identifier, token)
+
+    %% ============================================================
+    %% LEGEND
     %% ============================================================
     %% Cardinality Notation:
     %% ||--||  : One-to-One (Exactly one on both sides)
@@ -245,3 +300,4 @@ erDiagram
     %% PK = Primary Key
     %% FK = Foreign Key
     %% UK = Unique Constraint
+    %% JSON = JSONB column (PostgreSQL)
