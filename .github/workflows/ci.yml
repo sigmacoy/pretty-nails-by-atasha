@@ -35,7 +35,7 @@ jobs:
           cache: 'maven'
       - name: Run backend tests
         working-directory: ./pretty-nails-backend
-        run: ./mvnw test -Dspring.datasource.url=jdbc:postgresql://localhost:5432/testdb -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.testcontainers.enabled=false
+        run: mvn test -Dspring.datasource.url=jdbc:postgresql://localhost:5432/testdb -Dspring.datasource.driver-class-name=org.postgresql.Driver -Dspring.testcontainers.enabled=false
         env:
           DB_PASSWORD: test
           JWT_SECRET: test-secret-key-for-testing-must-be-at-least-256-bits-long
