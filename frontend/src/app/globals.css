@@ -2,8 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600;1,6..72,700&display=swap');
-
 @layer base {
   :root {
     /* Approved Warm Stone Neutral Ramp (Light) */
@@ -116,4 +114,35 @@
   select:focus {
     @apply outline-none ring-1 ring-rose-800/30 border-rose-800/40;
   }
+}
+
+/* Dropdown animation */
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes dropdown-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+}
+
+.animate-dropdown-enter {
+  animation: dropdown-enter 180ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-dropdown-exit {
+  animation: dropdown-exit 120ms cubic-bezier(0.55, 0, 0.68, 0.19) forwards;
 }
