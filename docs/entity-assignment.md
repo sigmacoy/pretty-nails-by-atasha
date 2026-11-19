@@ -4,7 +4,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 📦 Dev 1: Booking & Scheduling (Mr. Ambe)
+## Dev 1: Booking & Scheduling (Mr. Ambe)
 **Features**: Date/time slot selection, real-time availability, inspiration photo upload, downpayment/reservation fee proof, appointment status tracking, booking history, reschedule/cancellation
 
 | Entity | Purpose |
@@ -17,7 +17,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 📦 Dev 2: Digital Loyalty (Mr. Bacalla)
+## Dev 2: Digital Loyalty (Mr. Bacalla)
 **Features**: Digital stamp card, personal QR code, reward progress tracking, voucher redemption, stamp/reward history
 
 | Entity | Purpose |
@@ -30,7 +30,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 📦 Dev 3: Gallery + Services/Price Menu (Mr. Bacus)
+## Dev 3: Gallery + Services/Price Menu (Mr. Bacus)
 **Features**: Full service menu with tiered pricing, interactive gallery, search/filters, favoriting designs, "Book this design"
 
 | Entity | Purpose |
@@ -42,7 +42,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 🔗 Shared Entities (Agreed by All Three)
+## Shared Entities (Agreed by All Three)
 **Core models with fixed fields agreed upon before coding**
 
 | Entity | Owner | Shared Fields |
@@ -55,7 +55,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 📋 Key Agreements Before Coding
+## Key Agreements Before Coding
 
 ### Shared Model Fields (Must Agree First)
 
@@ -118,7 +118,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 🚫 Module Boundaries (To Avoid Merge Conflicts)
+## Module Boundaries (To Avoid Merge Conflicts)
 
 | Developer | Package/Module Path | Owns Entities |
 |-----------|---------------------|---------------|
@@ -129,7 +129,7 @@ Based on the feature breakdown, here's the division of the 17 entities:
 
 ---
 
-## 🔄 Cross-Module Communication (Via Shared Models Only)
+## Cross-Module Communication (Via Shared Models Only)
 
 ```
 Dev 1 (Booking) ──completes──► Booking.status = COMPLETED

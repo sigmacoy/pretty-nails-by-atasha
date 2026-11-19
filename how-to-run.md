@@ -13,19 +13,25 @@ A complete, step-by-step guide to run the **Pretty Nails by Atasha** full-stack 
 │  (Pages, Booking, Admin UI)     │           │  (REST API, JWT Auth, Seeder)    │
 └─────────────────────────────────┘           └──────────────────────────────────┘
                                                                │
-                                                               ▼
-                                              ┌──────────────────────────────────┐
-                                              │       PostgreSQL Database        │
-                                              │  Local: localhost:5432           │
-                                              │  or Supabase Cloud Database      │
-                                              └──────────────────────────────────┘
+                    ┌──────────────────────────────────────────┼──────────────────────────────────────────┐
+                    ▼                                          ▼                                          ▼
+         ┌───────────────────────┐                 ┌──────────────────────────┐              ┌───────────────────────┐
+         │   H2 In-Memory        │                 │   Local PostgreSQL       │              │   Supabase Cloud      │
+         │   (local profile)     │                 │   (default profile)      │              │   (default profile)   │
+         │   Zero setup          │                 │   Persistent             │              │   Hosted              │
+         │   Resets on restart   │                 │   brew services start    │              │   IPv6 only on free   │
+         └───────────────────────┘                 └──────────────────────────┘              └───────────────────────┘
 ```
 
 | Component | Technology | Default Port | Directory Path |
 |:---|:---|:---|:---|
-| **Database** | PostgreSQL 16 (Local) / Supabase | `5432` | System Service |
+| **Database (local profile)** | H2 In-Memory | N/A (embedded) | N/A |
+| **Database (default profile)** | PostgreSQL 16 (Local) / Supabase | `5432` | System Service |
 | **Backend API** | Spring Boot 4.1.2 / Java 21+ | `8080` | `pretty-nails-backend/` |
 | **Frontend Web** | Next.js 14 App Router / React 18 | `3000` | `frontend/` |
+
+> **Quick Start**: Use `-Dspring-boot.run.profiles=local` for H2 in-memory (no PostgreSQL needed).  
+> **Persistent**: Run without profile + local PostgreSQL, or with `DB_PASSWORD` for Supabase.
 
 ---
 
@@ -64,67 +70,103 @@ which psql
 
 ---
 
-## Step 1: Database Setup (Choose Option A or B)
+## Step 1: Choose Your Database Profile
 
-The application automatically seeds initial nail services and the default admin user on startup. Choose your preferred database:
+The application automatically seeds initial nail services and the default admin user on startup. Choose your database mode:
 
-### Option A: Local PostgreSQL (Recommended for Fast, Offline Local Dev)
+### Option A: H2 In-Memory Database (Fastest for Quick Local Dev) — **Default for `local` profile**
 
-Running locally avoids any Supabase network latency or IPv6 connection issues.
+Zero setup — uses H2 in-memory database. Data resets on restart.
 
-1. **Start the local PostgreSQL service**:
-   ```bash
-   brew services start postgresql@16
-   ```
+**Admin credentials**: `admin@prettynails.local` / `admin123`  
+*Also works: `admin` / `admin` (hardcoded fallback owner)*
 
-2. **Create the `prettynails` database** (only needed once):
-   ```bash
-   createdb prettynails
-   ```
-
-3. **Verify the database is created**:
-   ```bash
-   psql -d prettynails -c "SELECT current_database();"
-   ```
-   *(Should output `prettynails`)*
+```bash
+# No PostgreSQL needed — just run:
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
 
 ---
 
-### Option B: Supabase Cloud PostgreSQL (Hosted)
+### Option B: Local PostgreSQL (Persistent Local Dev)
 
-If you prefer using the hosted cloud database:
+Uses your local PostgreSQL instance. Data persists across restarts.
+
+1. **Start PostgreSQL** (one-time setup):
+   ```bash
+   brew services start postgresql@16
+   createdb prettynails
+   ```
+
+2. **Run backend WITHOUT the `local` profile** (uses default profile = PostgreSQL):
+   ```bash
+   # Set your local PostgreSQL password
+   export DB_PASSWORD=your_postgres_password
+   ./mvnw spring-boot:run
+   ```
+
+**Admin credentials**: `admin` / `admin`
+
+---
+
+### Option C: Supabase Cloud PostgreSQL (Hosted)
+
 - **Host**: `db.sdqvnqogadaynwfbtezj.supabase.co`
 - **Port**: `5432`
 - **Username**: `postgres`
 - **Password**: `7WXI0TcuMXD`
 
+```bash
+export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
+```
+
+**Admin credentials**: `admin` / `admin`
+
 > [!NOTE]
-> **Supabase macOS Tip**: Supabase free-tier direct databases use IPv6 addresses. If your home Wi-Fi or ISP is IPv4-only and you see `java.net.NoRouteToHostException: No route to host`, use **Option A (Local PostgreSQL)** which works 100% reliably on macOS.
+> **Supabase macOS Tip**: Supabase free-tier uses IPv6. If you see `NoRouteToHostException`, use **Option B (Local PostgreSQL)** or **Option A (H2)**.
 
 ---
 
 ## Step 2: Run the Backend (Spring Boot API - Port 8080)
 
-You can run the backend either via the **Terminal** or via **IntelliJ IDEA**.
-
 ### Method 1: Run via Terminal (Fastest)
 
-1. Open a Terminal window and navigate to the backend directory:
+1. Navigate to backend directory:
    ```bash
    cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
    ```
 
-2. Start the Spring Boot application:
+2. Start based on your chosen database:
 
-   - **If using Local PostgreSQL (Option A)**:
+   - **H2 In-Memory (Option A — Quick Test)**:
      ```bash
      ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
      ```
+     > Uses `admin@prettynails.local` / `admin123` (or `admin` / `admin`)
 
-   - **If using Supabase Cloud (Option B)**:
+   - **Local PostgreSQL (Option B — Persistent)**:
+     ```bash
+     export DB_PASSWORD=your_postgres_password
+     ./mvnw spring-boot:run
+     ```
+     > Uses `admin` / `admin`
+
+   - **Supabase Cloud (Option C)**:
      ```bash
      export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
      ```
+     > Uses `admin` / `admin`
+
+3. **Verify backend started**:
+   ```text
+   Tomcat started on port 8080 (http) with context path '/'
+   Started PrettyNailsApplication in X.XXX seconds
+   ```
+
+4. **Test the API**:
+   ```bash
+   curl http://localhost:8080/api/services
+   ```
 
 3. **Verify backend started successfully**:
    Watch the terminal output for:
@@ -349,11 +391,12 @@ Here is how each area of the website works:
 
 Whenever you want to run the entire project in daily development, just open **2 tabs in Terminal**:
 
-### Terminal Tab 1: Backend
+### Terminal Tab 1: Backend (H2 In-Memory — Quickest)
 ```bash
 cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
+> Admin: `admin@prettynails.local` / `admin123` (or `admin` / `admin`)
 
 ### Terminal Tab 2: Frontend
 ```bash
@@ -362,6 +405,23 @@ pnpm dev
 ```
 
 Then open **[http://localhost:3000](http://localhost:3000)** in your browser!
+
+---
+
+### Alternative: Persistent Local PostgreSQL
+```bash
+# Terminal 1: Backend (PostgreSQL)
+brew services start postgresql@16
+createdb prettynails  # first time only
+export DB_PASSWORD=your_postgres_password
+cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
+./mvnw spring-boot:run
+
+# Terminal 2: Frontend
+cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/frontend
+pnpm dev
+```
+> Admin: `admin` / `admin`
 
 ---
 
@@ -417,7 +477,12 @@ pnpm dev
 
 ## Default Credentials Summary
 
-| Role | Email | Password | Access Level |
+| Profile / Mode | Email | Password | Notes |
 |:---|:---|:---|:---|
-| **Admin** | `admin@prettynails.com` | `admin123` | Full access (`/admin/*` + public site) |
-| **Customer** | *(Self-registered)* | *(Your password)* | Booking, Loyalty (`/loyalty`), My Bookings (`/my-bookings`) |
+| **H2 `local` profile** (quick start) | `admin@prettynails.local` | `admin123` | In-memory, resets on restart |
+| **H2 `local` profile** (fallback owner) | `admin` | `admin` | Hardcoded in DataSeeder |
+| **PostgreSQL** (default profile) | `admin` | `admin` | Persistent, requires local PG or Supabase |
+| **Customer** | *(Self-registered)* | *(Your password)* | Booking, Loyalty, My Bookings |
+
+> **For your current setup** (using `-Dspring-boot.run.profiles=local`):  
+> Use **`admin@prettynails.local`** / **`admin123`** (or **`admin`** / **`admin`**)
