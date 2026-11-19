@@ -41,10 +41,3 @@ Problem: FileStorageService.java validates MIME types and file extensions, but d
 Impact: Upload failures or server latency when uploading payment proof images.
 Fix: Enforce explicit request size limits (max 5MB) in application.yml and add client-side image compression in FileUpload.tsx before transmission.
 Status: ⏳ PENDING
-
-7. Stale Slots on Network Reconnect / Tab Inactivity (Item 10)
-
-Problem: When a user leaves the booking screen open on Step 02, available slots are fetched once and cached in local React state. If another client books a slot, the user receives an unhandled server error upon final form submission.
-Impact: Frustrating user experience after inputting full client and payment details.
-Fix: Re-validate slot availability when the user transitions from Step 02 to Step 03, displaying a clear alert if the selected time slot was taken.
-Status: ✅ IMPLEMENTED - BookingForm.handleNext(2) re-fetches getSlots & getAvailable before Step 3; shows toast errors for booked slot, removed slot, or unavailable date. Covered by 5 frontend integration tests.
