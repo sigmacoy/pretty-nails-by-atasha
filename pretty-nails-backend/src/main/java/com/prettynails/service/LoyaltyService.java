@@ -75,21 +75,35 @@ public class LoyaltyService {
     }
 
     /**
-     * Get user's loyalty card
+     * Get user's loyalty card (creates one if it doesn't exist)
      */
     public LoyaltyCardDto getLoyaltyCard(String userId) {
         LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
+                .orElseGet(() -> {
+                    LoyaltyCard newCard = LoyaltyCard.builder()
+                            .userId(userId)
+                            .stampCount(0)
+                            .expiresAt(timeProvider.localNow().plusYears(1))
+                            .build();
+                    return loyaltyCardRepository.save(newCard);
+                });
 
         return mapToLoyaltyCardDto(loyaltyCard);
     }
 
     /**
-     * Get user's stamp history
+     * Get user's stamp history (creates loyalty card if it doesn't exist)
      */
     public List<LoyaltyStampDto> getStampHistory(String userId) {
         LoyaltyCard loyaltyCard = loyaltyCardRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("LoyaltyCard", "userId", userId));
+                .orElseGet(() -> {
+                    LoyaltyCard newCard = LoyaltyCard.builder()
+                            .userId(userId)
+                            .stampCount(0)
+                            .expiresAt(timeProvider.localNow().plusYears(1))
+                            .build();
+                    return loyaltyCardRepository.save(newCard);
+                });
 
         List<LoyaltyStamp> stamps = loyaltyStampRepository.findByCardIdOrderByEarnedAtDesc(loyaltyCard.getId());
         return stamps.stream()
