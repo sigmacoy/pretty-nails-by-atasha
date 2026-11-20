@@ -41,6 +41,16 @@ export function Header() {
   const [isUserMenuAnimating, setIsUserMenuAnimating] = useState(false);
   const [isMenuAnimating, setIsMenuAnimating] = useState(false);
 
+  // Shared close handler for user menu — resets animating state after exit animation
+  const closeUserMenu = () => {
+    setIsUserMenuAnimating(true);
+    setTimeout(() => {
+      setIsUserMenuOpen(false);
+      // Reset animating after exit animation completes (120ms from CSS)
+      setTimeout(() => setIsUserMenuAnimating(false), 120);
+    }, 120);
+  };
+
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Services', href: '/services' },
@@ -97,11 +107,13 @@ export function Header() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="relative h-9 w-9 rounded-full p-0 border border-stone-200/60 dark:border-stone-700/60"
+                className={cn(
+                  "relative h-9 w-9 rounded-full p-0 border border-stone-200/60 dark:border-stone-700/60",
+                  isUserMenuOpen && "z-[60]"
+                )}
                 onClick={() => {
                   if (isUserMenuOpen) {
-                    setIsUserMenuAnimating(true);
-                    setTimeout(() => setIsUserMenuOpen(false), 120);
+                    closeUserMenu();
                   } else {
                     setIsUserMenuOpen(true);
                   }
@@ -121,11 +133,10 @@ export function Header() {
               {(isUserMenuOpen || isUserMenuAnimating) && (
                 <>
                   <div
-                    className="fixed inset-0 z-40"
+                    className="fixed inset-0 z-30"
                     onClick={() => {
                       if (!isUserMenuAnimating) {
-                        setIsUserMenuAnimating(true);
-                        setTimeout(() => setIsUserMenuOpen(false), 120);
+                        closeUserMenu();
                       }
                     }}
                     aria-hidden="true"
@@ -145,10 +156,7 @@ export function Header() {
                       <Link
                         href="/admin"
                         className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
-                        onClick={() => {
-                          setIsUserMenuAnimating(true);
-                          setTimeout(() => setIsUserMenuOpen(false), 120);
-                        }}
+                        onClick={closeUserMenu}
                       >
                         <LayoutDashboard className="h-4 w-4 stroke-[1.5] text-stone-500" />
                         Admin dashboard
@@ -159,10 +167,7 @@ export function Header() {
                           key={link.name}
                           href={link.href}
                           className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800/60 transition-colors"
-                          onClick={() => {
-                            setIsUserMenuAnimating(true);
-                            setTimeout(() => setIsUserMenuOpen(false), 120);
-                          }}
+                          onClick={closeUserMenu}
                         >
                           <link.icon className="h-4 w-4 stroke-[1.5] text-stone-500" />
                           {link.name}
@@ -174,8 +179,7 @@ export function Header() {
                     <button
                       onClick={() => {
                         logout();
-                        setIsUserMenuAnimating(true);
-                        setTimeout(() => setIsUserMenuOpen(false), 120);
+                        closeUserMenu();
                       }}
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
                     >
