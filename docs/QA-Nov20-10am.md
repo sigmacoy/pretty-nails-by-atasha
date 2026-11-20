@@ -1,4 +1,4 @@
-1.
+1. ✅ FIXED
 After an ADMIN signing IN, the admin view should go directly to Admin Dashboard.
 
 2.
