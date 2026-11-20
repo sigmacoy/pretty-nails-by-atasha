@@ -134,12 +134,12 @@ const defaultServicesFallback: ServiceDto[] = [
 
 function generateDefaultSlots(): { startTime: string; endTime: string }[] {
   const slots: { startTime: string; endTime: string }[] = [];
-  const startHour = 9;
-  const endHour = 18;
+  const startHour = 8; // 8am earliest
+  const endHour = 22;  // 10pm latest END TIME (last slot starts at 21:30)
   let currentHour = startHour;
   let currentMin = 0;
 
-  while (currentHour < endHour) {
+  while (currentHour < endHour || (currentHour === endHour && currentMin === 0)) {
     const slotStart = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
     let nextHour = currentHour;
     let nextMin = currentMin + 30;
@@ -148,7 +148,10 @@ function generateDefaultSlots(): { startTime: string; endTime: string }[] {
       nextHour += 1;
     }
     const slotEnd = `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
-    slots.push({ startTime: slotStart, endTime: slotEnd });
+    // Only add slot if it ends at or before 22:00 (10pm)
+    if (nextHour < endHour || (nextHour === endHour && nextMin === 0)) {
+      slots.push({ startTime: slotStart, endTime: slotEnd });
+    }
     currentHour = nextHour;
     currentMin = nextMin;
   }
@@ -321,27 +324,32 @@ export function BookingForm() {
         try {
           const response = await availabilityApi.getSlots(appointmentDate);
           const slots = response.data || [];
-          
-          // Find the selected slot
-          const selectedSlot = slots.find((s) => s.startTime === startTime);
-          
-          if (!selectedSlot) {
-            // Slot no longer exists in available slots (date may be fully booked or unavailable)
-            toast.error('This time slot is no longer available. Please select another time.');
-            return;
+
+          // If backend returns slots, validate against them
+          if (slots.length > 0) {
+            // Find the selected slot
+            const selectedSlot = slots.find((s) => s.startTime === startTime);
+
+            if (!selectedSlot) {
+              // Slot no longer exists in available slots (date may be fully booked or unavailable)
+              toast.error('This time slot is no longer available. Please select another time.');
+              return;
+            }
+
+            if (selectedSlot.available === false) {
+              // Slot is now booked by someone else
+              toast.error('This time slot has just been booked. Please choose another time.');
+              return;
+            }
           }
-          
-          if (selectedSlot.available === false) {
-            // Slot is now booked by someone else
-            toast.error('This time slot has just been booked. Please choose another time.');
-            return;
-          }
-          
-          // Also check if the date is still available (not a blackout/holiday)
+          // If backend returns empty slots, it means no admin availability configured for this date
+          // In that case, we trust the locally generated availableSlots (from fetchAvailableSlots fallback)
+
+          // Also check if the date is still available (not a blackout/holiday) - only if backend has availability data
           const availabilityResponse = await availabilityApi.getAvailable();
-          const dayAvailability = availabilityResponse.data.find((a) => a.date.split('T')[0] === appointmentDate && a.isAvailable);
-          if (!dayAvailability) {
-            // Date is no longer available (blackout/holiday)
+          const dayAvailability = availabilityResponse.data.find((a) => a.date.split('T')[0] === appointmentDate);
+          if (dayAvailability && dayAvailability.isAvailable === false) {
+            // Date is explicitly marked unavailable (blackout/holiday)
             toast.error('This date is no longer available for booking. Please select another date.');
             return;
           }
