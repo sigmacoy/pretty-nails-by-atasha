@@ -47,7 +47,10 @@ export function LoginForm() {
 
       login(response.data.token, response.data.user);
       toast.success('Signed in to your Pretty Nails by Atasha account.');
-      router.push(redirectTo);
+
+      // Redirect admins to admin dashboard, others to their intended destination
+      const destination = response.data.user?.role === 'ADMIN' ? '/admin' : redirectTo;
+      router.push(destination);
       router.refresh();
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } };

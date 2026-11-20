@@ -35,7 +35,10 @@ function OAuth2CallbackContent() {
         login(token, response.data);
 
         // Get redirect URL from sessionStorage or default to home
-        const redirectTo = sessionStorage.getItem('oauth_redirect') || '/';
+        // Redirect admins to admin dashboard
+        const redirectTo = response.data?.role === 'ADMIN'
+          ? '/admin'
+          : (sessionStorage.getItem('oauth_redirect') || '/');
         sessionStorage.removeItem('oauth_redirect');
 
         toast.success('Signed in successfully with OAuth2.');

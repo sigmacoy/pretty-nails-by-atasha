@@ -13,6 +13,7 @@ const api: AxiosInstance = axios.create({
 // Token management
 const TOKEN_KEY = 'prettynails_token';
 const USER_KEY = 'prettynails_user';
+const TOKEN_COOKIE = 'prettynails_token';
 
 export const getToken = (): string | null => {
   if (typeof window === 'undefined') return null;
@@ -21,11 +22,19 @@ export const getToken = (): string | null => {
 
 export const setToken = (token: string): void => {
   localStorage.setItem(TOKEN_KEY, token);
+  // Also set cookie for middleware access (expires in 30 days to match JWT)
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=${token}; path=/; max-age=2592000; SameSite=Lax`;
+  }
 };
 
 export const removeToken = (): void => {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  // Also remove cookie
+  if (typeof window !== 'undefined') {
+    document.cookie = `${TOKEN_COOKIE}=; path=/; max-age=0; SameSite=Lax`;
+  }
 };
 
 export const getUser = (): AuthResponse['user'] | null => {
