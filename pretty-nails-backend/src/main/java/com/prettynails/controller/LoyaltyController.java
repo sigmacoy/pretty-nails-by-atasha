@@ -2,6 +2,7 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.LoyaltyDtos.*;
 import com.prettynails.entity.User;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.LoyaltyService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,11 @@ public class LoyaltyController {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new IllegalStateException("No authenticated user");
         }
-        return (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        throw new IllegalStateException("Unexpected principal type: " + principal.getClass().getName());
     }
 
     // Customer endpoints

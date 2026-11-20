@@ -2,6 +2,7 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.PaymentDtos.*;
 import com.prettynails.entity.User;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.PaymentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,14 @@ public class PaymentController {
         if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new AccessDeniedException("No authenticated user");
         }
-        return (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        if (principal instanceof User user) {
+            return user;
+        }
+        throw new AccessDeniedException("No authenticated user");
     }
 
     @GetMapping("/payments/{bookingId}")

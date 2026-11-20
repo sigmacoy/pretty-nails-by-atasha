@@ -2,6 +2,7 @@ package com.prettynails.controller;
 
 import com.prettynails.dto.NotificationDtos.*;
 import com.prettynails.entity.User;
+import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -153,6 +154,10 @@ public class NotificationController {
                 || "anonymousUser".equals(authentication.getPrincipal())) {
             throw new IllegalStateException("No authenticated user");
         }
-        return (User) authentication.getPrincipal();
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetails customUserDetails) {
+            return customUserDetails.getUser();
+        }
+        throw new IllegalStateException("Unexpected principal type: " + principal.getClass().getName());
     }
 }
