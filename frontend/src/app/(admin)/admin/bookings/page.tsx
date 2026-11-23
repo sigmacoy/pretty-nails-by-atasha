@@ -3,12 +3,12 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { BookingsTable, BookingFilters, BookingDetailsDrawer } from '@/components/admin/bookings';
+import { BookingsTable, BookingFilters } from '@/components/admin/bookings';
 import { CompletionQRModal } from '@/components/admin/CompletionQRModal';
 import { bookingsApi, adminApi } from '@/lib/api';
 import { useQuery } from '@/hooks/useApi';
-import { AdminBookingPage, BookingStatus, BookingDto, CustomerListDto } from '@/types';
-import { BookingDetailsData, QuickFilterTab } from '@/components/admin/bookings/types';
+import { AdminBookingPage, AdminCustomerPage, BookingStatus, BookingDto, CustomerListDto } from '@/types';
+import { QuickFilterTab } from '@/components/admin/bookings/types';
 import { toast } from 'sonner';
 import {
   Download,
@@ -32,10 +32,6 @@ export default function AdminBookingsPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState('appointmentDate,desc');
   const [currentPage, setCurrentPage] = useState(0);
-
-  // Selected booking for Details Drawer
-  const [selectedBooking, setSelectedBooking] = useState<BookingDetailsData | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   // Completion QR Code Modal state
   const [completionQRBookingId, setCompletionQRBookingId] = useState<string | null>(null);
@@ -81,17 +77,29 @@ export default function AdminBookingsPage() {
     }
   );
 
-  // Customer Map
+  // Customer Map - support both flat array and paginated response
   const customerMap = useMemo(() => {
     const map: Record<string, CustomerListDto> = {};
-    const customers = (customersData?.data as CustomerListDto[] | undefined) || [];
-    if (Array.isArray(customers)) {
-      customers.forEach((c) => {
+    const raw = customersData?.data;
+
+    // Flat array response
+    if (Array.isArray(raw)) {
+      raw.forEach((c) => {
         if (c?.id) {
           map[c.id] = c;
         }
       });
+      return map;
     }
+
+    // Paginated response
+    const pageObj = raw as AdminCustomerPage | undefined;
+    const content = pageObj?.content ?? [];
+    content.forEach((c) => {
+      if (c?.id) {
+        map[c.id] = c;
+      }
+    });
     return map;
   }, [customersData]);
 
@@ -185,9 +193,7 @@ export default function AdminBookingsPage() {
   // Trigger Completion QR Code Modal
   const handleTriggerCompletionQR = useCallback(
     (bookingId: string) => {
-      const target =
-        allRawBookings.find((b) => b.id === bookingId) ||
-        (selectedBooking?.id === bookingId ? selectedBooking : null);
+      const target = allRawBookings.find((b) => b.id === bookingId);
       const cust = target ? customerMap[target.userId] : null;
       const cName =
         cust?.name ||
@@ -202,29 +208,20 @@ export default function AdminBookingsPage() {
       setCompletionQRServiceSummary(sSummary);
       setIsCompletionQROpen(true);
     },
-    [allRawBookings, selectedBooking, customerMap]
+    [allRawBookings, customerMap]
   );
 
   // Handle status update
   const handleStatusChange = useCallback(
     (bookingId: string, newStatus: BookingStatus) => {
       refetch();
-      if (selectedBooking && selectedBooking.id === bookingId) {
-        setSelectedBooking((prev) => (prev ? { ...prev, status: newStatus } : null));
-      }
       // Automatically present Completion QR Code modal upon COMPLETED transition
       if (newStatus === 'COMPLETED') {
         handleTriggerCompletionQR(bookingId);
       }
     },
-    [refetch, selectedBooking, handleTriggerCompletionQR]
+    [refetch, handleTriggerCompletionQR]
   );
-
-  // Open Drawer with selected booking
-  const handleViewDetails = useCallback((booking: BookingDto) => {
-    setSelectedBooking(booking as BookingDetailsData);
-    setIsDrawerOpen(true);
-  }, []);
 
   // Clear all filters
   const handleClearFilters = () => {
@@ -448,22 +445,11 @@ export default function AdminBookingsPage() {
             totalPages={totalPages}
             onPageChange={(page) => setCurrentPage(page)}
             onStatusChange={handleStatusChange}
-            onViewDetails={handleViewDetails}
             onShowCompletionQR={handleTriggerCompletionQR}
             customerMap={customerMap}
           />
         </CardContent>
       </Card>
-
-      {/* Booking Details Drawer */}
-      <BookingDetailsDrawer
-        booking={selectedBooking}
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-        onStatusUpdated={handleStatusChange}
-        onTriggerCompletionQR={handleTriggerCompletionQR}
-        customer={selectedBooking ? customerMap[selectedBooking.userId] : null}
-      />
 
       {/* Completion QR Code Modal for In-Salon Loyalty Stamping */}
       <CompletionQRModal

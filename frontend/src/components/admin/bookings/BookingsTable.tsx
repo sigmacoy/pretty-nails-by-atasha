@@ -22,7 +22,6 @@ interface BookingsTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onStatusChange: (bookingId: string, status: BookingStatus) => void;
-  onViewDetails?: (booking: BookingDto) => void;
   onShowCompletionQR?: (bookingId: string) => void;
   customerMap?: Record<string, CustomerListDto>;
 }
@@ -69,7 +68,6 @@ export function BookingsTable({
   totalPages,
   onPageChange,
   onStatusChange,
-  onViewDetails,
   onShowCompletionQR,
   customerMap = {},
 }: BookingsTableProps) {
@@ -101,15 +99,12 @@ export function BookingsTable({
       row.userId;
 
     return (
-      <div
-        className="flex items-center gap-2.5 cursor-pointer group py-0.5"
-        onClick={() => onViewDetails?.(row)}
-      >
-        <div className="h-8 w-8 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center font-medium text-xs shrink-0 group-hover:bg-rose-900 group-hover:text-white transition-colors">
+      <div className="flex items-center gap-2.5 py-0.5">
+        <div className="h-8 w-8 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center font-medium text-xs shrink-0">
           {getInitials(customerName)}
         </div>
         <div className="min-w-0">
-          <p className="font-medium text-xs text-foreground group-hover:text-primary transition-colors truncate">
+          <p className="font-medium text-xs text-foreground truncate">
             {customerName}
           </p>
           <p className="text-[11px] text-muted-foreground truncate max-w-[170px] tabular-nums font-mono">
@@ -122,7 +117,7 @@ export function BookingsTable({
 
   // 3. Render Appointment Time column
   const renderDateTime = (row: BookingDto) => (
-    <div className="cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+    <div className="py-0.5">
       <p className="text-xs font-medium text-foreground tabular-nums">
         {formatDateShort(row.appointmentDate)}
       </p>
@@ -178,7 +173,7 @@ export function BookingsTable({
     const depositAmount = row.downpayment || payment?.amount || 10000;
 
     return (
-      <div className="cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+      <div className="py-0.5">
         {paymentStatus === 'PAID' ? (
           <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800/60 tabular-nums font-mono">
             <CheckCircle2 className="h-3 w-3 stroke-[1.5] text-emerald-600 dark:text-emerald-400" />
@@ -202,7 +197,7 @@ export function BookingsTable({
   // 6. Render Total Price column
   const renderPrice = (row: BookingDto) => {
     return (
-      <div className="text-right cursor-pointer py-0.5" onClick={() => onViewDetails?.(row)}>
+      <div className="text-right py-0.5">
         <p className="text-xs font-semibold text-foreground tabular-nums font-mono">
           {formatPrice(row.totalPrice)}
         </p>
@@ -240,17 +235,6 @@ export function BookingsTable({
           <span className="hidden sm:inline">QR stamp</span>
         </Button>
       )}
-
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => onViewDetails?.(row)}
-        className="h-9 px-3 text-xs gap-1.5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-stone-800 dark:text-rose-200 hover:bg-rose-100/60 dark:hover:bg-rose-950/50"
-        title="View booking details"
-      >
-        <Eye className="h-3.5 w-3.5 stroke-[1.5]" />
-        <span className="hidden sm:inline">Details</span>
-      </Button>
 
       <StatusAction
         bookingId={row.id}

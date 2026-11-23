@@ -4,10 +4,11 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff, Chrome, Facebook } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { registerSchema, type RegisterInput } from '@/lib/validations';
 import { Input } from '@/components/ui/Input';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { StudioMark } from '@/components/layout/Header';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -155,16 +156,20 @@ export function RegisterForm() {
             className="rounded-xl border-rose-200/80 dark:border-rose-950/60 focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
           />
 
-          <Input
-            label="Phone number"
-            type="tel"
-            placeholder="+63 9XX XXX XXXX"
-            autoComplete="tel"
-            helperText="Optional for appointment reminders"
-            {...register('phone')}
-            error={errors.phone?.message}
-            disabled={isSubmitting}
-            className="rounded-xl border-rose-200/80 dark:border-rose-950/60 focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40"
+          <Controller
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <PhoneInput
+                label="Phone number"
+                placeholder="0917 123 4567"
+                value={field.value || ''}
+                onChange={(value) => field.onChange(value)}
+                error={errors.phone?.message}
+                disabled={isSubmitting}
+                helperText="Philippine mobile number (09XXXXXXXXX)"
+              />
+            )}
           />
 
           <div className="relative">

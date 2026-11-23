@@ -22,12 +22,13 @@ import {
   AlertCircle,
   ShieldCheck,
 } from 'lucide-react';
-import { useForm, UseFormReturn } from 'react-hook-form';
+import { useForm, UseFormReturn, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@/hooks/useApi';
 import { servicesApi, bookingsApi, availabilityApi, paymentsApi, loyaltyApi } from '@/lib/api';
 import { ServiceDto, BookingRequest } from '@/types';
 import { Button } from '@/components/ui';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Modal } from '@/components/ui/Modal';
 import { PaymentQRCode } from '@/components/booking/PaymentQRCode';
 import { formatPrice, formatDate, formatTime, getVariantLabel } from '@/lib/utils';
@@ -161,7 +162,7 @@ function generateDefaultSlots(): { startTime: string; endTime: string }[] {
 export function BookingForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedServices, setSelectedServices] = useState<{ serviceId: string; variantId?: string; quantity: number }[]>([]);
   const [appointmentDate, setAppointmentDate] = useState('');
@@ -171,11 +172,75 @@ export function BookingForm() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'GCASH' | 'MAYA' | 'CASH'>('GCASH');
+  const [paymentMethod, setPaymentMethod] = useState<'GCASH' | 'MAYA'>('GCASH');
   const [paymentReference, setPaymentReference] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [redeemLoyaltyReward, setRedeemLoyaltyReward] = useState(false);
+
+  // Booking draft key for localStorage
+  const BOOKING_DRAFT_KEY = 'prettynails-booking-draft';
+
+  // Save booking draft to localStorage
+  const saveBookingDraft = () => {
+    const draft = {
+      selectedServices,
+      appointmentDate,
+      startTime,
+      endTime,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(BOOKING_DRAFT_KEY, JSON.stringify(draft));
+  };
+
+  // Load booking draft from localStorage
+  const loadBookingDraft = () => {
+    try {
+      const saved = localStorage.getItem(BOOKING_DRAFT_KEY);
+      if (saved) {
+        const draft = JSON.parse(saved);
+        // Only restore if draft is less than 24 hours old
+        if (Date.now() - draft.timestamp < 24 * 60 * 60 * 1000) {
+          return draft;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load booking draft:', e);
+    }
+    return null;
+  };
+
+  // Clear booking draft
+  const clearBookingDraft = () => {
+    localStorage.removeItem(BOOKING_DRAFT_KEY);
+  };
+
+  // Restore booking draft on mount
+  useEffect(() => {
+    const draft = loadBookingDraft();
+    if (draft) {
+      setSelectedServices(draft.selectedServices || []);
+      setAppointmentDate(draft.appointmentDate || '');
+      setStartTime(draft.startTime || '');
+      setEndTime(draft.endTime || '');
+
+      // Restore form values
+      if (draft.selectedServices?.length > 0) {
+        step1Form.setValue('services', draft.selectedServices);
+      }
+      if (draft.appointmentDate) {
+        step2Form.setValue('appointmentDate', draft.appointmentDate);
+      }
+      if (draft.startTime) {
+        step2Form.setValue('startTime', draft.startTime);
+      }
+
+      // Fetch slots for the restored date
+      if (draft.appointmentDate) {
+        fetchAvailableSlots(draft.appointmentDate);
+      }
+    }
+  }, [step1Form, step2Form, fetchAvailableSlots]);
 
   // Loyalty card query for reward eligibility
   const { data: loyaltyData } = useQuery(
@@ -204,6 +269,18 @@ export function BookingForm() {
     defaultValues: {},
   });
 
+  // Pre-fill client details for logged-in users (non-editable)
+  useEffect(() => {
+    if (user) {
+      step3Form.reset({
+        name: user.name || '',
+        phone: user.phone || '',
+        notes: '',
+        inspirationImg: '',
+      });
+    }
+  }, [user, step3Form]);
+
   // Load services
   const { data: servicesData, isLoading: servicesLoading } = useQuery(
     () => servicesApi.getActive(),
@@ -230,6 +307,7 @@ export function BookingForm() {
       setAppointmentDate(date);
       step2Form.setValue('appointmentDate', date);
       fetchAvailableSlots(date);
+      saveBookingDraft();
     }
     if (time) {
       setStartTime(time);
@@ -306,17 +384,52 @@ export function BookingForm() {
   const totalDuration = selectedServiceDetails.reduce((sum, s) => sum + s.duration, 0);
   const downpayment = 10000; // ₱100.00 in centavos
 
+  // Calculate end time based on start time and total duration
+  const calculateEndTime = (start: string, durationMinutes: number): string => {
+    const [hours, minutes] = start.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMins = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  };
+
+  // Filter slots that can accommodate the full duration
+  const filteredSlots = availableSlots.filter((slot) => {
+    const slotEnd = calculateEndTime(slot.startTime, totalDuration);
+    // Check if this slot's end time is <= the actual slot end time
+    return slotEnd <= slot.endTime;
+  });
+
   const handleNext = async (step: number) => {
     if (step === 1) {
       const valid = await step1Form.trigger();
       if (valid && selectedServices.length > 0) {
         setCurrentStep(2);
+        saveBookingDraft();
       }
     } else if (step === 2) {
-      if (!startTime && availableSlots.length > 0) {
-        setStartTime(availableSlots[0].startTime);
-        setEndTime(availableSlots[0].endTime);
-        step2Form.setValue('startTime', availableSlots[0].startTime, { shouldValidate: true });
+      if (!startTime && filteredSlots.length > 0) {
+        setStartTime(filteredSlots[0].startTime);
+        const computedEndTime = calculateEndTime(filteredSlots[0].startTime, totalDuration);
+        setEndTime(computedEndTime);
+        step2Form.setValue('startTime', filteredSlots[0].startTime, { shouldValidate: true });
+      }
+      if (startTime) {
+        setCurrentStep(3);
+        saveBookingDraft();
+      }
+    } else if (step === 3) {
+      const valid = await step3Form.trigger();
+      if (valid) {
+        setCurrentStep(4);
+        saveBookingDraft();
+      }
+    }
+  };
+      } else if (startTime) {
+        // Recalculate end time when start time changes
+        const computedEndTime = calculateEndTime(startTime, totalDuration);
+        setEndTime(computedEndTime);
       }
       const valid = await step2Form.trigger();
       if (valid && appointmentDate) {
@@ -425,6 +538,9 @@ export function BookingForm() {
         }
       }
 
+      // Clear draft on successful booking
+      clearBookingDraft();
+
       toast.success('Reservation request submitted. Atasha will review your downpayment reference to confirm your slot.');
       router.push('/my-bookings');
       router.refresh();
@@ -509,6 +625,7 @@ export function BookingForm() {
                   onBack={handleBack}
                   onNext={() => handleNext(2)}
                   fetchAvailableSlots={fetchAvailableSlots}
+                  totalDuration={totalDuration}
                 />
               )}
 
@@ -517,6 +634,7 @@ export function BookingForm() {
                   form={step3Form}
                   onBack={handleBack}
                   onNext={() => handleNext(3)}
+                  isPrefilled={isAuthenticated}
                 />
               )}
 
@@ -1081,6 +1199,7 @@ function BookingStep2({
   onBack,
   onNext,
   fetchAvailableSlots,
+  totalDuration = 0,
 }: {
   appointmentDate: string;
   setAppointmentDate: React.Dispatch<React.SetStateAction<string>>;
@@ -1094,7 +1213,22 @@ function BookingStep2({
   onBack: () => void;
   onNext: () => void;
   fetchAvailableSlots: (date: string) => void;
+  totalDuration?: number;
 }) {
+  // Calculate end time based on start time and total duration
+  const calculateEndTime = (start: string, durationMinutes: number): string => {
+    const [hours, minutes] = start.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes + durationMinutes;
+    const endHours = Math.floor(totalMinutes / 60) % 24;
+    const endMins = totalMinutes % 60;
+    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
+  };
+
+  // Filter slots that can accommodate the full duration
+  const filteredSlots = availableSlots.filter((slot) => {
+    const slotEnd = calculateEndTime(slot.startTime, totalDuration);
+    return slotEnd <= slot.endTime;
+  });
   const today = new Date().toISOString().split('T')[0];
   const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -1157,26 +1291,29 @@ function BookingStep2({
                 Select a date on the calendar to inspect open time slots
               </p>
             </div>
-          ) : availableSlots.length === 0 ? (
+          ) : filteredSlots.length === 0 ? (
             <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-6 text-center">
               <h4 className="font-serif text-sm sm:text-base text-stone-900 dark:text-stone-100 font-medium">
-                No appointments scheduled for this date
+                {totalDuration > 0 ? 'No available windows for this service duration' : 'No appointments scheduled for this date'}
               </h4>
               <p className="font-sans text-xs text-stone-500 dark:text-stone-400 mt-1">
-                No appointment slots remain open for this date. Please select another date.
+                {totalDuration > 0
+                  ? `Selected services require ${totalDuration} minutes. No open slots can accommodate this length. Please choose another date.`
+                  : 'No appointment slots remain open for this date. Please select another date.'}
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 max-h-64 overflow-y-auto pr-1">
-              {availableSlots.map((slot) => {
+              {filteredSlots.map((slot) => {
                 const isSelected = startTime === slot.startTime;
+                const computedEndTime = calculateEndTime(slot.startTime, totalDuration);
                 return (
                   <button
                     key={`${slot.startTime}-${slot.endTime}`}
                     type="button"
                     onClick={() => {
                       setStartTime(slot.startTime);
-                      setEndTime(slot.endTime);
+                      setEndTime(computedEndTime);
                       form.setValue('startTime', slot.startTime, { shouldValidate: true });
                     }}
                     className={`p-3 rounded-xl border text-left transition-all duration-150 font-mono tabular-nums text-xs ${
@@ -1187,7 +1324,9 @@ function BookingStep2({
                   >
                     <div className="font-medium">{formatTime(slot.startTime)}</div>
                     <div className={`text-[10px] mt-0.5 ${isSelected ? 'text-rose-200' : 'text-stone-400 dark:text-stone-500'}`}>
-                      ends {formatTime(slot.endTime)}
+                      {totalDuration > 0
+                        ? `ends ${formatTime(computedEndTime)} (${totalDuration} min)`
+                        : `ends ${formatTime(slot.endTime)}`}
                     </div>
                   </button>
                 );
@@ -1224,10 +1363,12 @@ function BookingStep3({
   form,
   onBack,
   onNext,
+  isPrefilled = false,
 }: {
   form: UseFormReturn<BookingStep3Input>;
   onBack: () => void;
   onNext: () => void;
+  isPrefilled?: boolean;
 }) {
   return (
     <div className="space-y-6">
@@ -1246,14 +1387,24 @@ function BookingStep3({
       <div className="space-y-4">
         {/* Name */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-stone-800 dark:text-stone-200">
+          <label className="block text-xs font-medium text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
             Full Name <span className="text-rose-700">*</span>
+            {isPrefilled && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-normal">
+                From your account
+              </span>
+            )}
           </label>
           <input
             type="text"
             {...form.register('name')}
             placeholder="e.g. Maria Santos"
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-sm focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
+            readOnly={isPrefilled}
+            className={`w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 text-stone-900 dark:text-stone-100 text-sm focus:outline-none shadow-xs ${
+              isPrefilled
+                ? 'bg-stone-100 dark:bg-stone-800 cursor-not-allowed'
+                : 'bg-white dark:bg-stone-900 focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40'
+            }`}
           />
           {form.formState.errors.name && (
             <p className="text-xs text-rose-700 dark:text-rose-400">
@@ -1264,20 +1415,29 @@ function BookingStep3({
 
         {/* Phone */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-stone-800 dark:text-stone-200">
+          <label className="block text-xs font-medium text-stone-800 dark:text-stone-200 flex items-center gap-1.5">
             Mobile Number (GCash / Maya contact) <span className="text-rose-700">*</span>
+            {isPrefilled && (
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-300 font-normal">
+                From your account
+              </span>
+            )}
           </label>
-          <input
-            type="tel"
-            {...form.register('phone')}
-            placeholder="e.g. 0917 123 4567"
-            className="w-full h-12 px-4 rounded-xl border border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 font-mono text-sm tabular-nums focus:outline-none focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 shadow-xs"
+          <Controller
+            name="phone"
+            control={form.control}
+            rules={{ required: 'Mobile number is required' }}
+            render={({ field }) => (
+              <PhoneInput
+                placeholder="e.g. 0917 123 4567"
+                value={field.value}
+                onChange={(value) => field.onChange(value)}
+                error={form.formState.errors.phone?.message}
+                helperText="Philippine mobile number (09XXXXXXXXX)"
+                disabled={isPrefilled}
+              />
+            )}
           />
-          {form.formState.errors.phone && (
-            <p className="text-xs text-rose-700 dark:text-rose-400">
-              {form.formState.errors.phone.message}
-            </p>
-          )}
         </div>
 
         {/* Notes */}
@@ -1380,6 +1540,8 @@ function BookingStep4({
   onSubmit: () => void;
   isSubmitting: boolean;
 }) {
+  const isConfirmed = form.watch('confirmed');
+
   return (
     <div className="space-y-6">
       <div className="space-y-1">
@@ -1431,7 +1593,7 @@ function BookingStep4({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* GCash */}
           <button
             type="button"
@@ -1475,30 +1637,6 @@ function BookingStep4({
             </div>
             <p className="text-[11px] text-stone-600 dark:text-stone-400 font-normal">
               Scan Maya QR or transfer via mobile
-            </p>
-          </button>
-
-          {/* Cash */}
-          <button
-            type="button"
-            onClick={() => setPaymentMethod('CASH')}
-            className={`rounded-2xl border p-4 text-left transition-all duration-150 ${
-              paymentMethod === 'CASH'
-                ? 'border-rose-900 bg-rose-50/50 dark:border-rose-800 dark:bg-rose-950/30 ring-1 ring-rose-900/30'
-                : 'border-rose-200/80 dark:border-rose-950/60 bg-white dark:bg-stone-900 hover:border-rose-300'
-            }`}
-          >
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-serif font-medium text-sm text-stone-900 dark:text-rose-50 flex items-center gap-1.5">
-                <Banknote className="h-4 w-4 text-rose-600 stroke-[1.5]" />
-                Studio Counter
-              </span>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-400 border border-stone-200 dark:border-stone-700">
-                In-person
-              </span>
-            </div>
-            <p className="text-[11px] text-stone-600 dark:text-stone-400 font-normal">
-              Pay at studio counter within 24h
             </p>
           </button>
         </div>
@@ -1641,19 +1779,6 @@ function BookingStep4({
         </div>
       )}
 
-      {/* Cash Notice */}
-      {paymentMethod === 'CASH' && (
-        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-rose-50/40 dark:bg-stone-900/50 p-4 space-y-1.5">
-          <div className="flex items-center gap-2 text-stone-900 dark:text-rose-50 font-medium text-xs">
-            <AlertCircle className="h-4 w-4 stroke-[1.5] text-rose-600" />
-            <span>Studio In-Person Cash Downpayment</span>
-          </div>
-          <p className="text-[11px] text-stone-600 dark:text-stone-300 leading-relaxed font-normal">
-            Please visit Pretty Nails by Atasha · Cebu City within 24 hours of booking to settle the ₱100.00 reservation downpayment. Unconfirmed slots without downpayment may be released to waitlisted clients.
-          </p>
-        </div>
-      )}
-
       {/* Confirmation Agreement */}
       <div className="space-y-5 pt-2">
         <label className="flex items-start gap-3 cursor-pointer">
@@ -1681,7 +1806,7 @@ function BookingStep4({
           <button
             type="button"
             onClick={onSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !isConfirmed}
             className="h-12 sm:h-14 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 disabled:opacity-50 disabled:pointer-events-none text-white font-medium text-sm sm:text-base tracking-normal shadow-[0_4px_16px_rgba(76,5,25,0.2)] hover:shadow-[0_6px_24px_rgba(76,5,25,0.32)] border border-rose-800/80 transition-all duration-200 inline-flex items-center justify-center gap-2"
           >
             {isSubmitting ? (

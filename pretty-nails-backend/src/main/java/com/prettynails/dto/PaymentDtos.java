@@ -17,7 +17,7 @@ public class PaymentDtos {
         private String userId;
         private Integer amount; // in centavos
         private String status; // PENDING, PAID, FAILED, REFUNDED
-        private String method; // GCASH, CASH
+        private String method; // GCASH, MAYA
         private String reference;
         private String verifiedAt;
         private String verifiedBy;

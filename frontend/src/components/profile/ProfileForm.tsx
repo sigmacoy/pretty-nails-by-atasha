@@ -1,11 +1,12 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { User } from 'lucide-react';
 import { Button } from '@/components/ui';
 import { Input } from '@/components/ui/Input';
+import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card';
 import { authApi } from '@/lib/api';
 import { profileSchema, type ProfileInput } from '@/lib/validations';
@@ -77,14 +78,20 @@ export function ProfileForm() {
             error={errors.name?.message}
             disabled={isSubmitting}
           />
-          <Input
-            label="Phone number (optional)"
-            type="tel"
-            placeholder="+63 9XX XXX XXXX"
-            className="tabular-nums"
-            {...register('phone')}
-            error={errors.phone?.message}
-            disabled={isSubmitting}
+          <Controller
+            name="phone"
+            control={form.control}
+            render={({ field }) => (
+              <PhoneInput
+                label="Phone number (optional)"
+                placeholder="0917 123 4567"
+                value={field.value || ''}
+                onChange={(value) => field.onChange(value)}
+                error={errors.phone?.message}
+                disabled={isSubmitting}
+                helperText="Philippine mobile number (09XXXXXXXXX)"
+              />
+            )}
           />
           <Input
             label="Nickname (optional)"

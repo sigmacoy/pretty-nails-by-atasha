@@ -1,7 +1,7 @@
 1. ✅ FIXED
 After an ADMIN signing IN, the admin view should go directly to Admin Dashboard.
 
-2.
+2. ✅ FIXED
 http://localhost:3000/admin/bookings
 Client Name: Customer #b609c8 AND lacae346-d0d9-4a73-9...
 Service:
@@ -13,7 +13,7 @@ a5758ffe 74ff)
 
 Put expected here:
 
-3.
+3. ✅ FIXED
 http://localhost:3000/admin/loyalty
 The
 
@@ -44,18 +44,17 @@ stamps
 
 Should not be displayed because these are just the account of the owner. It doesnt make sense.
 
-4.
+4. ✅ FIXED
 Adawdawd
 
 Details card redundant at the http://localhost:3000/admin/bookings or something. Pa continue
 
 
-5.
+5. ✅ FIXED
 If the customer is already logged in, and reserve booking appointment, the Full name should be automatically putted (NON-EDITABLE). The email and phone number should already be there (NON-EDITABLES).
 
 
-
-6.
+6. ✅ FIXED
 In the admin logged in and then went to landing page.
 Ma'am Atasha (Owner)
 
@@ -67,23 +66,23 @@ Message: There are two admin texts. One admin and one ADMIN. Fix this redundant 
 
 But if customer logged in. This is perfect already. Do not change customer side.
 
-7.
+7. ✅ FIXED
 Phone numbers should only input digits. Cant input alphabets.
 
-8.
+8. ✅ FIXED
 Notification bar should not block the view of the ICON.
 
-9.
+9. ✅ FIXED
 Dapat man diay 9 stamps = 1 free stamps. So naa mali sa loyalty card of the customer.
 
-10. -
+10. ✅ FIXED
 Remove In-person reservation payment method.
 
-11. -
-When selecting a booking without signing in/creating an account first, then proceeding to create account doesn’t save the booking.
+11. ✅ FIXED
+When selecting a booking without signing in/creating an account first, then proceeding to create account doesn't save the booking.
 
-12. -
-On submitting a reservation, make the button gray if the checkbox isn’t checked or put a required field (asterisk) on the checkbox.
+12. ✅ FIXED
+On submitting a reservation, make the button gray if the checkbox isn't checked or put a required field (asterisk) on the checkbox.
 
-13. -
-The reserved time range should automatically reflect the estimated session length. For ex.  the session length is 300 minutes (5 hours), a reservation starting at 8:00 AM should have an end time of 1:00 PM. 
+13. ✅ FIXED
+The reserved time range should automatically reflect the estimated session length. For ex.  the session length is 300 minutes (5 hours), a reservation starting at 8:00 AM should have an end time of 1:00 PM.

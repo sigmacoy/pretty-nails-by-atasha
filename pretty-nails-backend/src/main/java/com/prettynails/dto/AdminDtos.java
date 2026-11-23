@@ -72,6 +72,9 @@ public class AdminDtos {
 
         @Min(1)
         private Integer cardExpiryMonths;
+
+        @Min(1)
+        private Integer rewardThreshold; // stamps required for free service reward
     }
 
     @Data

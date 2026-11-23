@@ -64,7 +64,7 @@ export interface ServiceRequest {
 
 // ---------- Payments ----------
 export type PaymentStatus = 'UNPAID' | 'PENDING' | 'PENDING_VERIFICATION' | 'PAID' | 'FAILED' | 'REFUNDED' | 'FORFEITED';
-export type PaymentMethod = 'GCASH' | 'MAYA' | 'CASH';
+export type PaymentMethod = 'GCASH' | 'MAYA';
 
 export interface PaymentDto {
   id: string;
@@ -152,6 +152,16 @@ export interface BookingStatusRequest {
 
 export interface AdminBookingPage {
   content: BookingDto[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
+
+export interface AdminCustomerPage {
+  content: CustomerListDto[];
   totalElements: number;
   totalPages: number;
   size: number;

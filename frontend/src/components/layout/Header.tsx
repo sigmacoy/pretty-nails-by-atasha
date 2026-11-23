@@ -147,9 +147,6 @@ export function Header() {
                     <div className="px-3 py-2 border-b border-stone-200/60 dark:border-stone-800/60 mb-1">
                       <p className="text-sm font-medium text-stone-900 dark:text-stone-100 truncate">{user?.name}</p>
                       <p className="text-xs text-stone-500 dark:text-stone-400 truncate">{user?.email}</p>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-normal bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300 mt-1 capitalize">
-                        {user?.role}
-                      </span>
                     </div>
 
                     {isAdmin ? (

@@ -20,8 +20,8 @@ export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   email: z.string().email('Invalid email address'),
   phone: z.string().optional().refine(
-    (val) => !val || /^[\d\s\-\+\(\)]{10,}$/.test(val),
-    'Invalid phone number'
+    (val) => !val || PH_MOBILE_PATTERN.test(val.replace(/\s/g, '')),
+    'Enter a valid Philippine mobile number (09XXXXXXXXX)'
   ),
   password: z.string()
     .min(8, 'Password must be at least 8 characters')
@@ -61,9 +61,12 @@ export const bookingStep2Schema = z.object({
   startTime: z.string().min(1, 'Select a time'),
 });
 
+// Philippine mobile number pattern: 09XXXXXXXXX (11 digits starting with 09)
+const PH_MOBILE_PATTERN = /^09\d{9}$/;
+
 export const bookingStep3Schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
-  phone: z.string().min(10, 'Valid phone number required').max(20),
+  phone: z.string().regex(PH_MOBILE_PATTERN, 'Enter a valid Philippine mobile number (09XXXXXXXXX)'),
   notes: z.string().max(500, 'Notes too long').optional(),
   inspirationImg: z.string().url('Invalid URL').optional().or(z.literal('')),
 });
@@ -81,8 +84,8 @@ export type BookingStep4Input = z.infer<typeof bookingStep4Schema>;
 export const profileSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   phone: z.string().optional().refine(
-    (val) => !val || /^[\d\s\-\+\(\)]{10,}$/.test(val),
-    'Invalid phone number'
+    (val) => !val || PH_MOBILE_PATTERN.test(val.replace(/\s/g, '')),
+    'Enter a valid Philippine mobile number (09XXXXXXXXX)'
   ),
   nickname: z.string().max(50, 'Nickname too long').optional(),
 });

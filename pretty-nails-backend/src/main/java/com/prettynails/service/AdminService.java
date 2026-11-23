@@ -149,6 +149,7 @@ public class AdminService {
                 .amountThreshold(100000) // 1000 PHP in centavos
                 .freeServiceReward("Free Basic Manicure")
                 .cardExpiryMonths(12)
+                .rewardThreshold(10) // 10 stamps required for free service reward
                 .build();
     }
 

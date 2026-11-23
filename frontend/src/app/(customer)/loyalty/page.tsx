@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@/hooks/useApi';
-import { loyaltyApi } from '@/lib/api';
-import { LoyaltyCardDto, StampResponse } from '@/types';
+import { loyaltyApi, adminApi } from '@/lib/api';
+import { LoyaltyCardDto, StampResponse, LoyaltySettingsDto } from '@/types';
 import { LoyaltyCard } from '@/components/customer/LoyaltyCard';
 import { QRScanner } from '@/components/loyalty/QRScanner';
 import { Modal } from '@/components/ui/Modal';
@@ -14,8 +14,6 @@ import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
 import { QRCodeSVG } from 'qrcode.react';
 import { Gift, Clock, Info, AlertCircle, QrCode, Check, Copy } from 'lucide-react';
-
-const MAX_STAMPS = 10;
 
 export default function LoyaltyPage() {
   const { isAuthenticated } = useAuth();
@@ -29,7 +27,15 @@ export default function LoyaltyPage() {
     { enabled: isAuthenticated }
   );
 
+  // Fetch loyalty settings for dynamic reward threshold
+  const { data: settingsData } = useQuery(
+    () => adminApi.getSettings(),
+    { enabled: true }
+  );
+
   const loyaltyCard = loyaltyData?.data;
+  const settings = settingsData?.data;
+  const MAX_STAMPS = settings?.rewardThreshold ?? 10; // Dynamic reward threshold from settings (default 10)
   const stampCount = loyaltyCard?.stampCount || 0;
   const isComplete = stampCount >= MAX_STAMPS;
   const voucherCode = loyaltyCard ? `PN-${loyaltyCard.id.slice(0, 8).toUpperCase()}` : '';

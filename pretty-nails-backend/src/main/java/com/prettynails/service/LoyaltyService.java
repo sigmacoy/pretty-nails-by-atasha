@@ -30,6 +30,7 @@ public class LoyaltyService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final TimeProvider timeProvider;
+    private final AdminService adminService;
 
     /**
      * Adds a stamp to the user's loyalty card when a booking is completed.
@@ -307,10 +308,15 @@ public class LoyaltyService {
                 .build();
         loyaltyStampRepository.save(stamp);
 
+        int rewardThreshold = adminService.getLoyaltySettings().getRewardThreshold();
+        if (rewardThreshold == null || rewardThreshold < 1) {
+            rewardThreshold = 10;
+        }
+
         return StampResponse.builder()
                 .success(true)
                 .stampCount(newStampCount)
-                .requiredStamps(10) // 10 stamps needed for reward
+                .requiredStamps(rewardThreshold)
                 .message("Stamp added successfully")
                 .build();
     }
@@ -340,6 +346,7 @@ public class LoyaltyService {
 
     /**
      * Get all loyalty cards for admin (with pagination and search)
+     * Excludes users with ADMIN role
      */
     public Page<AdminLoyaltyCardDto> getAllLoyaltyCards(String search, Pageable pageable) {
         // For simplicity, we'll fetch all and filter in memory for search
@@ -348,9 +355,11 @@ public class LoyaltyService {
 
         List<AdminLoyaltyCardDto> filtered = allCards.stream()
                 .filter(card -> {
-                    if (search == null || search.isBlank()) return true;
                     User user = userRepository.findById(card.getUserId()).orElse(null);
                     if (user == null) return false;
+                    // Exclude ADMIN users from loyalty list
+                    if ("ADMIN".equalsIgnoreCase(user.getRole())) return false;
+                    if (search == null || search.isBlank()) return true;
                     String searchLower = search.toLowerCase();
                     return user.getName().toLowerCase().contains(searchLower) ||
                            user.getEmail().toLowerCase().contains(searchLower);
