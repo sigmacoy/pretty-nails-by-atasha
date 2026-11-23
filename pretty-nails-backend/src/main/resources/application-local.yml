@@ -32,7 +32,7 @@ bucket4j:
       type: caffeine
 
 jwt:
-  secret: cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n
+  secret: ${JWT_SECRET}
   expiration: 2592000000
 
 server:
@@ -42,8 +42,8 @@ app:
   cors:
     allowed-origins: http://localhost:3000
   admin:
-    email: admin@prettynails.local
-    password: admin123
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
     phone: +639000000000
   upload:
     dir: uploads

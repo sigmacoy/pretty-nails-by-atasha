@@ -31,10 +31,8 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final TimeProvider timeProvider;
 
-    // In-memory sink registry for active SSE connections
+    // In-memory sink registry for active SSE connections (single source of truth)
     // In production, use Redis or a message broker for distributed deployments
-    private final Map<String, org.reactivestreams.Publisher<NotificationEvent>> userSinks = new ConcurrentHashMap<>();
-
     private final Map<String, reactor.core.publisher.Sinks.Many<NotificationEvent>> userSinkMap = new ConcurrentHashMap<>();
 
     /**

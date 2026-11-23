@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -16,8 +15,6 @@ import reactor.core.publisher.Sinks;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Controller for real-time notifications using Server-Sent Events (SSE).
@@ -26,13 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 @RestController
 @RequestMapping("/api/notifications")
 @RequiredArgsConstructor
-public class NotificationController {
+public class NotificationController extends BaseController {
 
     private final NotificationService notificationService;
-
-    // In-memory sink registry for active SSE connections
-    // In production, use Redis or a message broker for distributed deployments
-    private final Map<String, Sinks.Many<NotificationEvent>> userSinks = new ConcurrentHashMap<>();
 
     /**
      * Subscribe to real-time notification stream via SSE.
@@ -45,9 +38,11 @@ public class NotificationController {
         User currentUser = getCurrentUser();
         String userId = currentUser.getId();
 
-        // Create or get sink for this user
-        Sinks.Many<NotificationEvent> sink = userSinks.computeIfAbsent(userId,
-                k -> Sinks.many().multicast().onBackpressureBuffer());
+        // Create sink for this user
+        Sinks.Many<NotificationEvent> sink = Sinks.many().multicast().onBackpressureBuffer();
+
+        // Register sink with service (single source of truth)
+        notificationService.registerSink(userId, sink);
 
         // Send initial connection event
         NotificationEvent connectedEvent = NotificationEvent.builder()
@@ -78,7 +73,7 @@ public class NotificationController {
                 })
                 .doOnCancel(() -> {
                     // Clean up on disconnect
-                    userSinks.remove(userId);
+                    notificationService.removeSink(userId);
                 });
     }
 
@@ -143,21 +138,5 @@ public class NotificationController {
     public ResponseEntity<Void> broadcastNotification(@RequestBody BroadcastNotificationRequest request) {
         notificationService.broadcast(request.getEvent());
         return ResponseEntity.ok().build();
-    }
-
-    /**
-     * Extracts current user from security context.
-     */
-    private User getCurrentUser() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()
-                || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new IllegalStateException("No authenticated user");
-        }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUser();
-        }
-        throw new IllegalStateException("Unexpected principal type: " + principal.getClass().getName());
     }
 }

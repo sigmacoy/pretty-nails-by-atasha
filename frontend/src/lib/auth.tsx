@@ -52,7 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserState(userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      const { authApi } = await import('@/lib/api');
+      await authApi.logout();
+    } catch {
+      // Ignore errors, still clear local state
+    }
     removeToken();
     setUserState(null);
   };
@@ -88,5 +94,13 @@ export const clientAuth = {
     setToken(token);
     setUser(user);
   },
-  logout: removeToken,
+  logout: async () => {
+    try {
+      const { authApi } = await import('@/lib/api');
+      await authApi.logout();
+    } catch {
+      // Ignore errors
+    }
+    removeToken();
+  },
 };

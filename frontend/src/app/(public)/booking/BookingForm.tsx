@@ -52,87 +52,6 @@ const STEPS = [
   { id: 4, title: 'Reservation deposit', icon: CreditCard },
 ];
 
-// Curated studio treatments fallback for booking flow
-const defaultServicesFallback: ServiceDto[] = [
-  {
-    id: 'service-extension',
-    name: 'Soft Gel Sculpted Extensions',
-    category: 'EXTENSION',
-    description: 'Sculpted length with apex architecture and Japanese soft gel. Unrushed structural balance designed for high durability.',
-    basePrice: 80000,
-    duration: 90,
-    isActive: true,
-    variants: [
-      { id: 'v1', serviceId: 'service-extension', name: 'Short', price: 80000 },
-      { id: 'v2', serviceId: 'service-extension', name: 'Medium', price: 95000 },
-      { id: 'v3', serviceId: 'service-extension', name: 'Long', price: 110000 },
-    ],
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 'service-gel',
-    name: 'Structured BIAB & Gel Overlay',
-    category: 'GEL',
-    description: 'Natural plate reinforcement with Russian dry cuticle prep and high-shine Japanese apex finish.',
-    basePrice: 50000,
-    duration: 60,
-    isActive: true,
-    variants: [
-      { id: 'v4', serviceId: 'service-gel', name: 'Classic Single-Tone', price: 50000 },
-      { id: 'v5', serviceId: 'service-gel', name: 'French Accent Hairline', price: 60000 },
-      { id: 'v6', serviceId: 'service-gel', name: 'Magnetic Velvet Cat-Eye', price: 65000 },
-    ],
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 'service-pedicure',
-    name: 'Signature Luxe Gel Pedicure',
-    category: 'PEDICURE',
-    description: 'Callus softening, gentle dry prep, natural foot soak, and high-shine long-wearing gel finish.',
-    basePrice: 60000,
-    duration: 60,
-    isActive: true,
-    variants: [
-      { id: 'v7', serviceId: 'service-pedicure', name: 'Classic Luxe', price: 60000 },
-      { id: 'v8', serviceId: 'service-pedicure', name: 'French Finish', price: 70000 },
-    ],
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 'service-cleaning',
-    name: 'Studio Dry Cuticle Prep & Hygiene Care',
-    category: 'GEL',
-    description: 'Precision e-file dry manicuring, cuticle refinement, and natural plate conditioning.',
-    basePrice: 30000,
-    duration: 30,
-    isActive: true,
-    variants: [
-      { id: 'v9', serviceId: 'service-cleaning', name: 'Standard Care', price: 30000 },
-      { id: 'v10', serviceId: 'service-cleaning', name: 'Deep Restorative Care', price: 45000 },
-    ],
-    createdAt: '',
-    updatedAt: '',
-  },
-  {
-    id: 'service-nail-art',
-    name: 'Bespoke Hand-Painted Nail Art',
-    category: 'ADDON',
-    description: 'Custom fine-line artwork, tortoiseshell glass, metallic foil accents, or tailored editorial aesthetics.',
-    basePrice: 15000,
-    duration: 30,
-    isActive: true,
-    variants: [
-      { id: 'v11', serviceId: 'service-nail-art', name: 'Minimalist Accent (2 nails)', price: 15000 },
-      { id: 'v12', serviceId: 'service-nail-art', name: 'Full Set Bespoke Concept', price: 35000 },
-    ],
-    createdAt: '',
-    updatedAt: '',
-  },
-];
-
 function generateDefaultSlots(): { startTime: string; endTime: string }[] {
   const slots: { startTime: string; endTime: string }[] = [];
   const startHour = 8; // 8am earliest
@@ -282,12 +201,13 @@ export function BookingForm() {
   }, [user, step3Form]);
 
   // Load services
-  const { data: servicesData, isLoading: servicesLoading } = useQuery(
+  const { data: servicesData, isLoading: servicesLoading, error: servicesError } = useQuery(
     () => servicesApi.getActive(),
     { enabled: true }
   );
   const rawServices = servicesData?.data || [];
-  const services = rawServices.length > 0 ? rawServices : defaultServicesFallback;
+  const services = rawServices;
+  const servicesUnavailable = !servicesLoading && rawServices.length === 0;
 
   // Pre-select service from URL
   useEffect(() => {
@@ -523,20 +443,7 @@ export function BookingForm() {
       };
 
       const response = await bookingsApi.create(bookingData);
-      const bookingId = response.data?.id || (response.data as unknown as { bookingId?: string })?.bookingId;
-
-      if (bookingId && paymentMethod !== 'CASH' && trimmedRef) {
-        try {
-          await paymentsApi.create({
-            bookingId,
-            amount: downpayment,
-            method: paymentMethod,
-            reference: trimmedRef,
-          });
-        } catch (paymentErr) {
-          console.warn('Payment record sync:', paymentErr);
-        }
-      }
+      // Payment record is created atomically by backend when paymentReference is provided
 
       // Clear draft on successful booking
       clearBookingDraft();
@@ -608,6 +515,7 @@ export function BookingForm() {
                   form={step1Form}
                   onNext={() => handleNext(1)}
                   isLoading={servicesLoading}
+                  servicesUnavailable={servicesUnavailable}
                 />
               )}
 
@@ -982,6 +890,7 @@ function BookingStep1({
   form,
   onNext,
   isLoading,
+  servicesUnavailable = false,
 }: {
   services: ServiceDto[];
   selectedServices: { serviceId: string; variantId?: string; quantity: number }[];
@@ -989,6 +898,7 @@ function BookingStep1({
   form: UseFormReturn<BookingStep1Input>;
   onNext: () => void;
   isLoading: boolean;
+  servicesUnavailable?: boolean;
 }) {
   if (isLoading) {
     return (
@@ -996,6 +906,41 @@ function BookingStep1({
         {Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="h-28 bg-rose-100/50 dark:bg-stone-800 rounded-2xl animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (servicesUnavailable) {
+    return (
+      <div className="space-y-6">
+        <div className="space-y-1">
+          <span className="text-[11px] font-medium uppercase tracking-[0.2em] text-rose-800/80 dark:text-rose-300/80 block">
+            Step 01
+          </span>
+          <h2 className="text-2xl font-serif font-normal text-stone-900 dark:text-rose-50">
+            Select treatments
+          </h2>
+          <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal">
+            Choose one or more salon treatments for your upcoming private session
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-8 text-center">
+          <AlertCircle className="h-10 w-10 text-rose-500 mx-auto mb-3 stroke-[1.5]" />
+          <h3 className="font-serif text-base sm:text-lg text-stone-900 dark:text-stone-100 font-medium">
+            Services currently unavailable
+          </h3>
+          <p className="font-sans text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-1">
+            Unable to load treatment options. Please refresh the page or try again later.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 h-10 px-6 rounded-full border border-rose-300/80 hover:bg-rose-50 dark:border-rose-800 dark:hover:bg-rose-950/40 text-stone-700 dark:text-stone-300 font-medium text-sm transition-colors inline-flex items-center justify-center gap-2"
+          >
+            <span>Refresh Page</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -1045,7 +990,7 @@ function BookingStep1({
         ))}
       </div>
 
-      {selectedServices.length === 0 && (
+      {selectedServices.length === 0 && services.length > 0 && (
         <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/70 dark:bg-stone-900/60 p-6 text-center">
           <h3 className="font-serif text-base sm:text-lg text-stone-900 dark:text-stone-100 font-medium">
             No treatments selected

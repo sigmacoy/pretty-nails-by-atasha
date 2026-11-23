@@ -9,30 +9,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-public class PaymentController {
+public class PaymentController extends BaseController {
 
     private final PaymentService paymentService;
-
-    private User getCurrentUser() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new AccessDeniedException("No authenticated user");
-        }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUser();
-        }
-        if (principal instanceof User user) {
-            return user;
-        }
-        throw new AccessDeniedException("No authenticated user");
-    }
 
     @GetMapping("/payments/{bookingId}")
     public ResponseEntity<PaymentDto> getPaymentByBookingId(@PathVariable String bookingId) {
@@ -43,11 +27,7 @@ public class PaymentController {
 
     @PostMapping("/payments")
     public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
-        User currentUser = null;
-        try {
-            currentUser = getCurrentUser();
-        } catch (Exception ignored) {
-        }
+        User currentUser = getCurrentUser();
         return ResponseEntity.ok(paymentService.createPayment(currentUser, request));
     }
 

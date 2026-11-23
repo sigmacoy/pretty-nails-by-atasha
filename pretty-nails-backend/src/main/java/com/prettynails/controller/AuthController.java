@@ -5,43 +5,58 @@ import com.prettynails.entity.User;
 import com.prettynails.exception.BadRequestException;
 import com.prettynails.security.CustomUserDetails;
 import com.prettynails.service.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+public class AuthController extends BaseController {
 
     private final AuthService authService;
 
-    private User getCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated() || "anonymousUser".equals(authentication.getPrincipal())) {
-            throw new BadRequestException("User not authenticated");
-        }
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomUserDetails customUserDetails) {
-            return customUserDetails.getUser();
-        }
-        if (principal instanceof User user) {
-            return user;
-        }
-        throw new BadRequestException("User not authenticated");
+    private void setAuthCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("prettynails_token", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
+
+    private void clearAuthCookie(HttpServletResponse response) {
+        Cookie cookie = new Cookie("prettynails_token", "");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(false);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
     }
 
     @PostMapping("/register")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest request) {
-        return authService.register(request);
+    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
+        AuthResponse authResponse = authService.register(request);
+        setAuthCookie(response, authResponse.getToken());
+        return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody LoginRequest request) {
-        return authService.login(request);
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+        AuthResponse authResponse = authService.login(request);
+        setAuthCookie(response, authResponse.getToken());
+        return ResponseEntity.ok(authResponse);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<MessageResponse> logout(HttpServletResponse response) {
+        clearAuthCookie(response);
+        return ResponseEntity.ok(new MessageResponse("Logged out successfully"));
     }
 
     @GetMapping("/me")

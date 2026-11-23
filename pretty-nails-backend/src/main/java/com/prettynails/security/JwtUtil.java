@@ -3,6 +3,7 @@ package com.prettynails.security;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
@@ -19,6 +20,16 @@ public class JwtUtil {
 
     @Value("${jwt.expiration}")
     private long expiration;
+
+    @PostConstruct
+    public void validateSecret() {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET environment variable is required but not set");
+        }
+        if (secret.getBytes().length < 32) {
+            throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits)");
+        }
+    }
 
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
