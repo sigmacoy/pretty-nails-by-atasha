@@ -1,6 +1,24 @@
-# Pretty Nails by Atasha
+<div align="center">
 
-A comprehensive nail salon booking and management system built with Spring Boot 4.1.2 and Next.js 14, featuring customer booking, loyalty programs, service management, gallery showcases, and admin dashboard.
+# 💅 Pretty Nails by Atasha
+
+*A comprehensive nail salon booking & management system*
+
+![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)
+![Maven](https://img.shields.io/badge/Maven-3.9-C71A36?logo=apache-maven&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.2-6DB33F?logo=spring-boot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3-06B6D4?logo=tailwind-css&logoColor=white)
+
+---
+
+A full-stack nail salon booking and management system built with **Spring Boot 4.1.2** and **Next.js 14**, featuring customer booking, loyalty programs, service management, gallery showcases, and admin dashboard.
+
+</div>
 
 ## Table of Contents
 
@@ -42,10 +60,11 @@ A comprehensive nail salon booking and management system built with Spring Boot 
 | **Backend Framework** | Spring Boot 4.1.2 |
 | **Language** | Java 21 |
 | **Build Tool** | Maven (wrapper included) |
-| **Database** | PostgreSQL 16 (local) / Supabase Cloud |
+| **Database** | PostgreSQL 16 (local) / Supabase Cloud / H2 (local test profile) |
 | **ORM** | Spring Data JPA / Hibernate |
 | **Security** | Spring Security + JWT (jjwt 0.12.5) |
 | **Validation** | Bean Validation (Hibernate Validator) |
+| **Migration** | Flyway |
 | **Utilities** | Lombok |
 | **Frontend Framework** | Next.js 14 (App Router) |
 | **Frontend Language** | TypeScript (strict) |
@@ -54,8 +73,8 @@ A comprehensive nail salon booking and management system built with Spring Boot 
 | **HTTP Client** | Axios (with JWT interceptors) |
 | **Charts** | Recharts |
 | **Notifications** | Sonner (toasts) |
-| **Testing** | Spring Boot Test, Spring Security Test |
-| **Deployment** | Render (backend), Vercel (frontend) |
+| **Testing** | Spring Boot Test, Spring Security Test, Jest, React Testing Library |
+| **Deployment** | Render (backend), Vercel (frontend), Docker Compose |
 
 ### Development Environment
 - **IDE**: IntelliJ IDEA / VS Code
@@ -73,6 +92,8 @@ A comprehensive nail salon booking and management system built with Spring Boot 
 - Custom UserDetailsService implementation
 - Profile management (update name, phone, nickname, avatar)
 - Password change with current password verification
+- Email verification & password reset (SendGrid)
+- Rate limiting on auth endpoints
 
 ### Service Management
 - CRUD operations for nail services
@@ -157,6 +178,10 @@ All endpoints prefixed with `/api`. Auth: Public / JWT (Customer) / JWT (Admin)
 | GET | `/me` | Get current user profile | JWT |
 | PUT | `/profile` | Update profile | JWT |
 | POST | `/change-password` | Change password | JWT |
+| POST | `/verify-email` | Verify email with token | Public |
+| POST | `/resend-verification` | Resend verification email | Public |
+| POST | `/forgot-password` | Request password reset | Public |
+| POST | `/reset-password` | Reset password with token | Public |
 
 ### Services (`/services`)
 | Method | Endpoint | Description | Auth |
@@ -252,6 +277,11 @@ createdb prettynails
 - Create project at [supabase.com](https://supabase.com)
 - Get connection details from Settings → Database
 
+**Option C: Docker (Full Stack)**
+```bash
+docker compose up -d
+```
+
 #### 2. Backend
 ```bash
 cd pretty-nails-backend
@@ -261,6 +291,9 @@ cd pretty-nails-backend
 
 # Supabase (set DB_PASSWORD first)
 export DB_PASSWORD=your_password && ./mvnw spring-boot:run
+
+# Docker (uses application-docker.yml)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=docker
 ```
 Verify: `curl http://localhost:8080/api/services`
 
@@ -276,7 +309,7 @@ Verify: Open `http://localhost:3000`
 #### 4. Default Credentials
 | Role | Email | Password |
 |------|-------|----------|
-| Admin | `admin@prettynails.com` | `admin123` |
+| Admin | `admin@prettynails.local` | `admin123` |
 | Customer | Self-registered | Your password |
 
 ### Quick Start (2 Terminal Tabs)
@@ -288,6 +321,18 @@ cd pretty-nails-backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=loc
 cd frontend && pnpm dev
 ```
 
+### Docker Quick Start
+```bash
+# Build and start all services
+docker compose up -d --build
+
+# View logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+
 ## Configuration
 
 ### Backend (`pretty-nails-backend/src/main/resources/application.yml`)
@@ -297,10 +342,19 @@ spring:
   application:
     name: prettynails-backend
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  # Configure JVM default timezone for the studio (Asia/Manila)
+  jackson:
+    timezone: Asia/Manila
+
   datasource:
-    url: jdbc:postgresql://db.sdqvnqogadaynwfbtezj.supabase.co:5432/postgres
+    url: jdbc:postgresql://localhost:5432/prettynails
     username: postgres
-    password: ${DB_PASSWORD}
+    password: password
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -310,6 +364,32 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    baseline-version: 1
+    baseline-description: "Initial schema from JPA"
+
+  sql:
+    init:
+      mode: never
+
+  mail:
+    host: smtp.sendgrid.net
+    port: 587
+    username: apikey
+    password: ${SENDGRID_API_KEY}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
 
 jwt:
   secret: ${JWT_SECRET:cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n}
@@ -322,13 +402,44 @@ app:
   cors:
     allowed-origins: http://localhost:3000
   admin:
-    email: admin@prettynails.com
-    password: admin123
+    email: admin
+    password: admin
     phone: "+639000000000"
   upload:
     dir: uploads
     max-file-size: 5242880
     base-url: ""
+  email:
+    from-email: ${SENDGRID_FROM_EMAIL:noreply@prettynails.example.com}
+    verification-url: http://localhost:3000/verify-email
+    reset-url: http://localhost:3000/reset-password
+  rate-limit:
+    auth:
+      requests-per-minute: 10
+      requests-per-hour: 100
+  password-policy:
+    min-length: 8
+    min-zxcvbn-score: 1
+    history-size: 5
+    hibp-check-enabled: true
+    hibp-api-url: https://api.pwnedpasswords.com/range/
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha
+    oauth:
+      use-pkce-with-authorization-code-grant: true
+  show-actuator: false
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
+  packages-to-scan: com.prettynails.controller
 
 logging:
   level:
@@ -339,10 +450,91 @@ logging:
 ```yaml
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/prettynails
-    username: ${DB_USER:${USER}}
-    password: ${DB_PASSWORD:}
-    driver-class-name: org.postgresql.Driver
+    url: jdbc:h2:mem:prettynails;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=500,expireAfterWrite=5m
+
+bucket4j:
+  cache:
+    config:
+      type: caffeine
+
+jwt:
+  secret: cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n
+  expiration: 2592000000
+
+server:
+  port: 8080
+
+app:
+  cors:
+    allowed-origins: http://localhost:3000
+  admin:
+    email: admin@prettynails.local
+    password: admin123
+    phone: +639000000000
+  upload:
+    dir: uploads
+    max-file-size: 5242880
+    base-url: http://localhost:8080
+  email:
+    verification-url: http://localhost:3000/verify-email
+    reset-url: http://localhost:3000/reset-password
+    from-email: noreply@prettynails.local
+  rate-limit:
+    auth:
+      requests-per-minute: 10
+      requests-per-hour: 100
+  password-policy:
+    min-length: 8
+    min-zxcvbn-score: 1
+    hibp-check-enabled: false
+    history-size: 5
+```
+
+### Docker Profile (`application-docker.yml`)
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/prettynails
+    username: postgres
+    password: ${DB_PASSWORD}
+  flyway:
+    enabled: true
+
+server:
+  port: 8080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
 ```
 
 ### Environment Variables
@@ -353,6 +545,8 @@ spring:
 | `JWT_SECRET` | JWT signing key (min 256 bits) | No | (dev default in code) |
 | `JWT_EXPIRATION` | Token expiry in ms | No | 2592000000 (30 days) |
 | `PORT` | Server port | No | 8080 |
+| `SENDGRID_API_KEY` | SendGrid API key for emails | No | - |
+| `SENDGRID_FROM_EMAIL` | Sender email address | No | - |
 
 ### Frontend (`frontend/.env.local`)
 ```env
@@ -365,10 +559,10 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 
 | Entity | Description | Key Fields |
 |--------|-------------|------------|
-| `User` | Customer/admin accounts | id, email, password, role, name, phone, nickname, image |
+| `User` | Customer/admin accounts | id, email, password, role, name, phone, nickname, image, email_verified |
 | `Account` | OAuth2 accounts | id, userId, type, provider, tokens |
 | `Service` | Nail service definitions | id, name, category, description, basePrice, duration, isActive |
-| `ServiceVariant` | Service variations with pricing | id, serviceId, name, price |
+| `ServiceVariant` | Service variations with pricing | id, serviceId, name, price, isActive |
 | `Booking` | Customer appointments | id, userId, status, appointmentDate, startTime, endTime, totalPrice, downpayment |
 | `BookingService` | Booking-service junction | id, bookingId, serviceId, variantId, quantity, price |
 | `Payment` | Payment records | id, bookingId, userId, amount, status, method, reference, verifiedAt |
@@ -388,6 +582,13 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 - Service 1───* ServiceVariant
 - Booking 1───1 Payment
 
+### Sample Data (from data.sql)
+The application seeds initial data on startup:
+- 6 services with variants (BIAB, Extensions, Pedicure, Cleaning, Nail Art, Removal)
+- 6 gallery images
+- 4 loyalty settings (stamps required, expiry, per-service, per-amount)
+- Default admin user (`admin@prettynails.local` / `admin123`)
+
 ## Deployment
 
 ### Backend (Render)
@@ -395,17 +596,28 @@ NEXT_PUBLIC_API_URL=http://localhost:8080/api
 2. Create Web Service:
    - Build: `cd pretty-nails-backend && ./mvnw clean install -DskipTests`
    - Start: `cd pretty-nails-backend && java -jar target/prettynails-backend-*.jar`
-3. Set Environment Variables: `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`
+3. Set Environment Variables: `DB_PASSWORD`, `JWT_SECRET`, `JWT_EXPIRATION`, `SENDGRID_API_KEY`, `SENDGRID_FROM_EMAIL`
 4. Deploy
 
 ### Database
 - **Local**: PostgreSQL 16
+- **Test (local profile)**: H2 in-memory
 - **Production**: Supabase (PostgreSQL with connection pooling)
+- **Docker**: PostgreSQL 16-alpine container
 
 ### Frontend (Vercel)
 1. Import `frontend/` folder as separate project
 2. Set `NEXT_PUBLIC_API_URL` to production backend URL
 3. Deploy (auto-detects Next.js)
+
+### Docker Deployment
+```bash
+# Build images
+docker compose build
+
+# Run with production environment variables
+DB_PASSWORD=yourpassword JWT_SECRET=yoursecret docker compose up -d
+```
 
 ## Testing
 
@@ -420,7 +632,9 @@ cd pretty-nails-backend
 ```bash
 cd frontend
 pnpm type-check                # TypeScript strict check
+pnpm lint                      # ESLint check
 pnpm build                     # Production build (verifies all routes)
+pnpm test                      # Jest unit tests
 ```
 
 ## Project Structure
@@ -430,14 +644,18 @@ app-dev-capstone/
 ├── pom.xml                          # Parent POM (optional multi-module)
 ├── README.md                        # This file
 ├── how-to-run.md                    # Detailed macOS setup guide
+├── TEST_READY.md                    # Testing checklist
 ├── .gitignore                       # Ignore patterns
 ├── .gitattributes                   # Git LFS/line-endings config
+├── .java-version                    # Java version (21)
 ├── .mvn/wrapper/                    # Maven wrapper
+├── docker-compose.yml               # Docker Compose for full stack
 ├── DIAGRAMS/                        # ERD, class, activity, DB schema, use-case
 ├── docs/                            # Additional documentation
 ├── scripts/                         # Utility scripts
 ├── pretty-nails-backend/            # Spring Boot 4.1.2 application
 │   ├── pom.xml
+│   ├── Dockerfile
 │   ├── src/
 │   │   ├── main/
 │   │   │   ├── java/com/prettynails/
@@ -451,7 +669,10 @@ app-dev-capstone/
 │   │   │   │   └── PrettyNailsApplication.java
 │   │   │   └── resources/
 │   │   │       ├── application.yml
-│   │   │       └── application-local.yml
+│   │   │       ├── application-local.yml
+│   │   │       ├── application-docker.yml
+│   │   │       ├── data.sql         # Seed data
+│   │   │       └── db/migration/    # Flyway migrations
 │   │   └── test/                    # Unit & integration tests
 │   └── target/                      # Build output (ignored)
 └── frontend/                        # Next.js 14 application
@@ -460,6 +681,7 @@ app-dev-capstone/
     ├── tsconfig.json
     ├── tailwind.config.ts
     ├── next.config.mjs
+    ├── Dockerfile
     ├── .env.local                   # Local env (ignored)
     ├── src/
     │   ├── app/                     # App Router pages
@@ -496,6 +718,8 @@ app-dev-capstone/
 - **API Base URL (Local)**: `http://localhost:8080/api`
 - **API Base URL (Production)**: `https://prettynails-backend.onrender.com/api`
 - **Frontend (Local)**: `http://localhost:3000`
+- **Swagger UI (Local)**: `http://localhost:8080/swagger-ui.html`
+- **H2 Console (Local profile)**: `http://localhost:8080/h2-console`
 - **Supabase Dashboard**: https://supabase.com/dashboard/project/sdqvnqogadaynwfbtezj
 - **Render Dashboard**: https://dashboard.render.com
 
