@@ -2,15 +2,15 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { UserDto, AuthResponse } from '@/types';
-import { getToken, getUser, setToken, setUser, removeToken, isAuthenticated, isAdmin } from '@/lib/api';
+import { authApi } from '@/lib/api';
 
 interface AuthContextType {
   user: UserDto | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isAdmin: boolean;
-  login: (token: string, user: UserDto) => void;
-  logout: () => void;
+  login: (user: UserDto) => void;
+  logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
@@ -21,21 +21,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const refreshUser = async () => {
-    const token = getToken();
-    if (!token) {
-      setUserState(null);
-      setIsLoading(false);
-      return;
-    }
-
     try {
-      // Import api dynamically to avoid SSR issues
-      const { authApi } = await import('@/lib/api');
       const response = await authApi.me();
       setUserState(response.data);
-      setUser(response.data);
     } catch {
-      removeToken();
       setUserState(null);
     } finally {
       setIsLoading(false);
@@ -46,20 +35,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refreshUser();
   }, []);
 
-  const login = (token: string, userData: UserDto) => {
-    setToken(token);
-    setUser(userData);
+  const login = (userData: UserDto) => {
     setUserState(userData);
   };
 
   const logout = async () => {
     try {
-      const { authApi } = await import('@/lib/api');
       await authApi.logout();
     } catch {
       // Ignore errors, still clear local state
     }
-    removeToken();
     setUserState(null);
   };
 
@@ -86,21 +71,15 @@ export function useAuth() {
 
 // Client-side only helpers
 export const clientAuth = {
-  getToken,
-  getUser,
-  isAuthenticated,
-  isAdmin,
-  login: (token: string, user: UserDto) => {
-    setToken(token);
-    setUser(user);
+  login: (user: UserDto) => {
+    // Token is stored in httpOnly cookie by backend
   },
   logout: async () => {
     try {
-      const { authApi } = await import('@/lib/api');
       await authApi.logout();
     } catch {
       // Ignore errors
     }
-    removeToken();
+    // User state will be cleared by AuthProvider
   },
 };

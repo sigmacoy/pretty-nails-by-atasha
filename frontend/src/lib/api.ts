@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import type { ApiError, AuthResponse } from '@/types';
 
-// Create axios instance
+// Create axios instance - uses httpOnly cookies for authentication
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE || '/api/backend',
   headers: {
@@ -11,67 +11,12 @@ const api: AxiosInstance = axios.create({
   withCredentials: true, // Include httpOnly cookies in requests
 });
 
-// Token management
-const TOKEN_KEY = 'prettynails_token';
-const USER_KEY = 'prettynails_user';
-
-export const getToken = (): string | null => {
-  if (typeof window === 'undefined') return null;
-  return localStorage.getItem(TOKEN_KEY);
-};
-
-export const setToken = (token: string): void => {
-  localStorage.setItem(TOKEN_KEY, token);
-};
-
-export const removeToken = (): void => {
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-};
-
-export const getUser = (): AuthResponse['user'] | null => {
-  if (typeof window === 'undefined') return null;
-  const userStr = localStorage.getItem(USER_KEY);
-  if (!userStr) return null;
-  try {
-    return JSON.parse(userStr);
-  } catch {
-    return null;
-  }
-};
-
-export const setUser = (user: AuthResponse['user']): void => {
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
-};
-
-export const isAuthenticated = (): boolean => {
-  return !!getToken();
-};
-
-export const isAdmin = (): boolean => {
-  const user = getUser();
-  return user?.role === 'ADMIN';
-};
-
-// Request interceptor - add auth token
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = getToken();
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 // Response interceptor - handle errors
 api.interceptors.response.use(
   (response) => response,
   (error: AxiosError<ApiError>) => {
     // Handle 401 - token expired or invalid
     if (error.response?.status === 401) {
-      removeToken();
       if (typeof window !== 'undefined') {
         // Redirect to login with return URL
         const currentPath = window.location.pathname;

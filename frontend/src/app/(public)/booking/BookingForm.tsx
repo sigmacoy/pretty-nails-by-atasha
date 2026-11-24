@@ -346,59 +346,6 @@ export function BookingForm() {
       }
     }
   };
-      } else if (startTime) {
-        // Recalculate end time when start time changes
-        const computedEndTime = calculateEndTime(startTime, totalDuration);
-        setEndTime(computedEndTime);
-      }
-      const valid = await step2Form.trigger();
-      if (valid && appointmentDate) {
-        // Re-validate slot availability before proceeding to Step 3
-        try {
-          const response = await availabilityApi.getSlots(appointmentDate);
-          const slots = response.data || [];
-
-          // If backend returns slots, validate against them
-          if (slots.length > 0) {
-            // Find the selected slot
-            const selectedSlot = slots.find((s) => s.startTime === startTime);
-
-            if (!selectedSlot) {
-              // Slot no longer exists in available slots (date may be fully booked or unavailable)
-              toast.error('This time slot is no longer available. Please select another time.');
-              return;
-            }
-
-            if (selectedSlot.available === false) {
-              // Slot is now booked by someone else
-              toast.error('This time slot has just been booked. Please choose another time.');
-              return;
-            }
-          }
-          // If backend returns empty slots, it means no admin availability configured for this date
-          // In that case, we trust the locally generated availableSlots (from fetchAvailableSlots fallback)
-
-          // Also check if the date is still available (not a blackout/holiday) - only if backend has availability data
-          const availabilityResponse = await availabilityApi.getAvailable();
-          const dayAvailability = availabilityResponse.data.find((a) => a.date.split('T')[0] === appointmentDate);
-          if (dayAvailability && dayAvailability.isAvailable === false) {
-            // Date is explicitly marked unavailable (blackout/holiday)
-            toast.error('This date is no longer available for booking. Please select another date.');
-            return;
-          }
-        } catch (error) {
-          console.warn('Could not re-validate slot availability:', error);
-          // On error, we allow proceeding but the backend will validate again
-        }
-        setCurrentStep(3);
-      }
-    } else if (step === 3) {
-      const valid = await step3Form.trigger();
-      if (valid) {
-        setCurrentStep(4);
-      }
-    }
-  };
 
   const handleBack = () => {
     if (currentStep > 1) setCurrentStep(currentStep - 1);

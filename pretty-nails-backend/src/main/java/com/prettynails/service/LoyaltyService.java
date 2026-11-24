@@ -102,7 +102,7 @@ public class LoyaltyService {
 
         if (includeRewardThreshold) {
             int rewardThreshold = adminService.getLoyaltySettings().getRewardThreshold();
-            if (rewardThreshold == null || rewardThreshold < 1) {
+            if (rewardThreshold < 1) {
                 rewardThreshold = 10;
             }
             builder.requiredStamps(rewardThreshold);
