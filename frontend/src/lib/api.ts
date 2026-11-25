@@ -34,7 +34,7 @@ export const authApi = {
   register: (data: { name: string; email: string; phone?: string; password: string }) =>
     api.post<AuthResponse>('/auth/register', data),
 
-  login: (data: { email: string; password: string }) =>
+  login: (data: { email: string; password: string; rememberMe?: boolean }) =>
     api.post<AuthResponse>('/auth/login', data),
 
   logout: () => api.post<{ message: string }>('/auth/logout'),
@@ -46,6 +46,18 @@ export const authApi = {
 
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.post<{ message: string }>('/auth/change-password', data),
+
+  forgotPassword: (email: string) =>
+    api.post<{ message: string }>('/auth/forgot-password', { email }),
+
+  resetPassword: (data: { token: string; password: string; confirmPassword: string }) =>
+    api.post<{ message: string }>('/auth/reset-password', data),
+
+  verifyEmail: (token: string) =>
+    api.post<{ message: string }>('/auth/verify-email', { token }),
+
+  resendVerification: (email: string) =>
+    api.post<{ message: string }>('/auth/resend-verification', { email }),
 };
 
 // Services API

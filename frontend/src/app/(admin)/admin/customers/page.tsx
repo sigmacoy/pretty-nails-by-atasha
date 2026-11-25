@@ -7,12 +7,15 @@ import { CustomerListDto } from '@/types';
 import { CustomersTable, CustomerNoteModal } from '@/components/admin/customers';
 import { Search, X, CheckCircle, Ban, Calendar, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 type StatusFilter = 'all' | 'active' | 'blocked';
 
 const PAGE_SIZE = 10;
 
 export default function AdminCustomersPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [currentPage, setCurrentPage] = useState(0);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
@@ -23,7 +26,15 @@ export default function AdminCustomersPage() {
 
   const { data: customersData, isLoading, refetch } = useQuery(
     () => adminApi.getCustomers(search),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load customers. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   const rawData = customersData?.data;

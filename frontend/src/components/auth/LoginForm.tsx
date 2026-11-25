@@ -23,6 +23,7 @@ export function LoginForm() {
   const redirectTo = searchParams.get('redirect') || '/';
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const {
     register,
@@ -43,6 +44,7 @@ export function LoginForm() {
       const response = await authApi.login({
         email: data.email,
         password: data.password,
+        rememberMe,
       });
 
       login(response.data.user);
@@ -172,6 +174,8 @@ export function LoginForm() {
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <input
                 type="checkbox"
+                checked={rememberMe}
+                onChange={() => setRememberMe(!rememberMe)}
                 className="h-4 w-4 rounded border-rose-300 dark:border-rose-800 text-rose-900 accent-rose-900 focus:ring-1 focus:ring-rose-800/30 focus:border-rose-800/40 transition-colors"
               />
               <span className="text-xs text-stone-600 dark:text-stone-400">Remember me</span>

@@ -36,6 +36,8 @@ public class AuthDtos {
 
         @NotBlank
         private String password;
+
+        private Boolean rememberMe;
     }
 
     @Data

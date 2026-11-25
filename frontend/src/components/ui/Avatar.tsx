@@ -31,7 +31,7 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
         {src && !showFallback ? (
           <img
             src={src}
-            alt={alt || name || 'Avatar'}
+            alt={alt || name || ''}
             className="aspect-square h-full w-full object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';

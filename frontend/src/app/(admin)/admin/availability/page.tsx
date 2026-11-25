@@ -35,6 +35,7 @@ import {
   ChevronRight,
   Edit2,
 } from 'lucide-react';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 interface DaySchedule {
   dayOfWeek: number; // 0 = Sunday, 1 = Monday, ... 6 = Saturday
@@ -74,6 +75,8 @@ function formatHourRange(startTime?: string, endTime?: string): string {
 }
 
 export default function AdminAvailabilityPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
@@ -96,7 +99,15 @@ export default function AdminAvailabilityPage() {
 
   const { data: availData, isLoading: loading, refetch } = useQuery(
     () => availabilityApi.getAdmin(),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load availability schedule. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   const availabilities = availData?.data || [];

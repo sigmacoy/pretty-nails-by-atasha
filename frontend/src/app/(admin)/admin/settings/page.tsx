@@ -21,6 +21,7 @@ import {
   CreditCard,
   HeartPulse,
 } from 'lucide-react';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 const INITIAL_DEFAULTS: LoyaltySettingsDto = {
   stampsPerService: 1,
@@ -44,11 +45,21 @@ const EXPIRY_PRESETS = [
 ];
 
 export default function AdminSettingsPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [formData, setFormData] = useState<LoyaltySettingsDto>(INITIAL_DEFAULTS);
 
   const { data: settingsData, isLoading, refetch } = useQuery(
     () => adminApi.getSettings(),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load studio settings. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   const updateMutation = useMutation(

@@ -9,6 +9,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,12 +20,16 @@ public class AuthController extends BaseController {
 
     private final AuthService authService;
 
-    private void setAuthCookie(HttpServletResponse response, String token) {
+    @Value("${app.cookie.secure:false}")
+    private boolean cookieSecure;
+
+    private void setAuthCookie(HttpServletResponse response, String token, Boolean rememberMe) {
         Cookie cookie = new Cookie("prettynails_token", token);
         cookie.setHttpOnly(true);
-        cookie.setSecure(false); // Set to true in production with HTTPS
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/");
-        cookie.setMaxAge(30 * 24 * 60 * 60); // 30 days
+        int maxAge = (rememberMe != null && rememberMe) ? 90 * 24 * 60 * 60 : 30 * 24 * 60 * 60;
+        cookie.setMaxAge(maxAge);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
@@ -32,7 +37,7 @@ public class AuthController extends BaseController {
     private void clearAuthCookie(HttpServletResponse response) {
         Cookie cookie = new Cookie("prettynails_token", "");
         cookie.setHttpOnly(true);
-        cookie.setSecure(false);
+        cookie.setSecure(cookieSecure);
         cookie.setPath("/");
         cookie.setMaxAge(0);
         cookie.setAttribute("SameSite", "Lax");
@@ -42,14 +47,14 @@ public class AuthController extends BaseController {
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         AuthResponse authResponse = authService.register(request);
-        setAuthCookie(response, authResponse.getToken());
+        setAuthCookie(response, authResponse.getToken(), null);
         return ResponseEntity.ok(authResponse);
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthResponse authResponse = authService.login(request);
-        setAuthCookie(response, authResponse.getToken());
+        setAuthCookie(response, authResponse.getToken(), request.getRememberMe());
         return ResponseEntity.ok(authResponse);
     }
 

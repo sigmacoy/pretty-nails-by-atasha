@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/Input';
 import { Select, SelectOption } from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 // Paginated response type (matching AdminBookingPage pattern)
 interface AdminGalleryPage {
@@ -42,6 +43,8 @@ const categoryOptions: SelectOption[] = [
 ];
 
 export default function AdminGalleryPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   // Filter states
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('');
@@ -58,7 +61,15 @@ export default function AdminGalleryPage() {
   // Fetch gallery items - API returns AxiosResponse<GalleryDto[] | AdminGalleryPage>
   const { data, isLoading, isError, error, refetch } = useQuery(
     () => galleryApi.getAdmin(params),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load gallery designs. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   // Handle both array response (GalleryDto[]) and paginated response (AdminGalleryPage)
@@ -189,9 +200,11 @@ export default function AdminGalleryPage() {
     setIsFormOpen(true);
   };
 
-  if (isError) {
+  // Show loading state while fetching initial data
+  if (isLoading && !data) {
     return (
       <div className="space-y-8 bg-[#FFF0F3] dark:bg-[#160D12] text-foreground min-h-screen p-6 sm:p-8 lg:p-10 transition-colors selection:bg-rose-200 selection:text-rose-950">
+        {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
           <div>
             <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
@@ -203,36 +216,43 @@ export default function AdminGalleryPage() {
           </div>
           <Button
             onClick={handleCreate}
-            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900 hover:bg-rose-950 text-white font-medium text-sm sm:text-base border border-rose-800/80 shadow-[0_4px_20px_rgba(76,5,25,0.25)] transition-all flex items-center gap-2.5 shrink-0"
+            disabled
+            className="h-14 sm:h-16 px-8 sm:px-10 rounded-full bg-rose-900/50 text-white/50 font-medium text-sm sm:text-base border border-rose-800/80 flex items-center gap-2.5 shrink-0"
           >
             <Upload className="h-4 w-4" strokeWidth={1.5} />
             <span>Upload design</span>
           </Button>
         </div>
 
-        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm">
-          <CardContent className="py-12 text-center">
-            <div className="max-w-md mx-auto space-y-4">
-              <div className="w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 text-destructive mx-auto flex items-center justify-center border border-rose-200/60 dark:border-rose-900/60">
-                <RotateCcw className="h-5 w-5" strokeWidth={1.5} />
-              </div>
-              <h3 className="text-lg font-serif font-medium text-stone-900 dark:text-rose-50">
-                Failed to load portfolio works
-              </h3>
-              <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-300 font-normal leading-relaxed">
-                {error?.message || 'A network error occurred while loading portfolio items.'}
-              </p>
-              <Button
-                onClick={() => refetch()}
-                variant="outline"
-                className="mt-2 h-10 px-5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-xs font-medium gap-2"
-              >
-                <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.5} />
-                <span>Retry connection</span>
-              </Button>
+        {/* Filters Toolbar - skeleton */}
+        <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm p-5 sm:p-6 shadow-sm space-y-4">
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="md:col-span-2">
+              <div className="h-12 w-full bg-stone-200/50 dark:bg-stone-800/50 rounded-full animate-pulse" />
             </div>
-          </CardContent>
-        </Card>
+            <div>
+              <div className="h-12 w-full bg-stone-200/50 dark:bg-stone-800/50 rounded-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+
+        {/* Gallery Section - skeleton */}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <ImageIcon className="h-4 w-4 text-rose-800 dark:text-rose-300" strokeWidth={1.5} aria-hidden="true" />
+              <div className="h-6 w-40 bg-stone-200/50 dark:bg-stone-800/50 rounded animate-pulse" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-black/80 backdrop-blur-sm p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="aspect-square bg-stone-200/50 dark:bg-stone-800/50 rounded-xl animate-pulse" />
+              ))}
+            </div>
+          </div>
+        </div>
 
         <GalleryForm
           isOpen={isFormOpen}

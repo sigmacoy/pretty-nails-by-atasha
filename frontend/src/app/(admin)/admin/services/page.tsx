@@ -22,6 +22,7 @@ import {
   X,
 } from 'lucide-react';
 import { ServiceForm } from '@/components/admin/services';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 const CATEGORY_NAMES: Record<string, string> = {
   GEL: 'Gel nails',
@@ -41,6 +42,8 @@ const CATEGORY_TABS = [
 const PAGE_SIZE = 8;
 
 export default function AdminServicesPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [currentPage, setCurrentPage] = useState(0);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
@@ -50,7 +53,15 @@ export default function AdminServicesPage() {
 
   const { data: servicesData, isLoading, refetch } = useQuery(
     () => servicesApi.getAll(),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load services. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   const services = useMemo(() => servicesData?.data || [], [servicesData]);

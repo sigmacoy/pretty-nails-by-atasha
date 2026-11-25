@@ -23,6 +23,7 @@ import {
   SlidersHorizontal,
   ChevronLeft,
 } from 'lucide-react';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 // Paginated response type for loyalty (matching AdminBookingPage/AdminGalleryPage pattern)
 interface AdminLoyaltyPage {
@@ -38,6 +39,8 @@ interface AdminLoyaltyPage {
 const DEFAULT_PAGE_SIZE = 10;
 
 export default function AdminLoyaltyPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [currentPage, setCurrentPage] = useState(0);
   const [search, setSearch] = useState('');
   const [isScannerOpen, setIsScannerOpen] = useState(false);
@@ -62,12 +65,25 @@ export default function AdminLoyaltyPage() {
 
   const { data: cardsData, isLoading, refetch } = useQuery(
     () => loyaltyApi.getAllCards(params),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load loyalty cards. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
+    }
   );
 
   const { data: settingsData } = useQuery(
     () => adminApi.getSettings(),
-    { enabled: true }
+    {
+      enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load loyalty settings.');
+      },
+    }
   );
 
   // Access .data from Axios response

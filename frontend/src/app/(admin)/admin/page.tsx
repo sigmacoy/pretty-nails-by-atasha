@@ -15,8 +15,11 @@ import {
   BarChart2,
   ShieldCheck,
 } from 'lucide-react';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 export default function AdminDashboard() {
+  const { addError, clearErrors } = useAdminErrors();
+
   const [stats, setStats] = useState<AdminStatsDto | null>(null);
   const [reports, setReports] = useState<AdminReportsDto | null>(null);
   const [recentBookings, setRecentBookings] = useState<AdminBookingPage | null>(null);
@@ -34,15 +37,17 @@ export default function AdminDashboard() {
         setStats(statsRes.data);
         setReports(reportsRes.data);
         setRecentBookings(bookingsRes.data);
+        clearErrors();
       } catch (error) {
-        console.error('Failed to fetch dashboard data:', error);
+        const err = error instanceof Error ? error : new Error('Failed to fetch dashboard data');
+        addError(err.message);
       } finally {
         setIsLoading(false);
       }
     }
 
     fetchDashboardData();
-  }, []);
+  }, [addError, clearErrors]);
 
   // Daily revenue data for current week (in centavos)
   const dailyRevenueData = [

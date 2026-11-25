@@ -40,10 +40,36 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
   email: z.string().min(1, 'Email or username is required'),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+
+// Forgot password validations
+export const forgotPasswordSchema = z.object({
+  email: z.string().email('Invalid email address'),
+});
+
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
+
+// Reset password validations
+export const resetPasswordSchema = z.object({
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password too long')
+    .refine((val) => UPPERCASE_PATTERN.test(val), 'Password must contain at least one uppercase letter')
+    .refine((val) => LOWERCASE_PATTERN.test(val), 'Password must contain at least one lowercase letter')
+    .refine((val) => DIGIT_PATTERN.test(val), 'Password must contain at least one digit')
+    .refine((val) => SPECIAL_CHAR_PATTERN.test(val), 'Password must contain at least one special character (!@#$%^&*...)')
+    .refine((val) => !COMMON_PASSWORDS.has(val.toLowerCase()), 'Password is too common. Please choose a more unique password.'),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+});
+
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 
 // Booking validations
 export const bookingServiceSchema = z.object({

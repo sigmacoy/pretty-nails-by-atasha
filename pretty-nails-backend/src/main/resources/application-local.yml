@@ -25,6 +25,18 @@ spring:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterWrite=5m
+  # Disable mail auto-configuration for local development (uses EmailServiceMock)
+  mail:
+    host: localhost
+    port: 2525
+    username: mock
+    password: mock
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
 
 bucket4j:
   cache:
@@ -62,3 +74,5 @@ app:
     min-zxcvbn-score: 1
     hibp-check-enabled: false
     history-size: 5
+  cookie:
+    secure: false

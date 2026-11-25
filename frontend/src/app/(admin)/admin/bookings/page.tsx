@@ -18,10 +18,13 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
 const DEFAULT_PAGE_SIZE = 10;
 
 export default function AdminBookingsPage() {
+  const { addError, clearErrors } = useAdminErrors();
+
   // Quick Filter Tab state
   const [activeTab, setActiveTab] = useState<QuickFilterTab>('ALL');
 
@@ -66,6 +69,12 @@ export default function AdminBookingsPage() {
     () => bookingsApi.getAdminBookings(params),
     {
       enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load bookings. Please try again.');
+      },
+      onSuccess: () => {
+        clearErrors();
+      },
     }
   );
 
@@ -74,6 +83,9 @@ export default function AdminBookingsPage() {
     () => adminApi.getCustomers(),
     {
       enabled: true,
+      onError: (err) => {
+        addError(err.message || 'Failed to load customer data.');
+      },
     }
   );
 
@@ -271,30 +283,85 @@ export default function AdminBookingsPage() {
     toast.success('Studio appointments exported to CSV.');
   };
 
-  if (isError) {
+  // Show loading state while fetching initial data
+  if (isLoading && !data) {
     return (
-      <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950">
-        <div className="pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
-
-          <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
-            Appointments Queue
-          </h1>
-          <p className="mt-2 text-sm text-stone-600 dark:text-stone-300">
-            Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor studio schedule status.
-          </p>
+      <div className="space-y-8 -m-4 sm:-m-6 lg:-m-8 p-6 sm:p-8 lg:p-10 min-h-screen bg-[#FFF0F3] dark:bg-[#160D12] text-foreground selection:bg-rose-200 selection:text-rose-950 transition-colors pb-16">
+        {/* Page Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-rose-200/80 dark:border-rose-950/60">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-serif tracking-tight text-stone-900 dark:text-rose-50">
+              Appointments Queue
+            </h1>
+            <p className="mt-2 text-sm text-stone-600 dark:text-stone-300 max-w-2xl font-normal leading-relaxed">
+              Review private appointment requests, verify manual GCash and Maya reservation deposits, and monitor studio schedule status.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled
+              className="h-12 px-6 rounded-full border border-rose-300/80 dark:border-rose-800/80 text-rose-950 dark:text-rose-100 bg-white/80 dark:bg-stone-900/80 text-xs font-medium gap-2"
+              title="Refresh bookings data"
+            >
+              <RefreshCw className="h-4 w-4 stroke-[1.5] animate-spin" />
+              Refresh
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled
+              className="h-12 px-6 rounded-full border border-rose-300/80 dark:border-rose-800/80 text-rose-950 dark:text-rose-100 bg-white/80 dark:bg-stone-900/80 text-xs font-medium gap-2"
+            >
+              <Download className="h-4 w-4 stroke-[1.5]" />
+              Export CSV
+            </Button>
+          </div>
         </div>
-        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm">
-          <CardContent className="py-12 text-center">
-            <div className="text-destructive max-w-md mx-auto">
-              <AlertCircle className="h-9 w-9 mx-auto mb-2 text-destructive stroke-[1.5]" />
-              <p className="font-semibold text-base text-foreground">Failed to load bookings</p>
-              <p className="text-xs text-muted-foreground mt-1 mb-4">
-                {error?.message || 'Unable to retrieve booking records from server.'}
-              </p>
-              <Button onClick={() => refetch()} variant="outline" size="sm" className="h-14 px-8 rounded-full gap-2 text-xs">
-                <RefreshCw className="h-4 w-4 stroke-[1.5]" />
-                Retry
-              </Button>
+
+        {/* Quick Filter Tabs - skeleton */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 border-b border-rose-200/70 dark:border-rose-950/60">
+          {[
+            { id: 'ALL' as QuickFilterTab, label: 'All bookings' },
+            { id: 'TODAY' as QuickFilterTab, label: 'Today' },
+            { id: 'PENDING' as QuickFilterTab, label: 'Pending confirmation' },
+            { id: 'CONFIRMED' as QuickFilterTab, label: 'Confirmed' },
+            { id: 'COMPLETED' as QuickFilterTab, label: 'Completed' },
+          ].map((tab) => (
+            <div
+              key={tab.id}
+              className="h-12 px-6 rounded-full bg-stone-200/50 dark:bg-stone-800/50 animate-pulse shrink-0"
+            />
+          ))}
+        </div>
+
+        {/* Filters Card - skeleton */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
+          <CardContent className="py-8">
+            <div className="space-y-4 max-w-xl mx-auto">
+              <div className="h-10 w-3/4 bg-stone-200/50 dark:bg-stone-800/50 rounded-lg animate-pulse" />
+              <div className="h-10 w-1/2 bg-stone-200/50 dark:bg-stone-800/50 rounded-lg animate-pulse" />
+              <div className="h-10 w-full bg-stone-200/50 dark:bg-stone-800/50 rounded-lg animate-pulse" />
+              <div className="h-10 w-full bg-stone-200/50 dark:bg-stone-800/50 rounded-lg animate-pulse" />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Table Card - skeleton */}
+        <Card className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm shadow-[0_4px_24px_rgba(26,14,21,0.04)] overflow-hidden">
+          <CardHeader className="pb-4 pt-5 px-6 sm:px-8 border-b border-rose-200/70 dark:border-rose-950/60">
+            <div className="flex items-center justify-between">
+              <div className="h-7 w-40 bg-stone-200/50 dark:bg-stone-800/50 rounded animate-pulse" />
+              <div className="h-5 w-24 bg-stone-200/50 dark:bg-stone-800/50 rounded animate-pulse" />
+            </div>
+          </CardHeader>
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="h-16 bg-stone-200/50 dark:bg-stone-800/50 rounded-lg animate-pulse" />
+              ))}
             </div>
           </CardContent>
         </Card>

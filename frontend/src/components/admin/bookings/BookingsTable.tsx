@@ -1,6 +1,7 @@
 'use client';
 
-import { Table, Pagination, Column } from '@/components/ui/Table';
+import { DataTable, DataTableColumn } from '@/components/admin/DataTable';
+import { Pagination } from '@/components/ui/Table';
 import { StatusAction } from './StatusAction';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -13,7 +14,7 @@ import {
 } from '@/lib/utils';
 import { BookingDto, BookingStatus, CustomerListDto } from '@/types';
 import { BookingDetailsData } from './types';
-import { Eye, Clock, QrCode, CheckCircle2, AlertCircle } from 'lucide-react';
+import { QrCode, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 
 interface BookingsTableProps {
   bookings: BookingDto[];
@@ -244,55 +245,180 @@ export function BookingsTable({
     </div>
   );
 
-  const columns: Column<BookingDto>[] = [
+  // Mobile card render
+  const renderMobileCard = (row: BookingDto) => {
+    const extRow = row as BookingDetailsData;
+    const customer = customerMap[row.userId];
+    const customerName =
+      customer?.name ||
+      extRow.customerName ||
+      extRow.user?.name ||
+      `Customer #${row.userId.slice(-6)}`;
+
+    return (
+      <div className="space-y-3">
+        {/* Header with customer name and status */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-200 border border-rose-200/70 dark:border-rose-900/60 flex items-center justify-center font-medium text-xs shrink-0">
+                {getInitials(customerName)}
+              </div>
+              <div>
+                <p className="font-medium text-sm text-stone-900 dark:text-rose-50 truncate">
+                  {customerName}
+                </p>
+                <p className="text-xs text-stone-500 dark:text-stone-400 truncate">
+                  #{currentPage * 10 + bookings.indexOf(row) + 1}
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Badge
+              variant="outline"
+              className={cn(
+                'text-[10px] font-medium py-0.5 px-2 rounded-full select-none border',
+                getRestrainedStatusBadge(row.status)
+              )}
+            >
+              {getSentenceStatusLabel(row.status)}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Fields */}
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Clock className="h-3.5 w-3.5 text-stone-400 shrink-0 stroke-[1.5]" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-stone-500 dark:text-stone-400">Appointment</p>
+              <p className="text-sm font-medium text-stone-800 dark:text-stone-200">
+                {formatDateShort(row.appointmentDate)} at {formatTime(row.startTime)} – {formatTime(row.endTime)}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-2">
+            <span className="text-xs text-stone-500 dark:text-stone-400 shrink-0 w-20">Service</span>
+            <div className="flex-1 min-w-0 flex flex-wrap gap-1">
+              {row.services?.map((service, index) => (
+                <Badge
+                  key={service.id || index}
+                  variant="outline"
+                  className="text-[10px] py-0.5 px-2 font-normal rounded-full bg-white/80 dark:bg-stone-900/80 border-rose-200/70 dark:border-rose-900/60 text-stone-700 dark:text-rose-300"
+                >
+                  {service.service?.name || service.serviceId}
+                  {service.variantId && ` (${service.variantId})`}
+                  {service.quantity > 1 && ` ×${service.quantity}`}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-stone-500 dark:text-stone-400 shrink-0 w-20">Deposit</span>
+            <div className="flex-1 min-w-0">
+              {renderDepositProof(row)}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-stone-500 dark:text-stone-400 shrink-0 w-20">Total</span>
+            <p className="text-sm font-semibold text-stone-800 dark:text-stone-200 tabular-nums font-mono">
+              {formatPrice(row.totalPrice)}
+            </p>
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="pt-2 border-t border-rose-200/60 dark:border-rose-950/50 flex justify-end gap-1.5">
+          {row.status === 'COMPLETED' && onShowCompletionQR && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onShowCompletionQR(row.id)}
+              className="h-9 px-3 text-xs gap-1.5 rounded-full border-rose-200/80 dark:border-rose-800/60 text-stone-800 dark:text-rose-200 hover:bg-rose-100/60 dark:hover:bg-rose-950/50"
+              title="Show completion QR code for loyalty stamp"
+            >
+              <QrCode className="h-3.5 w-3.5 stroke-[1.5]" />
+              <span>QR stamp</span>
+            </Button>
+          )}
+
+          <StatusAction
+            bookingId={row.id}
+            currentStatus={row.status}
+            onStatusChange={onStatusChange}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  const columns: DataTableColumn<BookingDto>[] = [
     {
       key: 'queue',
-      header: 'Queue order',
+      header: 'Queue',
       render: renderQueueOrder,
       className: 'w-16 min-w-[64px]',
+      showOnMobile: false,
+      hidePriority: 1,
     },
     {
       key: 'customer',
-      header: 'Client name',
+      header: 'Client',
       render: renderCustomer,
       className: 'min-w-[180px]',
+      showOnMobile: true,
+      hidePriority: 99, // Never hide
     },
     {
       key: 'datetime',
-      header: 'Appointment time',
+      header: 'Appointment',
       render: renderDateTime,
       className: 'min-w-[150px]',
+      showOnMobile: true,
+      hidePriority: 2,
     },
     {
       key: 'services',
       header: 'Service',
       render: renderServices,
       className: 'min-w-[200px]',
+      showOnMobile: true,
+      hidePriority: 3,
     },
     {
       key: 'deposit',
-      header: 'Deposit proof',
+      header: 'Deposit',
       render: renderDepositProof,
       className: 'min-w-[140px]',
+      showOnMobile: true,
+      hidePriority: 4,
     },
     {
       key: 'price',
-      header: 'Total price',
+      header: 'Total',
       render: renderPrice,
       className: 'min-w-[90px] text-right',
       headerClassName: 'text-right',
+      showOnMobile: true,
+      hidePriority: 5,
     },
     {
       key: 'status',
       header: 'Status',
       render: renderStatus,
       className: 'min-w-[110px]',
+      showOnMobile: true,
+      hidePriority: 99, // Never hide
     },
   ];
 
   return (
     <div className="space-y-4">
-      <Table
+      <DataTable
         columns={columns}
         data={bookings}
         keyExtractor={(row) => row.id}
@@ -301,6 +427,11 @@ export function BookingsTable({
         renderRowActions={renderActions}
         striped
         hoverable
+        enableColumnToggle
+        columnToggleTitle="Columns"
+        renderMobileCard={renderMobileCard}
+        mobileCardTitleKey="customer"
+        mobileCardSubtitleKey="datetime"
       />
       {totalPages > 1 && (
         <div className="px-4 pb-4">

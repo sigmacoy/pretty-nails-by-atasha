@@ -11,8 +11,8 @@
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "NODE_OPTIONS='--max-old-space-size=4096' jest --maxWorkers=1",
+    "test:watch": "NODE_OPTIONS='--max-old-space-size=4096' jest --watch --maxWorkers=1"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",

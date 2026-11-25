@@ -10,21 +10,6 @@ import { toast } from 'sonner';
 import type { AxiosResponse } from 'axios';
 
 // Mock dependencies
-jest.mock('@/hooks/useApi', () => ({
-  useQuery: jest.fn(),
-  useMutation: jest.fn(() => ({
-    isPending: false,
-    mutate: jest.fn(),
-    mutateAsync: jest.fn(),
-    reset: jest.fn(),
-    data: undefined,
-    error: null,
-    isError: false,
-    isIdle: true,
-    isSuccess: false,
-    status: 'idle',
-  })),
-}));
 jest.mock('@/lib/api');
 jest.mock('sonner');
 
