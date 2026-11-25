@@ -1,161 +1,132 @@
-# How to Run Pretty Nails by Atasha (MacBook Setup Guide)
+# How to Run Pretty Nails by Atasha (Cross-Platform: macOS & Windows)
 
-A complete, step-by-step guide to run the **Pretty Nails by Atasha** full-stack system on macOS (MacBook with Apple Silicon / Intel).
+A complete, step-by-step guide to run the **Pretty Nails by Atasha** full-stack system on **macOS** and **Windows**.
 
----
-
-## System Architecture & Ports
-
-```
-┌─────────────────────────────────┐           ┌──────────────────────────────────┐
-│      Next.js Frontend           │           │       Spring Boot Backend        │
-│   http://localhost:3000         │ ────────> │      http://localhost:8080       │
-│  (Pages, Booking, Admin UI)     │           │  (REST API, JWT Auth, Seeder)    │
-└─────────────────────────────────┘           └──────────────────────────────────┘
-                                                               │
-                    ┌──────────────────────────────────────────┼──────────────────────────────────────────┐
-                    ▼                                          ▼                                          ▼
-         ┌───────────────────────┐                 ┌──────────────────────────┐              ┌───────────────────────┐
-         │   H2 In-Memory        │                 │   Local PostgreSQL       │              │   Supabase Cloud      │
-         │   (local profile)     │                 │   (default profile)      │              │   (default profile)   │
-         │   Zero setup          │                 │   Persistent             │              │   Hosted              │
-         │   Resets on restart   │                 │   brew services start    │              │   IPv6 only on free   │
-         └───────────────────────┘                 └──────────────────────────┘              └───────────────────────┘
-```
-
-| Component | Technology | Default Port | Directory Path |
-|:---|:---|:---|:---|
-| **Database (local profile)** | H2 In-Memory | N/A (embedded) | N/A |
-| **Database (default profile)** | PostgreSQL 16 (Local) / Supabase | `5432` | System Service |
-| **Backend API** | Spring Boot 4.1.2 / Java 21+ | `8080` | `pretty-nails-backend/` |
-| **Frontend Web** | Next.js 14 App Router / React 18 | `3000` | `frontend/` |
-
-> **Quick Start**: Use `-Dspring-boot.run.profiles=local` for H2 in-memory (no PostgreSQL needed).  
-> **Persistent**: Run without profile + local PostgreSQL, or with `DB_PASSWORD` for Supabase.
+> **Docker is NOT required.** The project runs natively on both platforms using local PostgreSQL.
 
 ---
 
-## Step 0: Prerequisites on Your MacBook
 
-Open **Terminal** (or iTerm2) on your Mac and verify your installed tools:
+## Step 0: Prerequisites (Both Platforms)
+
+Open **Terminal** (macOS: Terminal.app / iTerm2) or **PowerShell** (Windows: PowerShell 7+ / Windows Terminal).
 
 ### 1. Check Java (version 21 or higher required)
+
 ```bash
 java -version
 ```
-> If missing or below Java 21, install via Homebrew:
+
+**If missing or below Java 21:**
+
+| Platform | Install Command |
+|:---|:---|
+| **macOS** | `brew install openjdk@21` |
+| **Windows** | Download from [Eclipse Temurin JDK 21](https://adoptium.net/temurin/releases/?version=21) or `winget install EclipseAdoptium.Temurin.21.JDK` |
+
+> **macOS only**: After brew install, link it:
 > ```bash
-> brew install openjdk@21
 > sudo ln -sfn /opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk-21.jdk
 > ```
 
 ### 2. Check Node.js and pnpm
+
 ```bash
 node -v
 pnpm -v
 ```
-> If missing, install via Homebrew:
-> ```bash
-> brew install node pnpm
-> ```
 
-### 3. Check PostgreSQL
+**If missing:**
+
+| Platform | Install Command |
+|:---|:---|
+| **macOS** | `brew install node pnpm` |
+| **Windows** | `winget install OpenJS.NodeJS` then `npm install -g pnpm` |
+
+### 3. Install PostgreSQL 16 (Local, Persistent — Recommended)
+
+| Platform | Install Command |
+|:---|:---|
+| **macOS** | `brew install postgresql@16` then `brew services start postgresql@16` |
+| **Windows** | Download installer from [postgresql.org/download/windows](https://www.postgresql.org/download/windows/) — choose **PostgreSQL 16**, default port `5432`, set a password for `postgres` user |
+
+**Verify installation:**
 ```bash
-which psql
+psql --version
+# Should show: psql (PostgreSQL) 16.x
 ```
-> If not installed, install via Homebrew:
-> ```bash
-> brew install postgresql@16
-> ```
 
 ---
 
 ## Step 1: Choose Your Database Profile
 
-The application automatically seeds initial nail services and the default admin user on startup. Choose your database mode:
+The application automatically seeds initial nail services and the default admin user on startup.
 
-### Option A: H2 In-Memory Database (Fastest for Quick Local Dev) — **Default for `local` profile**
+### Local PostgreSQL
 
-Zero setup — uses H2 in-memory database. Data resets on restart.
-
-**Admin credentials**: `admin@prettynails.local` / `admin123`  
-*Also works: `admin` / `admin` (hardcoded fallback owner)*
-
-```bash
-# No PostgreSQL needed — just run:
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-```
-
----
-
-### Option B: Local PostgreSQL (Persistent Local Dev)
-
-Uses your local PostgreSQL instance. Data persists across restarts.
+Uses your local PostgreSQL instance. Data persists across restarts. **Works identically on macOS and Windows.**
 
 1. **Start PostgreSQL** (one-time setup):
+   - **macOS**: `brew services start postgresql@16`
+   - **Windows**: PostgreSQL runs as a Windows Service (starts automatically on boot)
+
+2. **Create the database** (first time only):
    ```bash
-   brew services start postgresql@16
+   # macOS / Linux / Git Bash on Windows
    createdb prettynails
+   
+   # Windows PowerShell (if createdb not in PATH)
+   psql -U postgres -c "CREATE DATABASE prettynails;"
    ```
 
-2. **Run backend WITHOUT the `local` profile** (uses default profile = PostgreSQL):
+3. **Run backend WITHOUT the `local` profile** (uses default profile = PostgreSQL):
    ```bash
-   # Set your local PostgreSQL password
+   # macOS / Linux / Git Bash
    export DB_PASSWORD=your_postgres_password
    ./mvnw spring-boot:run
+   
+   # Windows PowerShell
+   $env:DB_PASSWORD="your_postgres_password"
+   ./mvnw spring-boot:run
+   
+   # Windows Command Prompt (cmd.exe)
+   set DB_PASSWORD=your_postgres_password
+   mvnw.cmd spring-boot:run
    ```
 
 **Admin credentials**: `admin` / `admin`
 
----
-
-### Option C: Supabase Cloud PostgreSQL (Hosted)
-
-- **Host**: `db.sdqvnqogadaynwfbtezj.supabase.co`
-- **Port**: `5432`
-- **Username**: `postgres`
-- **Password**: `7WXI0TcuMXD`
-
-```bash
-export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
-```
-
-**Admin credentials**: `admin` / `admin`
-
-> [!NOTE]
-> **Supabase macOS Tip**: Supabase free-tier uses IPv6. If you see `NoRouteToHostException`, use **Option B (Local PostgreSQL)** or **Option A (H2)**.
+> **Note**: Replace `your_postgres_password` with the password you set during PostgreSQL installation (for the `postgres` superuser).
 
 ---
 
-## Step 2: Run the Backend (Spring Boot API - Port 8080)
+## Step 2: Run the Backend (Spring Boot API — Port 8080)
 
-### Method 1: Run via Terminal (Fastest)
+### Method 1: Terminal (Fastest)
 
 1. Navigate to backend directory:
    ```bash
-   cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
+   cd pretty-nails-backend
    ```
 
 2. Start based on your chosen database:
 
-   - **H2 In-Memory (Option A — Quick Test)**:
+   - **Local PostgreSQL (Option B — Persistent, Recommended)**:
      ```bash
-     ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-     ```
-     > Uses `admin@prettynails.local` / `admin123` (or `admin` / `admin`)
-
-   - **Local PostgreSQL (Option B — Persistent)**:
-     ```bash
+     # macOS / Linux / Git Bash
      export DB_PASSWORD=your_postgres_password
      ./mvnw spring-boot:run
+     
+     # Windows PowerShell
+     $env:DB_PASSWORD="your_postgres_password"
+     ./mvnw spring-boot:run
+     
+     # Windows CMD
+     set DB_PASSWORD=your_postgres_password
+     mvnw.cmd spring-boot:run
      ```
      > Uses `admin` / `admin`
-
-   - **Supabase Cloud (Option C)**:
-     ```bash
-     export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
-     ```
-     > Uses `admin` / `admin`
+     
 
 3. **Verify backend started**:
    ```text
@@ -163,49 +134,33 @@ export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
    Started PrettyNailsApplication in X.XXX seconds
    ```
 
-4. **Test the API**:
+4. **Test the API** (new terminal):
    ```bash
    curl http://localhost:8080/api/services
    ```
 
-3. **Verify backend started successfully**:
-   Watch the terminal output for:
-   ```text
-   Tomcat started on port 8080 (http) with context path '/'
-   Started PrettyNailsApplication in X.XXX seconds
-   ```
+---
 
-4. **Test the API**:
-   Open a new terminal tab and run:
-   ```bash
-   curl http://localhost:8080/api/services
-   ```
-   *(It will return a JSON list of seeded nail services).*
+### Method 2: IntelliJ IDEA (Both Platforms)
+
+1. Open IntelliJ IDEA → **File > Open** → select project root: `/path/to/app-dev-capstone`
+2. Navigate to: `pretty-nails-backend/src/main/java/com/prettynails/PrettyNailsApplication.java`
+3. Right-click → **Run 'PrettyNailsApplication'**
+4. To configure profile/environment:
+   - **Run > Edit Configurations...**
+   - **Active Profiles**: leave empty for PostgreSQL
+   - **Environment Variables**: `DB_PASSWORD=your_postgres_password` (for PostgreSQL/Supabase)
+   - Click **Apply** and **Run**
 
 ---
 
-### Method 2: Run via IntelliJ IDEA
+## Step 3: Run the Frontend (Next.js Website — Port 3000)
 
-1. Open IntelliJ IDEA and open the project:
-   `/Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone`
-2. In the Project file tree, navigate to:
-   `pretty-nails-backend/src/main/java/com/prettynails/PrettyNailsApplication.java`
-3. Right-click `PrettyNailsApplication.java` and click **Run 'PrettyNailsApplication'**.
-4. To configure environment or profile in IntelliJ:
-   - Click **Run** > **Edit Configurations...**
-   - Under **Active Profiles**, type: `local` (for local PostgreSQL)
-   - Or under **Environment Variables**, add: `DB_PASSWORD=7WXI0TcuMXD` (for Supabase)
-   - Click **Apply** and **Run**.
+1. Open a **NEW** terminal tab/window.
 
----
-
-## Step 3: Run the Frontend (Next.js Website - Port 3000)
-
-1. Open a **NEW** Terminal tab or window (`Cmd + T` in Terminal).
-
-2. Navigate to the `frontend/` directory:
+2. Navigate to frontend directory:
    ```bash
-   cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/frontend
+   cd frontend
    ```
 
 3. **Install dependencies** (first time only):
@@ -217,7 +172,7 @@ export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
    ```bash
    cat .env.local
    ```
-   It should point to your backend:
+   It should contain:
    ```env
    NEXT_PUBLIC_API_URL=http://localhost:8080/api
    ```
@@ -227,7 +182,7 @@ export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
    pnpm dev
    ```
 
-6. **Verify frontend started successfully**:
+6. **Verify frontend started**:
    ```text
      ▲ Next.js 14.2.5
      - Local:        http://localhost:3000
@@ -239,237 +194,96 @@ export DB_PASSWORD=7WXI0TcuMXD && ./mvnw spring-boot:run
 
 ---
 
-## Step 4: Go to Website & Complete Walkthrough ("Typeshi" Flow Guide)
+## Step 4: Quick-Start (Daily Development)
 
-Open your web browser (Safari or Chrome) and navigate to:
-**[http://localhost:3000](http://localhost:3000)**
+### Persistent Local PostgreSQL
 
-Here is how each area of the website works:
-
-```
-                                  PUBLIC WEBSITE
-               ┌────────────────────────┼────────────────────────┐
-               ▼                        ▼                        ▼
-         Home Page (/)         Services (/services)       Gallery (/gallery)
-                                        │
-                                        ▼
-                            Booking Flow (/booking)
-                                        │
-                                        ▼
-                                 CUSTOMER PORTAL
-                    ┌───────────────────┼───────────────────┐
-                    ▼                   ▼                   ▼
-           My Bookings          Loyalty Stamp Card       Profile
-          (/my-bookings)            (/loyalty)          (/profile)
-                                        │
-                                        ▼
-                                  ADMIN PORTAL
-                                 (admin@prettynails.com)
-                                 (admin123)
-                    ┌───────────────────┼───────────────────┐
-                    ▼                   ▼                   ▼
-              Admin Dashboard      Manage Bookings     Service Editor
-                 (/admin)         (/admin/bookings)   (/admin/services)
-                    ▼                   ▼                   ▼
-             Availability Grid     Loyalty Scanner     Reports & Stats
-          (/admin/availability)   (/admin/loyalty)    (/admin/reports)
-```
-
----
-
-### A. Public Visitor Experience
-
-1. **Homepage (`/`)**:
-   - URL: [http://localhost:3000](http://localhost:3000)
-   - Browse the salon hero banner, featured treatments, client reviews, and the quick "Book Now" button.
-2. **Services Catalog (`/services`)**:
-   - URL: [http://localhost:3000/services](http://localhost:3000/services)
-   - Browse all categorized services:
-     - **CLEANING**: Basic (₱300), Deep Clean (₱450)
-     - **GEL**: Classic (₱500), French (₱600)
-     - **EXTENSION**: Short (₱800), Medium (₱950), Long (₱1,100)
-     - **PEDICURE**: Classic (₱600), French (₱700)
-3. **Gallery Portfolio (`/gallery`)**:
-   - URL: [http://localhost:3000/gallery](http://localhost:3000/gallery)
-   - View showcase pictures of finished nail art and nail extension designs.
-4. **Salon Availability (`/availability`)**:
-   - URL: [http://localhost:3000/availability](http://localhost:3000/availability)
-   - Check open calendar dates and operating salon time slots.
-
----
-
-### B. Customer Flow (Registration, Booking & Loyalty)
-
-1. **Create an Account (`/register`)**:
-   - URL: [http://localhost:3000/register](http://localhost:3000/register)
-   - Enter your Name, Email, Phone number, and Password.
-   - Click **Create Account**.
-
-2. **Log In (`/login`)**:
-   - URL: [http://localhost:3000/login](http://localhost:3000/login)
-   - Log in with your customer email and password.
-   - A JWT token is stored in your browser session automatically.
-
-3. **Book an Appointment (`/booking`)**:
-   - URL: [http://localhost:3000/booking](http://localhost:3000/booking)
-   - **Step 1: Choose Service**: Select your treatment and size variant (e.g. *Soft Gel Extension - Medium*).
-   - **Step 2: Date & Time**: Pick your preferred appointment date and time.
-   - **Step 3: Details & Notes**: Add optional custom notes or reference nail inspiration images.
-   - **Step 4: Confirmation**: Review total price, duration, and submit booking.
-
-4. **View My Bookings (`/my-bookings`)**:
-   - URL: [http://localhost:3000/my-bookings](http://localhost:3000/my-bookings)
-   - View all your active bookings, live status (`PENDING`, `CONFIRMED`, `COMPLETED`), or cancel an upcoming appointment.
-
-5. **Digital Loyalty Stamp Card (`/loyalty`)**:
-   - URL: [http://localhost:3000/loyalty](http://localhost:3000/loyalty)
-   - View your digital punch card!
-   - Every completed salon visit earns stamps toward a free service reward.
-   - Includes a personal QR code for salon staff to scan and stamp.
-
-6. **Customer Profile (`/profile`)**:
-   - URL: [http://localhost:3000/profile](http://localhost:3000/profile)
-   - View and update your account details.
-
----
-
-### C. Admin Portal Flow (Salon Management)
-
-1. **Log in as Administrator**:
-   - Go to: [http://localhost:3000/login](http://localhost:3000/login)
-   - **Admin Email**: `admin@prettynails.com`
-   - **Admin Password**: `admin123`
-   - Click **Sign In**.
-
-2. **Admin Dashboard Overview (`/admin`)**:
-   - URL: [http://localhost:3000/admin](http://localhost:3000/admin)
-   - Displays real-time salon metrics:
-     - Total Customers
-     - Pending & Confirmed Bookings
-     - Estimated Revenue
-     - Active Loyalty Cards
-
-3. **Manage Bookings (`/admin/bookings`)**:
-   - URL: [http://localhost:3000/admin/bookings](http://localhost:3000/admin/bookings)
-   - Filter bookings by date, customer, or status.
-   - One-click actions to change status:
-     - `PENDING` -> `CONFIRMED`
-     - `CONFIRMED` -> `COMPLETED` *(automatically stamps the customer's loyalty card!)*
-     - `CANCELLED`
-
-4. **Service Catalog & Pricing Editor (`/admin/services`)**:
-   - URL: [http://localhost:3000/admin/services](http://localhost:3000/admin/services)
-   - Add new services, edit base pricing, durations, categories, and manage length variants.
-
-5. **Staff & Salon Availability Scheduler (`/admin/availability`)**:
-   - URL: [http://localhost:3000/admin/availability](http://localhost:3000/admin/availability)
-   - Manage opening days, block dates for holidays, and configure daily slot capacity.
-
-6. **Loyalty Program Manager (`/admin/loyalty`)**:
-   - URL: [http://localhost:3000/admin/loyalty](http://localhost:3000/admin/loyalty)
-   - View all customer cards, manually award or redeem stamps, or extend expirations.
-
-7. **Gallery Showcase Manager (`/admin/gallery`)**:
-   - URL: [http://localhost:3000/admin/gallery](http://localhost:3000/admin/gallery)
-   - Upload new nail pictures and manage portfolio items displayed on the public site.
-
-8. **Customer CRM & Notes (`/admin/customers`)**:
-   - URL: [http://localhost:3000/admin/customers](http://localhost:3000/admin/customers)
-   - Search client list, view booking histories, and record internal customer notes.
-
-9. **Business Reports (`/admin/reports`)**:
-   - URL: [http://localhost:3000/admin/reports](http://localhost:3000/admin/reports)
-   - View weekly/monthly sales performance and top-performing nail treatments.
-
-10. **Salon Settings (`/admin/settings`)**:
-    - URL: [http://localhost:3000/admin/settings](http://localhost:3000/admin/settings)
-    - Configure rewards rules (e.g. 10 stamps = 1 free service) and stamp expiration periods.
-
----
-
-## Step 5: Quick-Start 2-Tab Terminal Cheatsheet
-
-Whenever you want to run the entire project in daily development, just open **2 tabs in Terminal**:
-
-### Terminal Tab 1: Backend (H2 In-Memory — Quickest)
-```bash
-cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
-```
-> Admin: `admin@prettynails.local` / `admin123` (or `admin` / `admin`)
-
-### Terminal Tab 2: Frontend
-```bash
-cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/frontend
-pnpm dev
-```
-
-Then open **[http://localhost:3000](http://localhost:3000)** in your browser!
-
----
-
-### Alternative: Persistent Local PostgreSQL
 ```bash
 # Terminal 1: Backend (PostgreSQL)
-brew services start postgresql@16
-createdb prettynails  # first time only
+# macOS / Linux / Git Bash
 export DB_PASSWORD=your_postgres_password
-cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/pretty-nails-backend
+cd pretty-nails-backend
+
+# Optional: Reset all data but keep schema (clean slate each run)
+psql -U postgres -d prettynails -c "DO \$\$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE'; END LOOP; END \$\$;"
+
 ./mvnw spring-boot:run
 
-# Terminal 2: Frontend
-cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/frontend
+# Windows PowerShell
+$env:DB_PASSWORD="your_postgres_password"
+cd pretty-nails-backend
+
+# Optional: Reset all data but keep schema (clean slate each run)
+psql -U postgres -d prettynails -c "DO \$\$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE'; END LOOP; END \$\$;"
+
+./mvnw spring-boot:run
+
+# Windows CMD
+set DB_PASSWORD=your_postgres_password
+cd pretty-nails-backend
+
+# Optional: Reset all data but keep schema (clean slate each run)
+psql -U postgres -d prettynails -c "DO $$ DECLARE r RECORD; BEGIN FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP EXECUTE 'TRUNCATE TABLE ' || quote_ident(r.tablename) || ' RESTART IDENTITY CASCADE'; END LOOP; END $$;"
+
+mvnw.cmd spring-boot:run
+
+# Terminal 2: Frontend (same on all platforms)
+cd frontend
 pnpm dev
 ```
 > Admin: `admin` / `admin`
 
+> **Note**: The `psql` TRUNCATE command removes all data but preserves tables, sequences, and constraints. Spring Boot's `DataSeeder` will re-insert default services and the admin user on startup.
+
 ---
 
-## Step 6: MacBook Troubleshooting & Helpful Commands
+## Step 5: Troubleshooting (Both Platforms)
 
 ### 1. Port 8080 already in use
-If another application or previous backend instance is running on port 8080:
 ```bash
+# macOS / Linux / Git Bash
 lsof -i :8080
-# Kill the process holding port 8080:
 kill -9 $(lsof -t -i :8080)
+
+# Windows PowerShell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 8080).OwningProcess | Stop-Process -Force
+
+# Windows CMD
+netstat -ano | findstr :8080
+taskkill /PID <PID> /F
 ```
 
 ### 2. Port 3000 already in use
-If Next.js reports port 3000 is occupied:
 ```bash
+# macOS / Linux / Git Bash
 lsof -i :3000
-# Kill the process holding port 3000:
 kill -9 $(lsof -t -i :3000)
+
+# Windows PowerShell
+Get-Process -Id (Get-NetTCPConnection -LocalPort 3000).OwningProcess | Stop-Process -Force
+
+# Windows CMD
+netstat -ano | findstr :3000
+taskkill /PID <PID> /F
 ```
 
-### 3. Local PostgreSQL service commands
-```bash
-# Check status:
-brew services list
+### 3. PostgreSQL service commands
 
-# Restart PostgreSQL:
-brew services restart postgresql@16
+| Platform | Start | Stop | Restart | Status |
+|:---|:---|:---|:---|:---|
+| **macOS** | `brew services start postgresql@16` | `brew services stop postgresql@16` | `brew services restart postgresql@16` | `brew services list` |
+| **Windows** | `net start postgresql-x64-16` | `net stop postgresql-x64-16` | `net stop ... && net start ...` | `sc query postgresql-x64-16` |
 
-# Stop PostgreSQL:
-brew services stop postgresql@16
-```
+> Windows service name may vary (e.g., `postgresql-x64-16` or `postgresql-16`). Check **Services.msc**.
 
-### 4. Setting JAVA_HOME if Maven uses the wrong JDK
-If Maven defaults to an older Java version, point your session to Java 21+:
-```bash
-export JAVA_HOME=$(/usr/libexec/java_home -v 21)
-```
-Add it to your `~/.zshrc` to make it permanent if desired:
-```bash
-echo 'export JAVA_HOME=$(/usr/libexec/java_home -v 21)' >> ~/.zshrc
-```
+### 4. Skip
 
 ### 5. Clear Next.js frontend cache
-If you encounter any stale build or webpack cache issues in the frontend:
 ```bash
-cd /Users/mccauleybacalla/SigMacoy/Code/IntelliJ/app-dev-capstone/frontend
-rm -rf .next
+cd frontend
+rm -rf .next   # macOS / Linux / Git Bash
+# Windows PowerShell: Remove-Item -Recurse -Force .next
+# Windows CMD: rmdir /s /q .next
 pnpm dev
 ```
 
@@ -479,10 +293,19 @@ pnpm dev
 
 | Profile / Mode | Email | Password | Notes |
 |:---|:---|:---|:---|
-| **H2 `local` profile** (quick start) | `admin@prettynails.local` | `admin123` | In-memory, resets on restart |
-| **H2 `local` profile** (fallback owner) | `admin` | `admin` | Hardcoded in DataSeeder |
-| **PostgreSQL** (default profile) | `admin` | `admin` | Persistent, requires local PG or Supabase |
+| **PostgreSQL** (default profile, local or Supabase) | `admin` | `admin` | Persistent |
 | **Customer** | *(Self-registered)* | *(Your password)* | Booking, Loyalty, My Bookings |
 
-> **For your current setup** (using `-Dspring-boot.run.profiles=local`):  
+> **For quickest start** (using `-Dspring-boot.run.profiles=local`):  
 > Use **`admin@prettynails.local`** / **`admin123`** (or **`admin`** / **`admin`**)
+
+---
+
+## Docker (Optional — Not Required)
+
+The project includes `docker-compose.yml` for containerized deployment (PostgreSQL + Backend + Frontend in one command). **Use only if you prefer containers.**
+
+```bash
+# Requires Docker Desktop (macOS/Windows) or Colima/OrbStack (macOS) or Docker Engine (Linux)
+docker-compose up
+```
