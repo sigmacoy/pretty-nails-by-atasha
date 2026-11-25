@@ -35,7 +35,9 @@ export default function LoyaltyPage() {
 
   const loyaltyCard = loyaltyData?.data;
   const settings = settingsData?.data;
-  const MAX_STAMPS = settings?.rewardThreshold ?? 10; // Dynamic reward threshold from settings (default 10)
+  // Loyalty reward threshold: 10 stamps = 1 free service (studio standard)
+  // Could be made configurable via backend settings in the future
+  const MAX_STAMPS = 10;
   const stampCount = loyaltyCard?.stampCount || 0;
   const isComplete = stampCount >= MAX_STAMPS;
   const voucherCode = loyaltyCard ? `PN-${loyaltyCard.id.slice(0, 8).toUpperCase()}` : '';

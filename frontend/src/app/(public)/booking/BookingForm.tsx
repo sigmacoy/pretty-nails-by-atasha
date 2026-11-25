@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -91,7 +91,7 @@ export function BookingForm() {
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'GCASH' | 'MAYA'>('GCASH');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'GCASH' | 'MAYA'>('GCASH');
   const [paymentReference, setPaymentReference] = useState('');
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
@@ -134,33 +134,7 @@ export function BookingForm() {
     localStorage.removeItem(BOOKING_DRAFT_KEY);
   };
 
-  // Restore booking draft on mount
-  useEffect(() => {
-    const draft = loadBookingDraft();
-    if (draft) {
-      setSelectedServices(draft.selectedServices || []);
-      setAppointmentDate(draft.appointmentDate || '');
-      setStartTime(draft.startTime || '');
-      setEndTime(draft.endTime || '');
-
-      // Restore form values
-      if (draft.selectedServices?.length > 0) {
-        step1Form.setValue('services', draft.selectedServices);
-      }
-      if (draft.appointmentDate) {
-        step2Form.setValue('appointmentDate', draft.appointmentDate);
-      }
-      if (draft.startTime) {
-        step2Form.setValue('startTime', draft.startTime);
-      }
-
-      // Fetch slots for the restored date
-      if (draft.appointmentDate) {
-        fetchAvailableSlots(draft.appointmentDate);
-      }
-    }
-  }, [step1Form, step2Form, fetchAvailableSlots]);
-
+  
   // Loyalty card query for reward eligibility
   const { data: loyaltyData } = useQuery(
     () => loyaltyApi.getCard(),
@@ -209,34 +183,8 @@ export function BookingForm() {
   const services = rawServices;
   const servicesUnavailable = !servicesLoading && rawServices.length === 0;
 
-  // Pre-select service from URL
-  useEffect(() => {
-    const serviceId = searchParams.get('service');
-    const date = searchParams.get('date');
-    const time = searchParams.get('time');
-
-    if (serviceId && services.length > 0) {
-      const service = services.find((s) => s.id === serviceId);
-      if (service) {
-        const defaultVariant = service.variants[0]?.id;
-        setSelectedServices([{ serviceId, variantId: defaultVariant, quantity: 1 }]);
-        step1Form.setValue('services', [{ serviceId, variantId: defaultVariant, quantity: 1 }]);
-      }
-    }
-    if (date) {
-      setAppointmentDate(date);
-      step2Form.setValue('appointmentDate', date);
-      fetchAvailableSlots(date);
-      saveBookingDraft();
-    }
-    if (time) {
-      setStartTime(time);
-      step2Form.setValue('startTime', time);
-    }
-  }, [services, searchParams, step1Form, step2Form]);
-
   // Fetch available slots
-  const fetchAvailableSlots = async (date: string) => {
+  const fetchAvailableSlots = useCallback(async (date: string) => {
     setIsLoadingSlots(true);
     try {
       const response = await availabilityApi.getAvailable();
@@ -290,7 +238,60 @@ export function BookingForm() {
     } finally {
       setIsLoadingSlots(false);
     }
-  };
+  }, [startTime, step2Form]);
+
+  // Pre-select service from URL
+  useEffect(() => {
+    const serviceId = searchParams.get('service');
+    const date = searchParams.get('date');
+    const time = searchParams.get('time');
+
+    if (serviceId && services.length > 0) {
+      const service = services.find((s) => s.id === serviceId);
+      if (service) {
+        const defaultVariant = service.variants[0]?.id;
+        setSelectedServices([{ serviceId, variantId: defaultVariant, quantity: 1 }]);
+        step1Form.setValue('services', [{ serviceId, variantId: defaultVariant, quantity: 1 }]);
+      }
+    }
+    if (date) {
+      setAppointmentDate(date);
+      step2Form.setValue('appointmentDate', date);
+      fetchAvailableSlots(date);
+      saveBookingDraft();
+    }
+    if (time) {
+      setStartTime(time);
+      step2Form.setValue('startTime', time);
+    }
+  }, [services, searchParams, step1Form, step2Form, fetchAvailableSlots]);
+
+  // Restore booking draft on mount (after fetchAvailableSlots is defined)
+  useEffect(() => {
+    const draft = loadBookingDraft();
+    if (draft) {
+      setSelectedServices(draft.selectedServices || []);
+      setAppointmentDate(draft.appointmentDate || '');
+      setStartTime(draft.startTime || '');
+      setEndTime(draft.endTime || '');
+
+      // Restore form values
+      if (draft.selectedServices?.length > 0) {
+        step1Form.setValue('services', draft.selectedServices);
+      }
+      if (draft.appointmentDate) {
+        step2Form.setValue('appointmentDate', draft.appointmentDate);
+      }
+      if (draft.startTime) {
+        step2Form.setValue('startTime', draft.startTime);
+      }
+
+      // Fetch slots for the restored date
+      if (draft.appointmentDate) {
+        fetchAvailableSlots(draft.appointmentDate);
+      }
+    }
+  }, [step1Form, step2Form, fetchAvailableSlots]);
 
   // Calculate totals
   const selectedServiceDetails = services.filter((s) =>

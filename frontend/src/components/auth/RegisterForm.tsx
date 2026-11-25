@@ -31,6 +31,7 @@ export function RegisterForm() {
     handleSubmit,
     formState: { errors },
     setError,
+    control,
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -52,7 +53,7 @@ export function RegisterForm() {
         password: data.password,
       });
 
-      login(response.data.token, response.data.user);
+      login(response.data.user);
       toast.success('Client account registered successfully.');
       router.push(redirectTo);
       router.refresh();
@@ -158,7 +159,7 @@ export function RegisterForm() {
 
           <Controller
             name="phone"
-            control={form.control}
+            control={control}
             render={({ field }) => (
               <PhoneInput
                 label="Phone number"

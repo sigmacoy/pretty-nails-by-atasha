@@ -81,12 +81,16 @@ class LoyaltyServiceTest {
     }
 
     @Test
-    void getLoyaltyCard_whenCardNotExists_shouldThrowResourceNotFoundException() {
+    void getLoyaltyCard_whenCardNotExists_shouldCreateAndReturnNewCard() {
         when(loyaltyCardRepository.findByUserId("user-123")).thenReturn(Optional.empty());
+        when(loyaltyCardRepository.save(any(LoyaltyCard.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        assertThatThrownBy(() -> loyaltyService.getLoyaltyCard("user-123"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("LoyaltyCard not found with userId");
+        LoyaltyCardDto card = loyaltyService.getLoyaltyCard("user-123");
+
+        assertThat(card).isNotNull();
+        assertThat(card.getUserId()).isEqualTo("user-123");
+        assertThat(card.getStampCount()).isEqualTo(0);
+        verify(loyaltyCardRepository).save(any(LoyaltyCard.class));
     }
 
     @Test

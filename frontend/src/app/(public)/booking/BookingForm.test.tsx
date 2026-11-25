@@ -28,6 +28,7 @@ jest.mock('react-hook-form', () => ({
     getValues: jest.fn(() => ({})),
     trigger: jest.fn().mockResolvedValue(true),
     watch: jest.fn(),
+    reset: jest.fn(),
     formState: { errors: {} },
   }),
   zodResolver: (schema: any) => schema,
@@ -169,7 +170,23 @@ function createMockLoyaltyResponse(): AxiosResponse<LoyaltyCardDto> {
 
 function createMockServicesResponse(): AxiosResponse<ServiceDto[]> {
   return {
-    data: [],
+    data: [
+      {
+        id: 'service-1',
+        name: 'Studio Dry Cuticle Prep & Hygiene Care',
+        category: 'Manicure',
+        description: 'Dry cuticle preparation with hygiene focus',
+        basePrice: 50000,
+        duration: 60,
+        isActive: true,
+        variants: [
+          { id: 'variant-1', serviceId: 'service-1', name: 'Standard Care', price: 50000 },
+          { id: 'variant-2', serviceId: 'service-1', name: 'Premium Care', price: 70000 },
+        ],
+        createdAt: '2025-12-01T10:00:00.000Z',
+        updatedAt: '',
+      },
+    ],
     status: 200,
     statusText: 'OK',
     headers: {},
@@ -217,7 +234,8 @@ describe('BookingForm - Slot Re-validation (Item 10)', () => {
         return { data: { data: { stampCount: 0 } } };
       }
       if (queryStr.includes('servicesApi.getActive')) {
-        return { data: null, isLoading: false }; // Use fallback services
+        // Return proper service data to avoid "Services currently unavailable"
+        return { data: { data: createMockServicesResponse().data }, isLoading: false };
       }
       return { data: null, isLoading: false };
     });

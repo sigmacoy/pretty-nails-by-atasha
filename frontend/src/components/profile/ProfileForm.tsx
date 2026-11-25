@@ -22,6 +22,7 @@ export function ProfileForm() {
     handleSubmit,
     formState: { errors },
     reset,
+    control,
   } = useForm<ProfileInput>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
@@ -80,7 +81,7 @@ export function ProfileForm() {
           />
           <Controller
             name="phone"
-            control={form.control}
+            control={control}
             render={({ field }) => (
               <PhoneInput
                 label="Phone number (optional)"

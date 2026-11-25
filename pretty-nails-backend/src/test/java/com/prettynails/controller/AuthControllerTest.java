@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
@@ -95,10 +96,10 @@ class AuthControllerTest {
     }
 
     @Test
-    void getCurrentUser_whenNotAuthenticated_shouldReturnBadRequest() throws Exception {
+    void getCurrentUser_whenNotAuthenticated_shouldReturnForbidden() throws Exception {
         mockMvc.perform(get("/api/auth/me"))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("User not authenticated"));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("No authenticated user"));
     }
 
     @Test
@@ -138,7 +139,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void updateProfile_whenNotAuthenticated_shouldReturnBadRequest() throws Exception {
+    void updateProfile_whenNotAuthenticated_shouldReturnForbidden() throws Exception {
         UpdateProfileRequest request = UpdateProfileRequest.builder()
                 .name("Maria Updated")
                 .build();
@@ -146,8 +147,8 @@ class AuthControllerTest {
         mockMvc.perform(put("/api/auth/profile")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("User not authenticated"));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("No authenticated user"));
 
         verify(authService, never()).updateProfile(anyString(), any());
     }
@@ -192,7 +193,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void changePassword_whenNotAuthenticated_shouldReturnBadRequest() throws Exception {
+    void changePassword_whenNotAuthenticated_shouldReturnForbidden() throws Exception {
         ChangePasswordRequest request = ChangePasswordRequest.builder()
                 .currentPassword("oldPassword123")
                 .newPassword("newPassword456")
@@ -201,8 +202,8 @@ class AuthControllerTest {
         mockMvc.perform(post("/api/auth/change-password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("User not authenticated"));
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.message").value("No authenticated user"));
 
         verify(authService, never()).changePassword(anyString(), any());
     }

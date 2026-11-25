@@ -45,7 +45,7 @@ export function LoginForm() {
         password: data.password,
       });
 
-      login(response.data.token, response.data.user);
+      login(response.data.user);
       toast.success('Signed in to your Pretty Nails by Atasha account.');
 
       // Redirect admins to admin dashboard, others to their intended destination

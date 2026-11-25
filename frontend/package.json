@@ -2,6 +2,9 @@
   "name": "prettynails-frontend",
   "version": "1.0.0",
   "private": true,
+  "pnpm": {
+    "approvedBuilds": ["@parcel/watcher"]
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",

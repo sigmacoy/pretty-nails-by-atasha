@@ -30,9 +30,9 @@ function OAuth2CallbackContent() {
       }
 
       try {
-        // Fetch user info using the token
+        // Fetch user info using the token (stored in httpOnly cookie by backend)
         const response = await authApi.me();
-        login(token, response.data);
+        login(response.data);
 
         // Get redirect URL from sessionStorage or default to home
         // Redirect admins to admin dashboard

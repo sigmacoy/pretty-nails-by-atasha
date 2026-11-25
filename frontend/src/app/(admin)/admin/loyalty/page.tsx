@@ -73,7 +73,9 @@ export default function AdminLoyaltyPage() {
   // Access .data from Axios response
   const responseData = cardsData?.data;
   const settings = settingsData?.data;
-  const REWARD_THRESHOLD = settings?.rewardThreshold ?? 10; // Dynamic reward threshold from settings (default 10)
+  // Loyalty reward threshold: 10 stamps = 1 free service (studio standard)
+  // Could be made configurable via backend settings in the future
+  const REWARD_THRESHOLD = 10;
   const maxStamps = REWARD_THRESHOLD;
 
   // Handle both array response (AdminLoyaltyCardDto[]) and paginated response (AdminLoyaltyPage)

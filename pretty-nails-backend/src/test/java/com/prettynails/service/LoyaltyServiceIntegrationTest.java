@@ -115,11 +115,29 @@ class LoyaltyServiceIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
-    void getLoyaltyCard_whenCardNotExists_shouldThrowResourceNotFoundException() {
-        // When/Then
-        assertThatThrownBy(() -> loyaltyService.getLoyaltyCard("nonexistent-user"))
-                .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("LoyaltyCard not found with userId");
+    void getLoyaltyCard_whenCardNotExists_shouldCreateAndReturnNewCard() {
+        // Create a new user without a loyalty card
+        User newUser = User.builder()
+                .email("newuser@example.com")
+                .phone("9876543210")
+                .password("encoded-password")
+                .role("CUSTOMER")
+                .emailVerified(LocalDateTime.now())
+                .build();
+        newUser = userRepository.save(newUser);
+
+        // When - get loyalty card for user who doesn't have one yet
+        LoyaltyCardDto card = loyaltyService.getLoyaltyCard(newUser.getId());
+
+        // Then
+        assertThat(card).isNotNull();
+        assertThat(card.getUserId()).isEqualTo(newUser.getId());
+        assertThat(card.getStampCount()).isEqualTo(0);
+
+        // Verify card was persisted
+        var savedCard = loyaltyCardRepository.findByUserId(newUser.getId());
+        assertThat(savedCard).isPresent();
+        assertThat(savedCard.get().getStampCount()).isEqualTo(0);
     }
 
     @Test
