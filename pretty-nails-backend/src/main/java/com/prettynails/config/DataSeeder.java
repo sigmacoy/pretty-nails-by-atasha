@@ -206,9 +206,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedAdminUser() {
         // Seed primary owner account with username "admin" and password "admin"
-        if (userRepository.findByEmailIgnoreCase("admin@prettynails.com").isEmpty()) {
+        if (userRepository.findByEmailIgnoreCase("admin").isEmpty()) {
             User owner = User.builder()
-                    .email("admin@prettynails.com")
+                    .email("admin")
                     .name("Ma'am Atasha (Owner)")
                     .password(passwordEncoder.encode("admin"))
                     .role("ADMIN")
@@ -227,7 +227,7 @@ public class DataSeeder implements CommandLineRunner {
 
         // Seed configurable admin if distinct
         String adminEmail = adminProperties.getEmail();
-        if (!"admin@prettynails.com".equalsIgnoreCase(adminEmail) && userRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
+        if (!"admin".equalsIgnoreCase(adminEmail) && userRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
             User admin = User.builder()
                     .email(adminEmail)
                     .name("Ma'am Atasha (Owner)")
