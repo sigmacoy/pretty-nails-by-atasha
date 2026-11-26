@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.time.LocalDateTime;
 
@@ -27,17 +29,19 @@ public class CustomerNote {
     @Column(name = "admin_id", nullable = false)
     private String adminId;
 
-    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content", nullable = false, length = 2000)
     private String content;
 
     @Column(name = "nickname", length = 100)
     private String nickname;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Generated(value = GenerationTime.ALWAYS)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

@@ -3,6 +3,8 @@ package com.prettynails.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -41,7 +43,7 @@ public class Notification {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Column(name = "message", columnDefinition = "TEXT")
+    @Column(name = "message", length = 2000)
     private String message;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -61,6 +63,7 @@ public class Notification {
     private LocalDateTime readAt;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

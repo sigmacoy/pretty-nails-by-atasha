@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -43,7 +45,7 @@ public class Booking {
     @Column(name = "downpayment", nullable = false)
     private Integer downpayment = 10000; // 100 PHP in centavos
 
-    @Column(name = "notes", columnDefinition = "TEXT")
+    @Column(name = "notes", length = 2000)
     private String notes; // Customer notes/inspiration
 
     @Column(name = "inspiration_img", length = 500)
@@ -54,10 +56,12 @@ public class Booking {
     private Boolean redeemLoyaltyReward = false;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Generated(value = GenerationTime.ALWAYS)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 

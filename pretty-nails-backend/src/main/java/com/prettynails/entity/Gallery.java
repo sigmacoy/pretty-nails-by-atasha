@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.time.LocalDateTime;
 
@@ -24,7 +26,7 @@ public class Gallery {
     @Column(name = "title", nullable = false, length = 200)
     private String title;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(name = "description", length = 2000)
     private String description;
 
     @Column(name = "image_url", nullable = false, length = 500)
@@ -37,10 +39,12 @@ public class Gallery {
     private Boolean isActive = true;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Generated(value = GenerationTime.ALWAYS)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

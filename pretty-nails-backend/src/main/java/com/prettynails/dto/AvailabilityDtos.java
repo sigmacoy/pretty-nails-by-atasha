@@ -40,7 +40,7 @@ public class AvailabilityDtos {
         private String endTime = "22:00";
 
         @Min(1)
-        @Max(8)
+        @Max(20)
         @Builder.Default
         private Integer maxSlots = 4;
 

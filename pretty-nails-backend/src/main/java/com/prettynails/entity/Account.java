@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 
 import java.time.LocalDateTime;
 
@@ -33,10 +35,10 @@ public class Account {
     @Column(name = "provider_account_id", nullable = false, length = 255)
     private String providerAccountId;
 
-    @Column(name = "refresh_token", columnDefinition = "TEXT")
+    @Column(name = "refresh_token", length = 4000)
     private String refreshToken;
 
-    @Column(name = "access_token", columnDefinition = "TEXT")
+    @Column(name = "access_token", length = 4000)
     private String accessToken;
 
     @Column(name = "expires_at")
@@ -48,7 +50,7 @@ public class Account {
     @Column(name = "scope", length = 255)
     private String scope;
 
-    @Column(name = "id_token", columnDefinition = "TEXT")
+    @Column(name = "id_token", length = 4000)
     private String idToken;
 
     @Column(name = "session_state", length = 255)
@@ -59,10 +61,12 @@ public class Account {
     private User user;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Generated(value = GenerationTime.ALWAYS)
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 }

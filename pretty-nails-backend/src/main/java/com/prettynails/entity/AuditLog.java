@@ -3,6 +3,8 @@ package com.prettynails.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
+import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -50,7 +52,7 @@ public class AuditLog {
     @Column(name = "entity_id", length = 36)
     private String entityId;
 
-    @Column(name = "description", columnDefinition = "TEXT")
+    @Column(name = "description", length = 2000)
     private String description;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -60,10 +62,11 @@ public class AuditLog {
     @Column(name = "ip_address", length = 45)
     private String ipAddress;
 
-    @Column(name = "user_agent", columnDefinition = "TEXT")
+    @Column(name = "user_agent", length = 2000)
     private String userAgent;
 
     @CreationTimestamp
+    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

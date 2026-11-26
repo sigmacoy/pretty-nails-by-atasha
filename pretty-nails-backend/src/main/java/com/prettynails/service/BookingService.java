@@ -205,6 +205,9 @@ public class BookingService {
         booking.setStatus("COMPLETED");
         booking = bookingRepository.save(booking);
 
+        // Add loyalty stamp on booking completion
+        loyaltyService.addStampOnBookingCompletion(bookingId, booking.getUserId());
+
         return mapToBookingDto(booking);
     }
 
