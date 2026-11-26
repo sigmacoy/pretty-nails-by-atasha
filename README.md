@@ -10,13 +10,12 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?logo=postgresql&logoColor=white)
 ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
 ![Next.js](https://img.shields.io/badge/Next.js-14-000000?logo=next.js&logoColor=white)
-![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind%20CSS-3-06B6D4?logo=tailwind-css&logoColor=white)
 
 ---
 
-A full-stack nail salon booking and management system built with **Spring Boot 4.1.2** and **Next.js 14**, featuring customer booking, loyalty programs, service management, gallery showcases, and admin dashboard.
+A full-stack nail salon booking and management system built with **Spring Boot 4.1.2** and **Next.js 14**, featuring customer booking, loyalty programs, service management, gallery showcases, and admin dashboard. Uses **local PostgreSQL** for persistence.
 
 </div>
 
@@ -60,7 +59,7 @@ A full-stack nail salon booking and management system built with **Spring Boot 4
 | **Backend Framework** | Spring Boot 4.1.2 |
 | **Language** | Java 21 |
 | **Build Tool** | Maven (wrapper included) |
-| **Database** | PostgreSQL 16 (local) / Supabase Cloud / H2 (local test profile) |
+| **Database** | PostgreSQL 16 (local) |
 | **ORM** | Spring Data JPA / Hibernate |
 | **Security** | Spring Security + JWT (jjwt 0.12.5) |
 | **Validation** | Bean Validation (Hibernate Validator) |
@@ -149,7 +148,7 @@ A full-stack nail salon booking and management system built with **Spring Boot 4
 ┌────────────────────────┐     ┌──────────────────────────┐     ┌────────────────────────┐
 │    Next.js Frontend    │────>│     Spring Boot API      │────>│      PostgreSQL        │
 │    http://localhost:3000     │   http://localhost:8080    │   │   localhost:5432       │
-│  (Pages, Booking, UI)  │     │ (REST, JWT, Seeder)      │   │   or Supabase Cloud    │
+│  (Pages, Booking, UI)  │     │ (REST, JWT, Seeder)      │   │                        │
 └────────────────────────┘     └──────────────────────────┘     └────────────────────────┘
 ```
 
@@ -265,35 +264,31 @@ All endpoints prefixed with `/api`. Auth: Public / JWT (Customer) / JWT (Admin)
 
 ### Local Development Setup
 
-#### 1. Database (Choose Option A or B)
+#### 1. Database (Local PostgreSQL)
 
-**Option A: Local PostgreSQL (Recommended)**
 ```bash
+# macOS
 brew services start postgresql@16
 createdb prettynails
-```
 
-**Option B: Supabase Cloud**
-- Create project at [supabase.com](https://supabase.com)
-- Get connection details from Settings → Database
+# Linux
+sudo systemctl start postgresql
+sudo -u postgres createdb prettynails
 
-**Option C: Docker (Full Stack)**
-```bash
-docker compose up -d
+# Windows (PowerShell)
+# PostgreSQL runs as a Windows Service
+psql -U postgres -c "CREATE DATABASE prettynails;"
 ```
 
 #### 2. Backend
 ```bash
 cd pretty-nails-backend
 
-# Local PostgreSQL
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+# Set PostgreSQL password (local)
+export DB_PASSWORD=your_postgres_password
 
-# Supabase (set DB_PASSWORD first)
-export DB_PASSWORD=your_password && ./mvnw spring-boot:run
-
-# Docker (uses application-docker.yml)
-./mvnw spring-boot:run -Dspring-boot.run.profiles=docker
+# Run backend (uses default profile = PostgreSQL)
+./mvnw spring-boot:run
 ```
 Verify: `curl http://localhost:8080/api/services`
 
@@ -315,22 +310,12 @@ Verify: Open `http://localhost:3000`
 ### Quick Start (2 Terminal Tabs)
 ```bash
 # Tab 1: Backend
-cd pretty-nails-backend && ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+cd pretty-nails-backend
+export DB_PASSWORD=your_postgres_password
+./mvnw spring-boot:run
 
 # Tab 2: Frontend
 cd frontend && pnpm dev
-```
-
-### Docker Quick Start
-```bash
-# Build and start all services
-docker compose up -d --build
-
-# View logs
-docker compose logs -f
-
-# Stop
-docker compose down
 ```
 
 ## Configuration
@@ -446,102 +431,12 @@ logging:
     com.prettynails: DEBUG
 ```
 
-### Local Profile (`application-local.yml`)
-```yaml
-spring:
-  datasource:
-    url: jdbc:h2:mem:prettynails;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-  jpa:
-    hibernate:
-      ddl-auto: create-drop
-    show-sql: true
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
-    defer-datasource-initialization: true
-  flyway:
-    enabled: false
-  sql:
-    init:
-      mode: never
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=500,expireAfterWrite=5m
-
-bucket4j:
-  cache:
-    config:
-      type: caffeine
-
-jwt:
-  secret: cHJldHR5bmFpbHMtc2VjcmV0LWtleS1mb3Itand0LXRva2VuLWdlbmVyYXRpb24tbXVzdC1iZS1hdC1sZWFzdC0yNTYtYml0cy1sb25n
-  expiration: 2592000000
-
-server:
-  port: 8080
-
-app:
-  cors:
-    allowed-origins: http://localhost:3000
-  admin:
-    email: admin@prettynails.local
-    password: admin123
-    phone: +639000000000
-  upload:
-    dir: uploads
-    max-file-size: 5242880
-    base-url: http://localhost:8080
-  email:
-    verification-url: http://localhost:3000/verify-email
-    reset-url: http://localhost:3000/reset-password
-    from-email: noreply@prettynails.local
-  rate-limit:
-    auth:
-      requests-per-minute: 10
-      requests-per-hour: 100
-  password-policy:
-    min-length: 8
-    min-zxcvbn-score: 1
-    hibp-check-enabled: false
-    history-size: 5
-```
-
-### Docker Profile (`application-docker.yml`)
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://postgres:5432/prettynails
-    username: postgres
-    password: ${DB_PASSWORD}
-  flyway:
-    enabled: true
-
-server:
-  port: 8080
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info
-  endpoint:
-    health:
-      show-details: always
-```
 
 ### Environment Variables
 
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
-| `DB_PASSWORD` | PostgreSQL/Supabase password | Local: No, Supabase: Yes | (empty for local) |
+| `DB_PASSWORD` | PostgreSQL password | Yes | - |
 | `JWT_SECRET` | JWT signing key (min 256 bits) | No | (dev default in code) |
 | `JWT_EXPIRATION` | Token expiry in ms | No | 2592000000 (30 days) |
 | `PORT` | Server port | No | 8080 |
@@ -601,8 +496,7 @@ The application seeds initial data on startup:
 
 ### Database
 - **Local**: PostgreSQL 16
-- **Test (local profile)**: H2 in-memory
-- **Production**: Supabase (PostgreSQL with connection pooling)
+- **Test**: PostgreSQL (testdb)
 - **Docker**: PostgreSQL 16-alpine container
 
 ### Frontend (Vercel)
@@ -713,16 +607,8 @@ app-dev-capstone/
 
 ---
 
-## Quick Links
-
-- **API Base URL (Local)**: `http://localhost:8080/api`
-- **API Base URL (Production)**: `https://prettynails-backend.onrender.com/api`
-- **Frontend (Local)**: `http://localhost:3000`
-- **Swagger UI (Local)**: `http://localhost:8080/swagger-ui.html`
-- **H2 Console (Local profile)**: `http://localhost:8080/h2-console`
-- **Supabase Dashboard**: https://supabase.com/dashboard/project/sdqvnqogadaynwfbtezj
-- **Render Dashboard**: https://dashboard.render.com
-
 ## Support
+
+For questions or issues, please open a GitHub issue.
 
 For questions or issues, please open a GitHub issue.

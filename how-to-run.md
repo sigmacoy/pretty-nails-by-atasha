@@ -43,12 +43,13 @@ pnpm -v
 | **macOS** | `brew install node pnpm` |
 | **Windows** | `winget install OpenJS.NodeJS` then `npm install -g pnpm` |
 
-### 3. Install PostgreSQL 16 (Local, Persistent — Recommended)
+### 3. Install PostgreSQL 16 (Local, Persistent)
 
 | Platform | Install Command |
 |:---|:---|
 | **macOS** | `brew install postgresql@16` then `brew services start postgresql@16` |
 | **Windows** | Download installer from [postgresql.org/download/windows](https://www.postgresql.org/download/windows/) — choose **PostgreSQL 16**, default port `5432`, set a password for `postgres` user |
+| **Linux** | `sudo apt install postgresql-16` then `sudo systemctl start postgresql` |
 
 **Verify installation:**
 ```bash
@@ -58,17 +59,18 @@ psql --version
 
 ---
 
-## Step 1: Choose Your Database Profile
+## Step 1: Set Up Database
 
 The application automatically seeds initial nail services and the default admin user on startup.
 
 ### Local PostgreSQL
 
-Uses your local PostgreSQL instance. Data persists across restarts. **Works identically on macOS and Windows.**
+Uses your local PostgreSQL instance. Data persists across restarts. **Works identically on macOS, Windows, and Linux.**
 
 1. **Start PostgreSQL** (one-time setup):
    - **macOS**: `brew services start postgresql@16`
    - **Windows**: PostgreSQL runs as a Windows Service (starts automatically on boot)
+   - **Linux**: `sudo systemctl start postgresql`
 
 2. **Create the database** (first time only):
    ```bash
@@ -79,7 +81,7 @@ Uses your local PostgreSQL instance. Data persists across restarts. **Works iden
    psql -U postgres -c "CREATE DATABASE prettynails;"
    ```
 
-3. **Run backend WITHOUT the `local` profile** (uses default profile = PostgreSQL):
+3. **Run backend** (uses default profile = PostgreSQL):
    ```bash
    # macOS / Linux / Git Bash
    export DB_PASSWORD=your_postgres_password
@@ -149,7 +151,7 @@ Uses your local PostgreSQL instance. Data persists across restarts. **Works iden
 4. To configure profile/environment:
    - **Run > Edit Configurations...**
    - **Active Profiles**: leave empty for PostgreSQL
-   - **Environment Variables**: `DB_PASSWORD=your_postgres_password` (for PostgreSQL/Supabase)
+   - **Environment Variables**: `DB_PASSWORD=your_postgres_password`
    - Click **Apply** and **Run**
 
 ---
@@ -293,19 +295,6 @@ pnpm dev
 
 | Profile / Mode | Email | Password | Notes |
 |:---|:---|:---|:---|
-| **PostgreSQL** (default profile, local or Supabase) | `admin` | `admin` | Persistent |
+| **PostgreSQL** (default profile, local) | `admin` | `admin` | Persistent |
 | **Customer** | *(Self-registered)* | *(Your password)* | Booking, Loyalty, My Bookings |
 
-> **For quickest start** (using `-Dspring-boot.run.profiles=local`):  
-> Use **`admin@prettynails.local`** / **`admin123`** (or **`admin`** / **`admin`**)
-
----
-
-## Docker (Optional — Not Required)
-
-The project includes `docker-compose.yml` for containerized deployment (PostgreSQL + Backend + Frontend in one command). **Use only if you prefer containers.**
-
-```bash
-# Requires Docker Desktop (macOS/Windows) or Colima/OrbStack (macOS) or Docker Engine (Linux)
-docker-compose up
-```
