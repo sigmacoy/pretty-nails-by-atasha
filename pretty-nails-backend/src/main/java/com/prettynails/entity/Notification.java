@@ -3,8 +3,6 @@ package com.prettynails.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Generated;
-import org.hibernate.annotations.GenerationTime;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -63,7 +61,6 @@ public class Notification {
     private LocalDateTime readAt;
 
     @CreationTimestamp
-    @Generated(value = GenerationTime.INSERT)
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }
