@@ -101,6 +101,7 @@ export default function AdminAvailabilityPage() {
     () => availabilityApi.getAdmin(),
     {
       enabled: true,
+      deps: [],
       onError: (err) => {
         addError(err.message || 'Failed to load availability schedule. Please try again.');
       },

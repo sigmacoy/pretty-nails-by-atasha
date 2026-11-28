@@ -29,6 +29,7 @@ const INITIAL_DEFAULTS: LoyaltySettingsDto = {
   amountThreshold: 100000,
   freeServiceReward: 'Free Gel Manicure',
   cardExpiryMonths: 12,
+  loyaltyMaxStamps: 10,
 };
 
 const AMOUNT_PRESETS = [

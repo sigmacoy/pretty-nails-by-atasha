@@ -3,6 +3,7 @@ package com.prettynails.security;
 import com.prettynails.entity.User;
 import com.prettynails.security.JwtUtil;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,13 +28,23 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
         User user = oAuth2User.getUser();
 
-        String token = jwtUtil.generateToken(user);
+        // Generate JWT token
+        String token = jwtUtil.generateToken(new CustomUserDetails(user, null));
 
-        // Redirect to frontend with token
+        // Set token in HttpOnly cookie (secure in production)
+        Cookie cookie = new Cookie("access_token", token);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(request.isSecure()); // true in production with HTTPS
+        cookie.setPath("/");
+        cookie.setMaxAge((int) (jwtUtil.getExpiration() / 1000)); // Convert ms to seconds
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+
+        // Redirect to frontend WITHOUT token in URL (security fix)
         String frontendUrl = System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:3000");
-        String redirectUrl = frontendUrl + "/oauth2/callback?token=" + token;
+        String redirectUrl = frontendUrl + "/oauth2/callback";
 
-        log.info("OAuth2 login successful for user: {}, redirecting to {}", user.getEmail(), redirectUrl);
+        log.info("OAuth2 login successful, redirecting to {}", redirectUrl);
         response.sendRedirect(redirectUrl);
     }
 }

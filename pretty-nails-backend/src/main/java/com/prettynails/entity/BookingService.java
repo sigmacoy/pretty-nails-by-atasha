@@ -8,7 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "booking_services")
+@Table(name = "booking_services", indexes = {
+        @Index(name = "idx_booking_services_booking_id", columnList = "booking_id"),
+        @Index(name = "idx_booking_services_service_id", columnList = "service_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -31,10 +34,12 @@ public class BookingService {
     private String variantId;
 
     @Column(name = "quantity", nullable = false)
+    @Builder.Default
     private Integer quantity = 1;
 
     @Column(name = "price", nullable = false)
-    private Integer price; // in centavos
+    @Builder.Default
+    private Integer price = 0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", referencedColumnName = "id", insertable = false, updatable = false)

@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import type { UserDto, AuthResponse } from '@/types';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef, ReactNode } from 'react';
+import type { UserDto } from '@/types';
 import { authApi } from '@/lib/api';
 
 interface AuthContextType {
@@ -19,36 +19,47 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUserState] = useState<UserDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const mountedRef = useRef(true);
 
-  const refreshUser = async () => {
+  const refreshUser = useCallback(async () => {
     try {
       const response = await authApi.me();
-      setUserState(response.data);
+      if (mountedRef.current) {
+        setUserState(response.data);
+      }
     } catch {
-      setUserState(null);
+      if (mountedRef.current) {
+        setUserState(null);
+      }
     } finally {
-      setIsLoading(false);
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
     }
-  };
-
-  useEffect(() => {
-    refreshUser();
   }, []);
 
-  const login = (userData: UserDto) => {
-    setUserState(userData);
-  };
+  useEffect(() => {
+    mountedRef.current = true;
+    refreshUser();
+    return () => {
+      mountedRef.current = false;
+    };
+  }, [refreshUser]);
 
-  const logout = async () => {
+  const login = useCallback((userData: UserDto) => {
+    setUserState(userData);
+  }, []);
+
+  const logout = useCallback(async () => {
     try {
       await authApi.logout();
     } catch {
       // Ignore errors, still clear local state
     }
     setUserState(null);
-  };
+  }, []);
 
-  const value: AuthContextType = {
+  const value = useMemo<AuthContextType>(() => ({
     user,
     isLoading,
     isAuthenticated: !!user,
@@ -56,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     login,
     logout,
     refreshUser,
-  };
+  }), [user, isLoading, login, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
@@ -69,17 +80,67 @@ export function useAuth() {
   return context;
 }
 
-// Client-side only helpers
-export const clientAuth = {
-  login: (user: UserDto) => {
-    // Token is stored in httpOnly cookie by backend
-  },
-  logout: async () => {
-    try {
-      await authApi.logout();
-    } catch {
-      // Ignore errors
-    }
-    // User state will be cleared by AuthProvider
-  },
-};
+// AdminError Context (shared across admin pages)
+export interface AdminError {
+  id: string;
+  message: string;
+  timestamp: number;
+}
+
+interface AdminErrorContextType {
+  errors: AdminError[];
+  addError: (message: string) => void;
+  dismissError: (id: string) => void;
+  dismissAllErrors: () => void;
+  clearErrors: () => void;
+}
+
+const AdminErrorContext = createContext<AdminErrorContextType | undefined>(undefined);
+
+const AUTO_DISMISS_DELAY = 10000; // 10 seconds
+
+export function AdminErrorProvider({ children }: { children: ReactNode }) {
+  const [errors, setErrors] = useState<AdminError[]>([]);
+
+  const addError = useCallback((message: string) => {
+    const newError: AdminError = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+      message,
+      timestamp: Date.now(),
+    };
+    setErrors((prev) => [...prev, newError]);
+  }, []);
+
+  const dismissError = useCallback((id: string) => {
+    setErrors((prev) => prev.filter((e) => e.id !== id));
+  }, []);
+
+  const dismissAllErrors = useCallback(() => {
+    setErrors([]);
+  }, []);
+
+  const clearErrors = useCallback(() => {
+    setErrors([]);
+  }, []);
+
+  const value: AdminErrorContextType = {
+    errors,
+    addError,
+    dismissError,
+    dismissAllErrors,
+    clearErrors,
+  };
+
+  return <AdminErrorContext.Provider value={value}>{children}</AdminErrorContext.Provider>;
+}
+
+export function useAdminErrors() {
+  const context = useContext(AdminErrorContext);
+  if (context === undefined) {
+    throw new Error('useAdminErrors must be used within an AdminErrorProvider');
+  }
+  return context;
+}
+
+// Re-export AdminErrorBanner for admin layout
+export { AdminErrorBanner } from '@/components/admin/AdminErrorBanner';

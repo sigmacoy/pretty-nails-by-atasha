@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@/hooks/useApi';
-import { loyaltyApi, adminApi } from '@/lib/api';
+import { loyaltyApi } from '@/lib/api';
 import { LoyaltyCardDto, StampResponse, LoyaltySettingsDto } from '@/types';
 import { LoyaltyCard } from '@/components/customer/LoyaltyCard';
 import { QRScanner } from '@/components/loyalty/QRScanner';
@@ -27,17 +27,15 @@ export default function LoyaltyPage() {
     { enabled: isAuthenticated }
   );
 
-  // Fetch loyalty settings for dynamic reward threshold
+  // Fetch loyalty settings for dynamic MAX_STAMPS from public endpoint
   const { data: settingsData } = useQuery(
-    () => adminApi.getSettings(),
-    { enabled: true }
+    () => loyaltyApi.getSettings(),
+    { enabled: isAuthenticated }
   );
 
   const loyaltyCard = loyaltyData?.data;
-  const settings = settingsData?.data;
-  // Loyalty reward threshold: 10 stamps = 1 free service (studio standard)
-  // Could be made configurable via backend settings in the future
-  const MAX_STAMPS = 10;
+  // Loyalty reward threshold: dynamic from backend settings, fallback to 10
+  const MAX_STAMPS = settingsData?.data?.loyaltyMaxStamps ?? 10;
   const stampCount = loyaltyCard?.stampCount || 0;
   const isComplete = stampCount >= MAX_STAMPS;
   const voucherCode = loyaltyCard ? `PN-${loyaltyCard.id.slice(0, 8).toUpperCase()}` : '';

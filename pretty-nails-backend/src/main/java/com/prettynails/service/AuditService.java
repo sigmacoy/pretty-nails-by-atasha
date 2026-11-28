@@ -3,6 +3,7 @@ package com.prettynails.service;
 import com.prettynails.entity.AuditLog;
 import com.prettynails.entity.User;
 import com.prettynails.repository.AuditLogRepository;
+import com.prettynails.repository.AuditLogSpecification;
 import com.prettynails.security.CustomUserDetails;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -101,7 +102,10 @@ public class AuditService {
     public Page<AuditLog> getAuditLogs(String userId, String action, String entityType,
                                         LocalDateTime startDate, LocalDateTime endDate,
                                         Pageable pageable) {
-        return auditLogRepository.findAuditLogs(userId, action, entityType, startDate, endDate, pageable);
+        return auditLogRepository.findAll(
+                AuditLogSpecification.auditLogs(userId, action, entityType, startDate, endDate),
+                pageable
+        );
     }
 
     /**
@@ -129,7 +133,10 @@ public class AuditService {
      * Gets recent audit logs.
      */
     public Page<AuditLog> getRecentAuditLogs(LocalDateTime since, Pageable pageable) {
-        return auditLogRepository.findAuditLogs(null, null, null, since, null, pageable);
+        return auditLogRepository.findAll(
+                AuditLogSpecification.auditLogs(null, null, null, since, null),
+                pageable
+        );
     }
 
     /**

@@ -8,7 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "customer_notes")
+@Table(name = "customer_notes", indexes = {
+        @Index(name = "idx_customer_note_user_id", columnList = "user_id"),
+        @Index(name = "idx_customer_note_admin_id", columnList = "admin_id")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,16 +25,20 @@ public class CustomerNote {
     private String id;
 
     @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Builder.Default
+    private String userId = "";
 
     @Column(name = "admin_id", nullable = false)
-    private String adminId;
+    @Builder.Default
+    private String adminId = "";
 
     @Column(name = "content", nullable = false, length = 2000)
-    private String content;
+    @Builder.Default
+    private String content = "";
 
     @Column(name = "nickname", length = 100)
-    private String nickname;
+    @Builder.Default
+    private String nickname = "";
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

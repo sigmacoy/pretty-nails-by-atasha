@@ -8,7 +8,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "loyalty_stamps")
+@Table(name = "loyalty_stamps", indexes = {
+        @Index(name = "idx_loyalty_stamps_card_id", columnList = "card_id"),
+        @Index(name = "idx_loyalty_stamps_booking_id", columnList = "booking_id"),
+        @Index(name = "idx_loyalty_stamps_earned_at", columnList = "earned_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -30,11 +34,12 @@ public class LoyaltyStamp {
     @Column(name = "earned_at", nullable = false)
     private LocalDateTime earnedAt;
 
-    @Column(name = "source", nullable = false, length = 20) // SERVICE or AMOUNT
-    private String source;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source", nullable = false, length = 20)
+    private StampSource source;
 
     @Column(name = "amount")
-    private Integer amount; // If earned by amount
+    private Integer amount;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "card_id", referencedColumnName = "id", insertable = false, updatable = false)
@@ -51,4 +56,10 @@ public class LoyaltyStamp {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public enum StampSource {
+        SERVICE,
+        AMOUNT,
+        REWARD_REDEMPTION
+    }
 }

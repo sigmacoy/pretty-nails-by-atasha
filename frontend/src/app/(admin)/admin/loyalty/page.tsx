@@ -67,6 +67,7 @@ export default function AdminLoyaltyPage() {
     () => loyaltyApi.getAllCards(params),
     {
       enabled: true,
+      deps: [params],
       onError: (err) => {
         addError(err.message || 'Failed to load loyalty cards. Please try again.');
       },
@@ -80,6 +81,7 @@ export default function AdminLoyaltyPage() {
     () => adminApi.getSettings(),
     {
       enabled: true,
+      deps: [],
       onError: (err) => {
         addError(err.message || 'Failed to load loyalty settings.');
       },

@@ -1,45 +1,45 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { X, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { AdminError, useAdminErrors } from '@/lib/auth';
 
-export interface AdminError {
-  id: string;
-  message: string;
-  timestamp: number;
-}
+// Re-export useAdminErrors for admin pages to import from here
+export { useAdminErrors } from '@/lib/auth';
 
 interface AdminErrorBannerProps {
-  errors: AdminError[];
-  onDismiss: (id: string) => void;
-  onDismissAll: () => void;
+  autoDismissDelay?: number;
 }
 
-const AUTO_DISMISS_DELAY = 10000; // 10 seconds
+const DEFAULT_AUTO_DISMISS_DELAY = 10000; // 10 seconds
 
-export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminErrorBannerProps) {
-  const [visibleErrors, setVisibleErrors] = useState<AdminError[]>(errors);
-
-  // Sync with props
-  useEffect(() => {
-    setVisibleErrors(errors);
-  }, [errors]);
+export function AdminErrorBanner({ autoDismissDelay = DEFAULT_AUTO_DISMISS_DELAY }: AdminErrorBannerProps) {
+  const { errors, dismissError, dismissAllErrors } = useAdminErrors();
+  const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   // Auto-dismiss individual errors after delay
   useEffect(() => {
-    const timeouts = visibleErrors.map((error) => {
+    // Clear previous timeouts
+    timeoutsRef.current.forEach(clearTimeout);
+    timeoutsRef.current = [];
+
+    errors.forEach((error) => {
       const elapsed = Date.now() - error.timestamp;
-      const remaining = Math.max(0, AUTO_DISMISS_DELAY - elapsed);
-      return setTimeout(() => {
-        onDismiss(error.id);
+      const remaining = Math.max(0, autoDismissDelay - elapsed);
+      const timeout = setTimeout(() => {
+        dismissError(error.id);
       }, remaining);
+      timeoutsRef.current.push(timeout);
     });
 
-    return () => timeouts.forEach(clearTimeout);
-  }, [visibleErrors, onDismiss]);
+    return () => {
+      timeoutsRef.current.forEach(clearTimeout);
+      timeoutsRef.current = [];
+    };
+  }, [errors, dismissError, autoDismissDelay]);
 
-  if (visibleErrors.length === 0) {
+  if (errors.length === 0) {
     return null;
   }
 
@@ -53,7 +53,7 @@ export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminError
       aria-live="polite"
     >
       <div className="pointer-events-auto max-w-7xl mx-auto space-y-2">
-        {visibleErrors.map((error) => (
+        {errors.map((error) => (
           <div
             key={error.id}
             className={cn(
@@ -61,19 +61,18 @@ export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminError
               'animate-in slide-in-from-top-2 duration-300 ease-studio',
               'dark:bg-rose-700/95'
             )}
-            role="alert"
           >
-            <div className="flex-shrink-0 mt-0.5 flex items-center justify-center">
-              <AlertCircle className="h-5 w-5 stroke-[1.5]" aria-hidden="true" />
+            <div className="flex-shrink-0 mt-0.5 flex items-center justify-center pl-3.5 py-3.5">
+              <AlertCircle className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
             </div>
             <div className="flex-1 min-w-0 py-3.5">
               <p className="text-sm font-medium leading-relaxed">{error.message}</p>
             </div>
             <div className="flex items-center gap-2 pr-3 py-3.5">
-              {visibleErrors.length > 1 && (
+              {errors.length > 1 && (
                 <button
                   type="button"
-                  onClick={onDismissAll}
+                  onClick={dismissAllErrors}
                   className={cn(
                     'flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full',
                     'bg-white/20 hover:bg-white/30 text-white transition-colors',
@@ -87,7 +86,7 @@ export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminError
               )}
               <button
                 type="button"
-                onClick={() => onDismiss(error.id)}
+                onClick={() => dismissError(error.id)}
                 className={cn(
                   'flex items-center justify-center h-9 w-9 rounded-full',
                   'bg-white/15 hover:bg-white/25 text-white transition-colors',
@@ -95,7 +94,7 @@ export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminError
                 )}
                 aria-label="Dismiss error"
               >
-                <X className="h-4.5 w-4.5 stroke-[1.5]" aria-hidden="true" />
+                <X className="h-4 w-4 stroke-[1.5]" aria-hidden="true" />
               </button>
             </div>
           </div>
@@ -103,38 +102,4 @@ export function AdminErrorBanner({ errors, onDismiss, onDismissAll }: AdminError
       </div>
     </div>
   );
-}
-
-// Hook for managing errors in admin pages
-export function useAdminErrors() {
-  const [errors, setErrors] = useState<AdminError[]>([]);
-
-  const addError = useCallback((message: string) => {
-    const newError: AdminError = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-      message,
-      timestamp: Date.now(),
-    };
-    setErrors((prev) => [...prev, newError]);
-  }, []);
-
-  const dismissError = useCallback((id: string) => {
-    setErrors((prev) => prev.filter((e) => e.id !== id));
-  }, []);
-
-  const dismissAllErrors = useCallback(() => {
-    setErrors([]);
-  }, []);
-
-  const clearErrors = useCallback(() => {
-    setErrors([]);
-  }, []);
-
-  return {
-    errors,
-    addError,
-    dismissError,
-    dismissAllErrors,
-    clearErrors,
-  };
 }

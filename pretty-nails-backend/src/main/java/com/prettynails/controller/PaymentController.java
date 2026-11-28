@@ -20,15 +20,21 @@ public class PaymentController extends BaseController {
 
     @GetMapping("/payments/{bookingId}")
     public ResponseEntity<PaymentDto> getPaymentByBookingId(@PathVariable String bookingId) {
+        User currentUser = getCurrentUser();
+        PaymentDto payment = paymentService.getPaymentByBookingId(bookingId);
+
         // Customer can only see their own payment, admin can see all
-        // For now, just return the payment
-        return ResponseEntity.ok(paymentService.getPaymentByBookingId(bookingId));
+        if (!payment.getUserId().equals(currentUser.getId()) && !"ADMIN".equals(currentUser.getRole())) {
+            throw new AccessDeniedException("You can only view your own payments");
+        }
+
+        return ResponseEntity.ok(payment);
     }
 
     @PostMapping("/payments")
     public ResponseEntity<PaymentResponse> createPayment(@Valid @RequestBody PaymentRequest request) {
         User currentUser = getCurrentUser();
-        return ResponseEntity.ok(paymentService.createPayment(currentUser, request));
+        return ResponseEntity.ok(paymentService.createPayment(currentUser.getId(), request));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

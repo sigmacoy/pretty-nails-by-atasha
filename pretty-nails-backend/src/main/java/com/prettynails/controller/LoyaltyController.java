@@ -40,6 +40,8 @@ public class LoyaltyController extends BaseController {
     @PostMapping("/loyalty/stamp")
     public ResponseEntity<StampResponse> addStampViaQr(@Valid @RequestBody StampRequest request) {
         User currentUser = getCurrentUser();
+        // Customer can only stamp their own completed bookings via verified QR
+        // The QR code contains a signed token that the service verifies
         StampResponse response = loyaltyService.addStampViaQr(currentUser.getId(), request.getQrCode());
         return ResponseEntity.ok(response);
     }

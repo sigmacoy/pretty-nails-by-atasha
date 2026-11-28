@@ -6,6 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { isSafeRedirect } from '@/lib/utils';
 
 function OAuth2CallbackContent() {
   const router = useRouter();
@@ -36,9 +37,11 @@ function OAuth2CallbackContent() {
 
         // Get redirect URL from sessionStorage or default to home
         // Redirect admins to admin dashboard
+        const storedRedirect = sessionStorage.getItem('oauth_redirect') || '/';
+        const safeRedirect = isSafeRedirect(storedRedirect) ? storedRedirect : '/';
         const redirectTo = response.data?.role === 'ADMIN'
           ? '/admin'
-          : (sessionStorage.getItem('oauth_redirect') || '/');
+          : safeRedirect;
         sessionStorage.removeItem('oauth_redirect');
 
         toast.success('Signed in successfully with OAuth2.');

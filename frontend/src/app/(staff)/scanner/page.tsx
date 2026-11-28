@@ -1,35 +1,84 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { QRScanner } from '@/components/staff/QRScanner';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 export default function StaffScannerPage() {
+  const router = useRouter();
+  const { isLoading, isAuthenticated, user } = useAuth();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const wakeLockRequestedRef = useRef(false);
+
   useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        router.push('/login?redirect=/staff/scanner');
+      } else if (user?.role !== 'STAFF' && user?.role !== 'ADMIN') {
+        router.push('/');
+      } else {
+        setIsAuthorized(true);
+      }
+    }
+  }, [isLoading, isAuthenticated, user, router]);
+
+  useEffect(() => {
+    if (!isAuthorized) return;
+
     // Prevent screen sleep on mobile devices during scanning
     const wakeLock = 'wakeLock' in navigator ? (navigator as any).wakeLock : null;
 
     const requestWakeLock = async () => {
-      if (wakeLock) {
+      if (wakeLock && !wakeLockRequestedRef.current) {
+        wakeLockRequestedRef.current = true;
         try {
           const lock = await wakeLock.request('screen');
-          return lock;
+          wakeLockRef.current = lock;
+          // Handle wake lock release event
+          lock.addEventListener('release', () => {
+            wakeLockRef.current = null;
+            wakeLockRequestedRef.current = false;
+          });
         } catch (err) {
           console.warn('Wake Lock API not supported:', err);
+          wakeLockRequestedRef.current = false;
         }
       }
-      return null;
     };
 
-    let wakeLockInstance: any = null;
-    requestWakeLock().then(lock => { wakeLockInstance = lock; });
+    requestWakeLock();
 
     return () => {
-      if (wakeLockInstance) {
-        wakeLockInstance.release().catch(() => {});
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release().catch(() => {});
+        wakeLockRef.current = null;
+        wakeLockRequestedRef.current = false;
       }
     };
-  }, []);
+  }, [isAuthorized]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-xl">
+            <Loader2 className="h-6 w-6 text-rose-800 dark:text-rose-300 animate-spin" />
+          </div>
+          <div>
+            <h1 className="text-lg font-semibold text-stone-900 dark:text-rose-50">Staff Scanner</h1>
+            <p className="text-xs text-stone-500 dark:text-stone-400">Verifying access...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthorized) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col">
@@ -82,13 +131,7 @@ export default function StaffScannerPage() {
             </ol>
           </div>
 
-          {/* Offline Notice */}
-          <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-800/50 rounded-lg">
-            <p className="text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
-              <span>📱</span>
-              Works offline - scans are cached and synced when connection restores
-            </p>
-          </div>
+          {/* Offline Notice - removed false claim */}
         </div>
       </main>
 

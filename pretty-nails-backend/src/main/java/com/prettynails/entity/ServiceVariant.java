@@ -22,13 +22,16 @@ public class ServiceVariant {
     private String id;
 
     @Column(name = "service_id", nullable = false)
-    private String serviceId;
+    @Builder.Default
+    private String serviceId = "";
 
     @Column(name = "name", nullable = false, length = 50) // SMALL, MEDIUM, LONG
-    private String name;
+    @Builder.Default
+    private String name = "";
 
     @Column(name = "price", nullable = false)
-    private Integer price; // in centavos
+    @Builder.Default
+    private Integer price = 0; // in centavos
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", referencedColumnName = "id", insertable = false, updatable = false)

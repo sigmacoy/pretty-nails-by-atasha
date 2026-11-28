@@ -8,7 +8,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "gallery")
+@Table(name = "gallery", indexes = {
+        @Index(name = "idx_gallery_active_cat_created", columnList = "is_active, category, created_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,18 +24,23 @@ public class Gallery {
     private String id;
 
     @Column(name = "title", nullable = false, length = 200)
-    private String title;
+    @Builder.Default
+    private String title = "";
 
     @Column(name = "description", length = 2000)
-    private String description;
+    @Builder.Default
+    private String description = "";
 
     @Column(name = "image_url", nullable = false, length = 500)
-    private String imageUrl;
+    @Builder.Default
+    private String imageUrl = "";
 
-    @Column(name = "category", length = 20) // GEL, EXTENSION, PEDICURE, NAIL_ART
-    private String category;
+    @Column(name = "category", length = 20)
+    @Builder.Default
+    private String category = "";
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp

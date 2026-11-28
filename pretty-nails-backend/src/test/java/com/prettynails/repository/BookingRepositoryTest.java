@@ -6,7 +6,7 @@ import com.prettynails.IntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,7 +32,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
         return userRepository.save(user);
     }
 
-    private Booking createBooking(String userId, LocalDateTime appointmentDate, String startTime, String endTime, String status) {
+    private Booking createBooking(String userId, LocalDate appointmentDate, String startTime, String endTime, String status) {
         Booking booking = Booking.builder()
                 .userId(userId)
                 .status(status)
@@ -51,7 +51,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void existsByAppointmentDateAndStartTimeAndStatusIn_whenSlotBookedPending_shouldReturnTrue() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -68,7 +68,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void existsByAppointmentDateAndStartTimeAndStatusIn_whenSlotBookedConfirmed_shouldReturnTrue() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -85,7 +85,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void existsByAppointmentDateAndStartTimeAndStatusIn_whenSlotCancelled_shouldReturnFalse() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -102,7 +102,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void existsByAppointmentDateAndStartTimeAndStatusIn_whenSlotCompleted_shouldReturnFalse() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -120,7 +120,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     void existsByAppointmentDateAndStartTimeAndStatusIn_whenNoBooking_shouldReturnFalse() {
         // When
         boolean exists = bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                LocalDateTime.of(2025, 12, 25, 0, 0), "10:00", List.of("PENDING", "CONFIRMED"));
+                LocalDate.of(2025, 12, 25), "10:00", List.of("PENDING", "CONFIRMED"));
 
         // Then
         assertThat(exists).isFalse();
@@ -129,7 +129,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void countByAppointmentDateAndStartTimeAndStatusInAndIdNot_whenOtherBookingExists_shouldReturnOne() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime1 = "10:00";
         String startTime2 = "14:00";
 
@@ -151,7 +151,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     void countByAppointmentDateAndStartTimeAndStatusInAndIdNot_whenOtherBookingSameSlot_shouldReturnOne() {
         // Given - test with a booking for the same slot but different status (not possible due to unique constraint)
         // This test verifies the query works correctly when there are multiple bookings for different slots
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime1 = "10:00";
         String startTime2 = "14:00";
 
@@ -172,7 +172,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void countByAppointmentDateAndStartTimeAndStatusInAndIdNot_whenNoOtherBooking_shouldReturnZero() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -189,7 +189,7 @@ class BookingRepositoryTest extends IntegrationTestBase {
     @Test
     void uniqueConstraint_shouldPreventDuplicateBookingsForSameSlot() {
         // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user1 = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -205,9 +205,10 @@ class BookingRepositoryTest extends IntegrationTestBase {
     }
 
     @Test
-    void uniqueConstraint_shouldPreventAnyDuplicateBookingForSameSlot() {
-        // Given
-        LocalDateTime appointmentDate = LocalDateTime.of(2025, 12, 25, 0, 0);
+    void uniqueConstraint_shouldAllowBookingAfterCancelledForSameSlot() {
+        // Given - the partial unique index only applies to PENDING/CONFIRMED statuses
+        // So a CANCELLED booking should NOT block a new PENDING booking for the same slot
+        LocalDate appointmentDate = LocalDate.of(2025, 12, 25);
         String startTime = "10:00";
 
         User user1 = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
@@ -215,26 +216,25 @@ class BookingRepositoryTest extends IntegrationTestBase {
 
         createBooking(user1.getId(), appointmentDate, startTime, "12:00", "CANCELLED");
 
-        // When/Then - attempt to create another booking for same slot (even with different status)
-        assertThatThrownBy(() -> createBooking(user2.getId(), appointmentDate, startTime, "12:00", "PENDING"))
-                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class)
-                .hasRootCauseInstanceOf(org.postgresql.util.PSQLException.class)
-                .hasMessageContaining("uk_booking_slot_active");
+        // When/Then - should be able to create new PENDING booking for same slot
+        Booking newBooking = createBooking(user2.getId(), appointmentDate, startTime, "12:00", "PENDING");
+        assertThat(newBooking).isNotNull();
+        assertThat(newBooking.getStatus()).isEqualTo("PENDING");
     }
 
     @Test
     void countByAppointmentDateBetweenAndStatusIn_shouldCountCorrectly() {
         // Given
-        LocalDateTime start = LocalDateTime.of(2025, 12, 25, 0, 0);
-        LocalDateTime end = LocalDateTime.of(2025, 12, 25, 23, 59, 59);
+        LocalDate start = LocalDate.of(2025, 12, 25);
+        LocalDate end = LocalDate.of(2025, 12, 25);
 
         User user1 = createTestUser("user123-" + UUID.randomUUID() + "@example.com");
         User user2 = createTestUser("user456-" + UUID.randomUUID() + "@example.com");
         User user3 = createTestUser("user789-" + UUID.randomUUID() + "@example.com");
 
-        createBooking(user1.getId(), LocalDateTime.of(2025, 12, 25, 0, 0), "10:00", "12:00", "PENDING");
-        createBooking(user2.getId(), LocalDateTime.of(2025, 12, 25, 0, 0), "14:00", "16:00", "CONFIRMED");
-        createBooking(user3.getId(), LocalDateTime.of(2025, 12, 25, 0, 0), "16:00", "18:00", "CANCELLED");
+        createBooking(user1.getId(), LocalDate.of(2025, 12, 25), "10:00", "12:00", "PENDING");
+        createBooking(user2.getId(), LocalDate.of(2025, 12, 25), "14:00", "16:00", "CONFIRMED");
+        createBooking(user3.getId(), LocalDate.of(2025, 12, 25), "16:00", "18:00", "CANCELLED");
 
         // When
         long count = bookingRepository.countByAppointmentDateBetweenAndStatusIn(start, end, List.of("PENDING", "CONFIRMED"));

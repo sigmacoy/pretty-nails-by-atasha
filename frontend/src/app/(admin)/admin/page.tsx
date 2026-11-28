@@ -6,7 +6,7 @@ import { adminApi, bookingsApi } from '@/lib/api';
 import { DashboardStats } from '@/components/admin/DashboardStats';
 import { RevenueChart } from '@/components/admin/RevenueChart';
 import { RecentBookings } from '@/components/admin/RecentBookings';
-import { AdminStatsDto, AdminReportsDto, AdminBookingPage } from '@/types';
+import { AdminStatsDto, AdminReportsDto, AdminBookingPage, RevenueDataPoint } from '@/types';
 import {
   Calendar,
   Clock,
@@ -23,20 +23,23 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStatsDto | null>(null);
   const [reports, setReports] = useState<AdminReportsDto | null>(null);
   const [recentBookings, setRecentBookings] = useState<AdminBookingPage | null>(null);
+  const [revenueData, setRevenueData] = useState<RevenueDataPoint[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [statsRes, reportsRes, bookingsRes] = await Promise.all([
+        const [statsRes, reportsRes, bookingsRes, revenueRes] = await Promise.all([
           adminApi.getStats(),
           adminApi.getReports('this-month'),
           bookingsApi.getAdminBookings({ page: 0, limit: 5, sort: 'desc' }),
+          adminApi.getRevenue('this-week'),
         ]);
 
         setStats(statsRes.data);
         setReports(reportsRes.data);
         setRecentBookings(bookingsRes.data);
+        setRevenueData(revenueRes.data);
         clearErrors();
       } catch (error) {
         const err = error instanceof Error ? error : new Error('Failed to fetch dashboard data');
@@ -48,17 +51,6 @@ export default function AdminDashboard() {
 
     fetchDashboardData();
   }, [addError, clearErrors]);
-
-  // Daily revenue data for current week (in centavos)
-  const dailyRevenueData = [
-    { date: 'Mon', revenue: 120000 },
-    { date: 'Tue', revenue: 150000 },
-    { date: 'Wed', revenue: 98000 },
-    { date: 'Thu', revenue: 175000 },
-    { date: 'Fri', revenue: 210000 },
-    { date: 'Sat', revenue: 280000 },
-    { date: 'Sun', revenue: 190000, isCurrentPeriod: true },
-  ];
 
   const quickActions = [
     {
@@ -122,7 +114,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2">
           <div className="rounded-2xl border border-rose-200/80 dark:border-rose-950/60 bg-white/80 dark:bg-[#1A0E15]/90 backdrop-blur-sm p-6 sm:p-7 shadow-[0_4px_24px_rgba(26,14,21,0.04)]">
             <RevenueChart
-              data={dailyRevenueData}
+              data={revenueData}
               isLoading={isLoading}
               title="Revenue this week"
               description="Daily salon earnings across current week in tabular figures"

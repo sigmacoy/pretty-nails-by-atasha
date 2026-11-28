@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -31,7 +31,7 @@ import { Button } from '@/components/ui';
 import { PhoneInput } from '@/components/ui/PhoneInput';
 import { Modal } from '@/components/ui/Modal';
 import { PaymentQRCode } from '@/components/booking/PaymentQRCode';
-import { formatPrice, formatDate, formatTime, getVariantLabel } from '@/lib/utils';
+import { formatPrice, formatDate, formatTime, getVariantLabel, calculateEndTime } from '@/lib/utils';
 import {
   bookingStep1Schema,
   bookingStep2Schema,
@@ -52,28 +52,20 @@ const STEPS = [
   { id: 4, title: 'Reservation deposit', icon: CreditCard },
 ];
 
-function generateDefaultSlots(): { startTime: string; endTime: string }[] {
-  const slots: { startTime: string; endTime: string }[] = [];
-  const startHour = 8; // 8am earliest
-  const endHour = 22;  // 10pm latest END TIME (last slot starts at 21:30)
-  let currentHour = startHour;
-  let currentMin = 0;
+// Generate default slots when API is unavailable
+function generateDefaultSlots(): { startTime: string; endTime: string; available: boolean }[] {
+  const slots: { startTime: string; endTime: string; available: boolean }[] = [];
+  const startHour = 10; // 10:00 AM
+  const endHour = 19; // 7:00 PM (last slot starts at 18:30)
 
-  while (currentHour < endHour || (currentHour === endHour && currentMin === 0)) {
-    const slotStart = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-    let nextHour = currentHour;
-    let nextMin = currentMin + 30;
-    if (nextMin >= 60) {
-      nextMin -= 60;
-      nextHour += 1;
+  for (let hour = startHour; hour < endHour; hour++) {
+    for (const minute of ['00', '30']) {
+      const startTime = `${hour.toString().padStart(2, '0')}:${minute}`;
+      const nextHour = minute === '30' ? hour + 1 : hour;
+      const nextMinute = minute === '30' ? '00' : '30';
+      const endTime = `${nextHour.toString().padStart(2, '0')}:${nextMinute}`;
+      slots.push({ startTime, endTime, available: true });
     }
-    const slotEnd = `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
-    // Only add slot if it ends at or before 22:00 (10pm)
-    if (nextHour < endHour || (nextHour === endHour && nextMin === 0)) {
-      slots.push({ startTime: slotStart, endTime: slotEnd });
-    }
-    currentHour = nextHour;
-    currentMin = nextMin;
   }
   return slots;
 }
@@ -87,7 +79,7 @@ export function BookingForm() {
   const [appointmentDate, setAppointmentDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [endTime, setEndTime] = useState('');
-  const [availableSlots, setAvailableSlots] = useState<{ startTime: string; endTime: string }[]>([]);
+  const [availableSlots, setAvailableSlots] = useState<{ startTime: string; endTime: string; available: boolean }[]>([]);
   const [isLoadingSlots, setIsLoadingSlots] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -96,6 +88,15 @@ export function BookingForm() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const [redeemLoyaltyReward, setRedeemLoyaltyReward] = useState(false);
+
+  // Revoke object URLs on unmount or when receiptPreview changes to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (receiptPreview) {
+        URL.revokeObjectURL(receiptPreview);
+      }
+    };
+  }, [receiptPreview]);
 
   // Booking draft key for localStorage
   const BOOKING_DRAFT_KEY = 'prettynails-booking-draft';
@@ -187,41 +188,16 @@ export function BookingForm() {
   const fetchAvailableSlots = useCallback(async (date: string) => {
     setIsLoadingSlots(true);
     try {
-      const response = await availabilityApi.getAvailable();
-      const dayAvailability = response.data.find((a) => a.date.split('T')[0] === date && a.isAvailable);
-      let slots: { startTime: string; endTime: string }[] = [];
-
-      if (dayAvailability) {
-        const [startHour, startMin] = dayAvailability.startTime.split(':').map(Number);
-        const [endHour, endMin] = dayAvailability.endTime.split(':').map(Number);
-
-        let currentHour = startHour;
-        let currentMin = startMin;
-
-        while (currentHour < endHour || (currentHour === endHour && currentMin < endMin)) {
-          const slotStart = `${currentHour.toString().padStart(2, '0')}:${currentMin.toString().padStart(2, '0')}`;
-          let nextHour = currentHour;
-          let nextMin = currentMin + 30;
-          if (nextMin >= 60) {
-            nextMin -= 60;
-            nextHour += 1;
-          }
-          const slotEnd = `${nextHour.toString().padStart(2, '0')}:${nextMin.toString().padStart(2, '0')}`;
-
-          if (nextHour < endHour || (nextHour === endHour && nextMin <= endMin)) {
-            slots.push({ startTime: slotStart, endTime: slotEnd });
-          }
-
-          currentHour = nextHour;
-          currentMin = nextMin;
-        }
-      } else {
-        slots = generateDefaultSlots();
-      }
+      const response = await availabilityApi.getSlots(date);
+      const slots = response.data.map((slot) => ({
+        startTime: slot.startTime,
+        endTime: slot.endTime,
+        available: slot.available,
+      }));
       setAvailableSlots(slots);
 
       if (slots.length > 0) {
-        const targetSlot = slots.find((s) => s.startTime === startTime) || slots[0];
+        const targetSlot = slots.find((s) => s.available) || slots[0];
         setStartTime(targetSlot.startTime);
         setEndTime(targetSlot.endTime);
         step2Form.setValue('startTime', targetSlot.startTime, { shouldValidate: true });
@@ -238,7 +214,7 @@ export function BookingForm() {
     } finally {
       setIsLoadingSlots(false);
     }
-  }, [startTime, step2Form]);
+  }, [step2Form]);
 
   // Pre-select service from URL
   useEffect(() => {
@@ -299,27 +275,66 @@ export function BookingForm() {
   );
   const totalPrice = selectedServiceDetails.reduce((sum, s) => {
     const selected = selectedServices.find((ss) => ss.serviceId === s.id);
-    const variant = selected?.variantId ? s.variants.find((v) => v.id === selected.variantId) : s.variants[0];
-    return sum + ((variant?.price || s.basePrice) * (selected?.quantity || 1));
+    const variant = selected?.variantId
+      ? s.variants.find((v) => v.id === selected.variantId)
+      : s.variants.length > 0
+        ? s.variants[0]
+        : null;
+    const price = variant?.price ?? s.basePrice;
+    return sum + (price * (selected?.quantity || 1));
   }, 0);
-  const totalDuration = selectedServiceDetails.reduce((sum, s) => sum + s.duration, 0);
+  const totalDuration = selectedServiceDetails.reduce((sum, s) => {
+    const selected = selectedServices.find((ss) => ss.serviceId === s.id);
+    return sum + s.duration * (selected?.quantity || 1);
+  }, 0);
   const downpayment = 10000; // ₱100.00 in centavos
 
-  // Calculate end time based on start time and total duration
-  const calculateEndTime = (start: string, durationMinutes: number): string => {
-    const [hours, minutes] = start.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60) % 24;
-    const endMins = totalMinutes % 60;
-    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-  };
-
   // Filter slots that can accommodate the full duration
-  const filteredSlots = availableSlots.filter((slot) => {
-    const slotEnd = calculateEndTime(slot.startTime, totalDuration);
-    // Check if this slot's end time is <= the actual slot end time
-    return slotEnd <= slot.endTime;
-  });
+  // We need to find contiguous available slots that can fit the total duration
+  const filteredSlots = useMemo(() => {
+    return availableSlots.filter((slot, index) => {
+      // Only consider available slots as starting points
+      if (!slot.available) return false;
+
+      // Calculate the end time if we start at this slot
+      const neededEndTime = calculateEndTime(slot.startTime, totalDuration);
+
+      // Check if we have enough contiguous available slots
+      let currentTime = slot.startTime;
+      let hasContiguous = true;
+
+      // Check each 30-minute interval needed
+      const intervalsNeeded = Math.ceil(totalDuration / 30);
+      for (let i = 0; i < intervalsNeeded; i++) {
+        const slotIndex = index + i;
+        if (slotIndex >= availableSlots.length) {
+          hasContiguous = false;
+          break;
+        }
+        const checkSlot = availableSlots[slotIndex];
+        if (!checkSlot.available) {
+          hasContiguous = false;
+          break;
+        }
+        // Verify the time matches our expected progression
+        if (checkSlot.startTime !== currentTime) {
+          hasContiguous = false;
+          break;
+        }
+        // Move to next 30-minute slot
+        const [h, m] = currentTime.split(':').map(Number);
+        let nextM = m + 30;
+        let nextH = h;
+        if (nextM >= 60) {
+          nextM -= 60;
+          nextH += 1;
+        }
+        currentTime = `${nextH.toString().padStart(2, '0')}:${nextM.toString().padStart(2, '0')}`;
+      }
+
+      return hasContiguous;
+    });
+  }, [availableSlots, totalDuration]);
 
   const handleNext = async (step: number) => {
     if (step === 1) {
@@ -476,6 +491,7 @@ export function BookingForm() {
                   endTime={endTime}
                   setEndTime={setEndTime}
                   availableSlots={availableSlots}
+                  filteredSlots={filteredSlots}
                   isLoadingSlots={isLoadingSlots}
                   form={step2Form}
                   onBack={handleBack}
@@ -934,6 +950,19 @@ function BookingStep1({
               setSelectedServices(updated);
               form.setValue('services', updated);
             }}
+            onToggle={(serviceId, variantId) => {
+              const existing = selectedServices.find((s) => s.serviceId === serviceId);
+              if (existing) {
+                const updated = selectedServices.filter((s) => s.serviceId !== serviceId);
+                setSelectedServices(updated);
+                form.setValue('services', updated);
+              } else {
+                const newSelection = { serviceId, variantId, quantity: 1 };
+                const updated = [...selectedServices, newSelection];
+                setSelectedServices(updated);
+                form.setValue('services', updated);
+              }
+            }}
           />
         ))}
       </div>
@@ -969,20 +998,25 @@ function ServiceCard({
   selectedVariant,
   onSelect,
   onRemove,
+  onToggle,
 }: {
   service: ServiceDto;
   isSelected: boolean;
   selectedVariant?: string;
   onSelect: (variantId: string) => void;
   onRemove: () => void;
+  onToggle: (serviceId: string, variantId?: string) => void;
 }) {
+  const defaultVariantId = service.variants.length > 0 ? service.variants[0].id : undefined;
+
   return (
     <div
-      className={`rounded-2xl border p-5 transition-all duration-200 ${
+      className={`rounded-2xl border p-5 transition-all duration-200 cursor-pointer ${
         isSelected
           ? 'border-rose-800/80 bg-rose-50/40 dark:border-rose-900 dark:bg-rose-950/20 shadow-xs'
           : 'border-rose-200/80 dark:border-rose-950/60 bg-white/95 dark:bg-stone-900/60 hover:border-rose-300 dark:hover:border-rose-800'
       }`}
+      onClick={() => !isSelected && onToggle(service.id, defaultVariantId)}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-1">
@@ -1087,6 +1121,7 @@ function BookingStep2({
   endTime,
   setEndTime,
   availableSlots,
+  filteredSlots,
   isLoadingSlots,
   form,
   onBack,
@@ -1100,7 +1135,8 @@ function BookingStep2({
   setStartTime: React.Dispatch<React.SetStateAction<string>>;
   endTime: string;
   setEndTime: React.Dispatch<React.SetStateAction<string>>;
-  availableSlots: { startTime: string; endTime: string }[];
+  availableSlots: { startTime: string; endTime: string; available: boolean }[];
+  filteredSlots: { startTime: string; endTime: string; available: boolean }[];
   isLoadingSlots: boolean;
   form: UseFormReturn<BookingStep2Input>;
   onBack: () => void;
@@ -1108,20 +1144,6 @@ function BookingStep2({
   fetchAvailableSlots: (date: string) => void;
   totalDuration?: number;
 }) {
-  // Calculate end time based on start time and total duration
-  const calculateEndTime = (start: string, durationMinutes: number): string => {
-    const [hours, minutes] = start.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes + durationMinutes;
-    const endHours = Math.floor(totalMinutes / 60) % 24;
-    const endMins = totalMinutes % 60;
-    return `${endHours.toString().padStart(2, '0')}:${endMins.toString().padStart(2, '0')}`;
-  };
-
-  // Filter slots that can accommodate the full duration
-  const filteredSlots = availableSlots.filter((slot) => {
-    const slotEnd = calculateEndTime(slot.startTime, totalDuration);
-    return slotEnd <= slot.endTime;
-  });
   const today = new Date().toISOString().split('T')[0];
   const maxDate = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 

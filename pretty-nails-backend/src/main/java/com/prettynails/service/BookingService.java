@@ -55,14 +55,9 @@ public class BookingService {
     public BookingResponse createBooking(User user, BookingRequest request) {
         // 1. Parse appointmentDate
         LocalDate appointmentDate = LocalDate.parse(request.getAppointmentDate());
-        LocalDateTime appointmentDateTime = timeProvider.startOfDay(appointmentDate);
 
         // 2. Check availability (if not available or holiday -> 400)
-        LocalDateTime startOfDay = timeProvider.startOfDay(appointmentDate);
-        LocalDateTime endOfDay = timeProvider.endOfDay(appointmentDate);
-
-        Availability availability = availabilityRepository.findByDateBetweenOrderByDateAsc(startOfDay, endOfDay)
-                .stream().findFirst().orElse(null);
+        Availability availability = availabilityRepository.findByDate(appointmentDate).orElse(null);
 
         if (availability != null && !availability.getIsAvailable()) {
             throw new BadRequestException("The owner is not available on this date (marked as holiday or break).");
@@ -70,7 +65,7 @@ public class BookingService {
 
         // 3. Count existing active bookings for that date (PENDING, CONFIRMED)
         long existingBookings = bookingRepository.countByAppointmentDateBetweenAndStatusIn(
-                startOfDay, endOfDay, List.of("PENDING", "CONFIRMED"));
+                appointmentDate, appointmentDate, List.of("PENDING", "CONFIRMED"));
 
         // 4. Max slots = availability?.maxSlots : 4 (DEFAULT_MAX_SLOTS)
         int maxSlots = availability != null ? availability.getMaxSlots() : DEFAULT_MAX_SLOTS;
@@ -83,7 +78,7 @@ public class BookingService {
         // 5b. Check for concurrent booking on the specific time slot (race condition prevention)
         // This provides a more granular check than the daily max slots
         if (bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                appointmentDateTime, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
+                appointmentDate, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
             throw new BadRequestException("This time slot has just been booked. Please select another time.");
         }
 
@@ -127,7 +122,12 @@ public class BookingService {
             throw new BadRequestException("No valid services found");
         }
 
-        // 7. Calculate endTime if not provided (default 3 hours = 180 minutes)
+        // 7. Calculate totalPrice server-side (sum of quantity * price for all services)
+        int calculatedTotalPrice = resolvedServices.stream()
+                .mapToInt(rs -> rs.quantity * rs.price)
+                .sum();
+
+        // 7b. Calculate endTime if not provided (default 3 hours = 180 minutes)
         String endTime = request.getEndTime();
         if (endTime == null || endTime.isEmpty()) {
             endTime = calculateEndTime(request.getStartTime(), 180); // default 3 hours
@@ -144,12 +144,13 @@ public class BookingService {
         }
 
         // 9. Create Booking (status=PENDING, downpayment default 10000 centavos = ₱100)
+        // Use server-calculated totalPrice, ignore client-provided value
         Booking booking = Booking.builder()
                 .userId(user.getId())
-                .appointmentDate(appointmentDateTime)
+                .appointmentDate(appointmentDate)
                 .startTime(request.getStartTime())
                 .endTime(endTime)
-                .totalPrice(request.getTotalPrice())
+                .totalPrice(calculatedTotalPrice)
                 .downpayment(request.getDownpayment() != null ? request.getDownpayment() : DEFAULT_DOWNPAYMENT)
                 .notes(request.getNotes())
                 .inspirationImg(request.getInspirationImage())
@@ -212,16 +213,13 @@ public class BookingService {
     }
 
     public List<BookingDto> getAllBookings(String status, LocalDate startDate, LocalDate endDate) {
-        LocalDateTime start = startDate != null ? timeProvider.startOfDay(startDate) : null;
-        LocalDateTime end = endDate != null ? timeProvider.endOfDay(endDate) : null;
-
         List<Booking> bookings;
-        if (status != null && !status.isEmpty() && start != null && end != null) {
-            bookings = bookingRepository.findByAppointmentDateBetweenAndStatus(start, end, status);
+        if (status != null && !status.isEmpty() && startDate != null && endDate != null) {
+            bookings = bookingRepository.findByAppointmentDateBetweenAndStatus(startDate, endDate, status);
         } else if (status != null && !status.isEmpty()) {
             bookings = bookingRepository.findByStatus(status);
-        } else if (start != null && end != null) {
-            bookings = bookingRepository.findByAppointmentDateBetweenOrderByAppointmentDateAscStartTimeAsc(start, end);
+        } else if (startDate != null && endDate != null) {
+            bookings = bookingRepository.findByAppointmentDateBetweenOrderByAppointmentDateAscStartTimeAsc(startDate, endDate);
         } else {
             bookings = bookingRepository.findAll();
         }
@@ -352,7 +350,7 @@ public class BookingService {
                 booking.getLoyaltyStamps().stream()
                         .map(ls -> LoyaltyStampDto.builder()
                                 .earnedAt(ls.getEarnedAt().toString())
-                                .source(ls.getSource())
+                                .source(ls.getSource().name())
                                 .amount(ls.getAmount())
                                 .build())
                         .collect(Collectors.toList()) : List.of();
@@ -405,9 +403,10 @@ public class BookingService {
         }
 
         // 24-hour cutoff check - customer cannot cancel within 24 hours of appointment
-        LocalDateTime appointmentDateTime = booking.getAppointmentDate()
-                .withHour(Integer.parseInt(booking.getStartTime().split(":")[0]))
-                .withMinute(Integer.parseInt(booking.getStartTime().split(":")[1]));
+        String[] timeParts = booking.getStartTime().split(":");
+        int hour = Integer.parseInt(timeParts[0]);
+        int minute = Integer.parseInt(timeParts[1]);
+        LocalDateTime appointmentDateTime = LocalDateTime.of(booking.getAppointmentDate(), java.time.LocalTime.of(hour, minute));
 
         if (!timeProvider.isAtLeast24HoursInFuture(appointmentDateTime)) {
             throw new BadRequestException("Cancellation requires at least 24 hours notice before the appointment time.");
@@ -438,9 +437,10 @@ public class BookingService {
         }
 
         // 24-hour cutoff check - customer cannot reschedule within 24 hours of appointment
-        LocalDateTime currentAppointmentDateTime = booking.getAppointmentDate()
-                .withHour(Integer.parseInt(booking.getStartTime().split(":")[0]))
-                .withMinute(Integer.parseInt(booking.getStartTime().split(":")[1]));
+        String[] currentTimeParts = booking.getStartTime().split(":");
+        int currentHour = Integer.parseInt(currentTimeParts[0]);
+        int currentMinute = Integer.parseInt(currentTimeParts[1]);
+        LocalDateTime currentAppointmentDateTime = LocalDateTime.of(booking.getAppointmentDate(), java.time.LocalTime.of(currentHour, currentMinute));
 
         if (!timeProvider.isAtLeast24HoursInFuture(currentAppointmentDateTime)) {
             throw new BadRequestException("Rescheduling requires at least 24 hours notice before the appointment time.");
@@ -448,14 +448,9 @@ public class BookingService {
 
         // Parse new appointment date and time
         LocalDate newAppointmentDate = LocalDate.parse(request.getAppointmentDate());
-        LocalDateTime newAppointmentDateTime = timeProvider.startOfDay(newAppointmentDate);
 
         // Check availability for new date
-        LocalDateTime startOfDay = timeProvider.startOfDay(newAppointmentDate);
-        LocalDateTime endOfDay = timeProvider.endOfDay(newAppointmentDate);
-
-        Availability availability = availabilityRepository.findByDateBetweenOrderByDateAsc(startOfDay, endOfDay)
-                .stream().findFirst().orElse(null);
+        Availability availability = availabilityRepository.findByDate(newAppointmentDate).orElse(null);
 
         if (availability != null && !availability.getIsAvailable()) {
             throw new BadRequestException("The owner is not available on the selected date (marked as holiday or break).");
@@ -463,9 +458,9 @@ public class BookingService {
 
         // Check if new time slot is already booked (excluding current booking)
         if (bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                newAppointmentDateTime, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
+                newAppointmentDate, request.getStartTime(), List.of("PENDING", "CONFIRMED"))) {
             // Need to check if it's the same booking (same date and time)
-            boolean isSameSlot = booking.getAppointmentDate().equals(newAppointmentDateTime)
+            boolean isSameSlot = booking.getAppointmentDate().equals(newAppointmentDate)
                     && booking.getStartTime().equals(request.getStartTime());
             if (!isSameSlot) {
                 throw new BadRequestException("The selected time slot is not available. Please choose another time.");
@@ -474,12 +469,12 @@ public class BookingService {
 
         // Check daily max slots for new date
         long existingBookings = bookingRepository.countByAppointmentDateBetweenAndStatusIn(
-                startOfDay, endOfDay, List.of("PENDING", "CONFIRMED"));
+                newAppointmentDate, newAppointmentDate, List.of("PENDING", "CONFIRMED"));
 
         int maxSlots = availability != null ? availability.getMaxSlots() : DEFAULT_MAX_SLOTS;
 
         // If moving to a different date, check capacity
-        if (!booking.getAppointmentDate().equals(newAppointmentDateTime)) {
+        if (!booking.getAppointmentDate().equals(newAppointmentDate)) {
             if (existingBookings >= maxSlots) {
                 throw new BadRequestException("The selected day has reached its maximum queue capacity (" + maxSlots + " clients max).");
             }
@@ -492,7 +487,7 @@ public class BookingService {
         }
 
         // Update booking
-        booking.setAppointmentDate(newAppointmentDateTime);
+        booking.setAppointmentDate(newAppointmentDate);
         booking.setStartTime(request.getStartTime());
         booking.setEndTime(endTime);
 

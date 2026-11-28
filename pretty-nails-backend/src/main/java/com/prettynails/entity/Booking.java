@@ -5,11 +5,13 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "bookings", uniqueConstraints = @UniqueConstraint(name = "uk_booking_slot_active", columnNames = {"appointment_date", "start_time"}))
+@Table(name = "bookings")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,28 +28,30 @@ public class Booking {
     private String userId;
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "PENDING"; // PENDING, CONFIRMED, COMPLETED, CANCELLED, NO_SHOW
+    @Builder.Default
+    private String status = "PENDING";
 
     @Column(name = "appointment_date", nullable = false)
-    private LocalDateTime appointmentDate;
+    private LocalDate appointmentDate;
 
-    @Column(name = "start_time", nullable = false, length = 5) // HH:mm format
+    @Column(name = "start_time", nullable = false, length = 5)
     private String startTime;
 
-    @Column(name = "end_time", nullable = false, length = 5) // HH:mm format
+    @Column(name = "end_time", nullable = false, length = 5)
     private String endTime;
 
     @Column(name = "total_price", nullable = false)
-    private Integer totalPrice; // in centavos
+    private Integer totalPrice;
 
     @Column(name = "downpayment", nullable = false)
-    private Integer downpayment = 10000; // 100 PHP in centavos
+    @Builder.Default
+    private Integer downpayment = 10000;
 
     @Column(name = "notes", length = 2000)
-    private String notes; // Customer notes/inspiration
+    private String notes;
 
     @Column(name = "inspiration_img", length = 500)
-    private String inspirationImg; // URL to uploaded image
+    private String inspirationImg;
 
     @Column(name = "redeem_loyalty_reward")
     @Builder.Default
@@ -61,16 +65,23 @@ public class Booking {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    @Builder.Default
+    private Long version = 0L;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BookingService> services;
+    @Builder.Default
+    private List<BookingService> services = new ArrayList<>();
 
-    @OneToOne(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "booking", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
     private Payment payment;
 
-    @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LoyaltyStamp> loyaltyStamps;
+    @OneToMany(mappedBy = "booking", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    private List<LoyaltyStamp> loyaltyStamps = new ArrayList<>();
 }

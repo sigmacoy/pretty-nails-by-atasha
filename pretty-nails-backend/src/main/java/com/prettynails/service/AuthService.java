@@ -69,6 +69,7 @@ public class AuthService {
                 .role("CUSTOMER")
                 .passwordChangedAt(timeProvider.localNow())
                 .passwordHistory(passwordHistoryJson)
+                .emailVerified(timeProvider.localNow()) // Auto-verify for prototype smooth login
                 .build();
 
         user = userRepository.save(user);
@@ -81,14 +82,8 @@ public class AuthService {
                 .build();
         loyaltyCardRepository.save(loyaltyCard);
 
-        // Generate email verification token
-        String verificationToken = UUID.randomUUID().toString();
-        user.setEmailVerificationToken(verificationToken);
-        user.setEmailVerificationTokenExpiresAt(timeProvider.localNow().plusHours(VERIFICATION_TOKEN_EXPIRY_HOURS));
-        userRepository.save(user);
-
-        // Send verification email
-        emailService.sendEmailVerification(user.getEmail(), user.getName(), verificationToken);
+        // No email verification token needed for auto-verified prototype users
+        // Commented out for prototype: emailService.sendEmailVerification(...)
 
         String token = jwtUtil.generateToken(user);
         return AuthResponse.builder()

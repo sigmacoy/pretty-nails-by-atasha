@@ -1,11 +1,6 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types:
-      - completed
-    branches: [main]
   workflow_dispatch:
     inputs:
       environment:
@@ -16,6 +11,10 @@ on:
         options:
           - staging
           - production
+      image_tag:
+        description: 'Docker image tag to deploy (optional, defaults to latest from main)'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -24,8 +23,7 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.environment || 'production' }}
-    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    environment: ${{ github.event.inputs.environment }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Docker Buildx
@@ -39,10 +37,10 @@ jobs:
       - name: Determine image tag
         id: tag
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+          if [ -n "${{ github.event.inputs.image_tag }}" ]; then
+            echo "tag=${{ github.event.inputs.image_tag }}" >> $GITHUB_OUTPUT
           else
-            echo "tag=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_OUTPUT
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
       - name: Pull backend image
         run: |

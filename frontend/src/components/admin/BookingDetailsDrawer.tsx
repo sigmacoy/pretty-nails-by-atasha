@@ -35,6 +35,8 @@ import {
   formatTime,
   getInitials,
   cn,
+  isSafeImageUrl,
+  isSafeExternalUrl,
 } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -141,8 +143,9 @@ export function BookingDetailsDrawer({
 
   const customerNotes = booking.notes?.trim() || null;
 
-  // Resolve inspiration image URL
-  const inspirationUrl = booking.inspirationImg || booking.inspirationImage || null;
+  // Resolve inspiration image URL with XSS protection
+  const rawInspirationUrl = booking.inspirationImg || booking.inspirationImage || null;
+  const inspirationUrl = rawInspirationUrl && isSafeImageUrl(rawInspirationUrl) ? rawInspirationUrl : null;
 
   // Resolve payment details
   const payment = booking.payment;
@@ -696,14 +699,16 @@ export function BookingDetailsDrawer({
             </div>
             <div className="flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 pt-2">
               <span>Customer: {customerName}</span>
-              <a
-                href={inspirationUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 text-rose-800 dark:text-rose-300 hover:underline"
-              >
-                Open original in new tab <ExternalLink className="h-3.5 w-3.5 stroke-[1.5]" />
-              </a>
+              {inspirationUrl && isSafeExternalUrl(inspirationUrl) && (
+                <a
+                  href={inspirationUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-rose-800 dark:text-rose-300 hover:underline"
+                >
+                  Open original in new tab <ExternalLink className="h-3.5 w-3.5 stroke-[1.5]" />
+                </a>
+              )}
             </div>
           </div>
         </Modal>

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -26,13 +27,14 @@ public class LoyaltyCard {
     private String userId;
 
     @Column(name = "stamp_count", nullable = false)
+    @Builder.Default
     private Integer stampCount = 0;
 
     @Column(name = "last_stamp_at")
     private LocalDateTime lastStampAt;
 
     @Column(name = "expires_at", nullable = false)
-    private LocalDateTime expiresAt; // 12 months from last stamp
+    private LocalDateTime expiresAt;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -42,10 +44,16 @@ public class LoyaltyCard {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Version
+    @Column(name = "version", nullable = false)
+    @Builder.Default
+    private Long version = 0L;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", insertable = false, updatable = false)
     private User user;
 
     @OneToMany(mappedBy = "card", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LoyaltyStamp> stamps;
+    @Builder.Default
+    private List<LoyaltyStamp> stamps = new ArrayList<>();
 }

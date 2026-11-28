@@ -3,11 +3,10 @@
 import { ReactNode } from 'react';
 import { useAuth } from '@/lib/auth';
 import { AdminLayout } from '@/components/layout';
-import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
+import { AdminErrorProvider, AdminErrorBanner } from '@/lib/auth';
 
 export default function AdminRouteLayout({ children }: { children: ReactNode }) {
   const { isAdmin, isLoading } = useAuth();
-  const { errors, dismissError, dismissAllErrors } = useAdminErrors();
 
   if (isLoading) {
     return (
@@ -26,12 +25,11 @@ export default function AdminRouteLayout({ children }: { children: ReactNode }) 
   }
 
   return (
-    <AdminLayout
-      errors={errors}
-      onDismissError={dismissError}
-      onDismissAllErrors={dismissAllErrors}
-    >
-      {children}
-    </AdminLayout>
+    <AdminErrorProvider>
+      <AdminLayout>
+        <AdminErrorBanner />
+        {children}
+      </AdminLayout>
+    </AdminErrorProvider>
   );
 }

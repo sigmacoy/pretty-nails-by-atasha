@@ -128,6 +128,9 @@ export const loyaltyApi = {
   addStampAsStaff: (qrCode: string) =>
     api.post<import('@/types').StampResponse>('/staff/loyalty/stamp', { qrCode }),
 
+  // Public settings endpoint (for customer loyalty page)
+  getSettings: () => api.get<import('@/types').LoyaltySettingsDto>('/loyalty/settings'),
+
   // Admin
   getAllCards: (params?: { search?: string; page?: number; size?: number }) =>
     api.get<import('@/types').AdminLoyaltyCardDto[] | import('@/types').AdminLoyaltyPage>('/admin/loyalty', { params }),
@@ -153,11 +156,17 @@ export const adminApi = {
   getStats: () => api.get<import('@/types').AdminStatsDto>('/admin/stats'),
   getReports: (period?: string) =>
     api.get<import('@/types').AdminReportsDto>('/admin/reports', { params: { period } }),
+  getRevenue: (period?: string) =>
+    api.get<import('@/types').RevenueDataPoint[]>('/admin/reports/revenue', { params: { period } }),
   getSettings: () => api.get<import('@/types').LoyaltySettingsDto>('/admin/settings'),
   updateSettings: (data: import('@/types').LoyaltySettingsDto) =>
     api.post<import('@/types').LoyaltySettingsDto>('/admin/settings', data),
   getCustomers: (search?: string) =>
     api.get<import('@/types').CustomerListDto[]>('/admin/customers', { params: { search } }),
+  blockCustomer: (userId: string) =>
+    api.patch<{ message: string }>(`/admin/customers/${userId}/block`),
+  unblockCustomer: (userId: string) =>
+    api.patch<{ message: string }>(`/admin/customers/${userId}/unblock`),
   addCustomerNote: (userId: string, data: import('@/types').CustomerNoteRequest) =>
     api.post<import('@/types').CustomerNoteDto>(`/admin/customers/${userId}/notes`, data),
 };

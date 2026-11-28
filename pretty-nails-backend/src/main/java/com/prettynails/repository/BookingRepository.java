@@ -3,11 +3,13 @@ package com.prettynails.repository;
 import com.prettynails.entity.Booking;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,35 +18,14 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     List<Booking> findByUserIdOrderByAppointmentDateDesc(String userId);
 
-    long countByAppointmentDateBetweenAndStatusIn(LocalDateTime start, LocalDateTime end, List<String> statuses);
+    long countByAppointmentDateBetweenAndStatusIn(LocalDate start, LocalDate end, List<String> statuses);
 
-    long countByAppointmentDateBetween(LocalDateTime start, LocalDateTime end);
+    long countByAppointmentDateBetween(LocalDate start, LocalDate end);
 
     long countByUserId(String userId);
 
-    @Query("SELECT b FROM Booking b WHERE " +
-           "(:date IS NULL OR b.appointmentDate = :date) AND " +
-           "(:start IS NULL OR :end IS NULL OR (b.appointmentDate >= :start AND b.appointmentDate <= :end)) AND " +
-           "(:status IS NULL OR :status = 'ALL' OR b.status IN :statusList) AND " +
-           "(:search IS NULL OR LOWER(b.user.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(b.user.email) LIKE LOWER(CONCAT('%', :search, '%'))) " +
-           "ORDER BY " +
-           "CASE WHEN :sortDirection = 'ASC' THEN b.appointmentDate END ASC, " +
-           "CASE WHEN :sortDirection = 'DESC' THEN b.appointmentDate END DESC, " +
-           "CASE WHEN :sortDirection = 'ASC' THEN b.startTime END ASC, " +
-           "CASE WHEN :sortDirection = 'DESC' THEN b.startTime END DESC, " +
-           "CASE WHEN :sortDirection = 'ASC' THEN b.createdAt END ASC, " +
-           "CASE WHEN :sortDirection = 'DESC' THEN b.createdAt END DESC")
-    Page<Booking> findAdminBookings(
-            @Param("date") LocalDateTime date,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end,
-            @Param("status") String status,
-            @Param("statusList") List<String> statusList,
-            @Param("search") String search,
-            @Param("sortDirection") String sortDirection,
-            Pageable pageable);
-
-    List<Booking> findByAppointmentDateBetweenOrderByAppointmentDateAscStartTimeAsc(LocalDateTime start, LocalDateTime end);
+    
+    List<Booking> findByAppointmentDateBetweenOrderByAppointmentDateAscStartTimeAsc(LocalDate start, LocalDate end);
 
     @Query("SELECT b FROM Booking b WHERE b.userId = :userId AND b.status = 'COMPLETED' " +
            "AND NOT EXISTS (SELECT 1 FROM LoyaltyStamp ls WHERE ls.bookingId = b.id) " +
@@ -53,41 +34,37 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     List<Booking> findByStatus(String status);
 
-    List<Booking> findByAppointmentDateBetweenAndStatus(LocalDateTime start, LocalDateTime end, String status);
+    List<Booking> findByAppointmentDateBetweenAndStatus(LocalDate start, LocalDate end, String status);
 
     long countByStatus(String status);
 
-    long countByStatusAndAppointmentDateBetween(String status, LocalDateTime start, LocalDateTime end);
+    long countByStatusAndAppointmentDateBetween(String status, LocalDate start, LocalDate end);
 
-    /**
-     * Counts bookings for the given user with the specified status.
-     * Used for no-show policy tracking.
-     */
     long countByUserIdAndStatus(String userId, String status);
 
     @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = :status")
     Long sumTotalPriceByStatus(String status);
 
     @Query("SELECT COALESCE(SUM(b.totalPrice), 0) FROM Booking b WHERE b.status = :status AND b.appointmentDate BETWEEN :start AND :end")
-    Long sumTotalPriceByStatusAndDateBetween(String status, LocalDateTime start, LocalDateTime end);
+    Long sumTotalPriceByStatusAndDateBetween(String status, LocalDate start, LocalDate end);
 
     @Query("SELECT b FROM Booking b WHERE b.status = :status AND b.appointmentDate BETWEEN :start AND :end")
-    List<Booking> findByStatusAndAppointmentDateBetween(String status, LocalDateTime start, LocalDateTime end);
+    List<Booking> findByStatusAndAppointmentDateBetween(String status, LocalDate start, LocalDate end);
 
-    /**
-     * Checks if a booking already exists for the given date and time slot with PENDING or CONFIRMED status.
-     * Used for preventing double-booking race conditions.
-     */
-    boolean existsByAppointmentDateAndStartTimeAndStatusIn(LocalDateTime appointmentDate, String startTime, List<String> statuses);
+    boolean existsByAppointmentDateAndStartTimeAndStatusIn(LocalDate appointmentDate, String startTime, List<String> statuses);
 
-    /**
-     * Counts bookings for the given date and time slot with specified statuses, excluding a specific booking ID.
-     * Used for confirming a booking without counting itself as a conflict.
-     */
     @Query("SELECT COUNT(b) FROM Booking b WHERE b.appointmentDate = :appointmentDate AND b.startTime = :startTime AND b.status IN :statuses AND b.id != :excludeId")
     long countByAppointmentDateAndStartTimeAndStatusInAndIdNot(
-            @Param("appointmentDate") LocalDateTime appointmentDate,
+            @Param("appointmentDate") LocalDate appointmentDate,
             @Param("startTime") String startTime,
             @Param("statuses") List<String> statuses,
             @Param("excludeId") String excludeId);
+
+    @EntityGraph(attributePaths = {"user", "services", "payment"})
+    @Query("SELECT b FROM Booking b WHERE b.userId = :userId ORDER BY b.appointmentDate DESC, b.startTime DESC")
+    Page<Booking> findByUserIdOrderByAppointmentDateDesc(@Param("userId") String userId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"user", "services", "payment"})
+    @Query("SELECT b FROM Booking b WHERE b.status IN :statuses ORDER BY b.appointmentDate ASC, b.startTime ASC")
+    Page<Booking> findByStatusIn(@Param("statuses") List<String> statuses, Pageable pageable);
 }

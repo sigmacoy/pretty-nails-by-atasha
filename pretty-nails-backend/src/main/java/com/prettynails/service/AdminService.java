@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
@@ -53,8 +54,8 @@ public class AdminService {
         long pendingBookings = bookingRepository.countByStatus("PENDING");
 
         YearMonth currentMonth = YearMonth.from(timeProvider.today());
-        LocalDateTime startOfMonth = timeProvider.startOfMonth(currentMonth);
-        LocalDateTime endOfMonth = timeProvider.endOfMonth(currentMonth);
+        LocalDate startOfMonth = timeProvider.startOfMonth(currentMonth).toLocalDate();
+        LocalDate endOfMonth = timeProvider.endOfMonth(currentMonth).toLocalDate();
         long completedThisMonth = bookingRepository.countByStatusAndAppointmentDateBetween("COMPLETED", startOfMonth, endOfMonth);
 
         long loyaltyActive = loyaltyCardRepository.countByStampCountGreaterThan(0);
@@ -73,21 +74,24 @@ public class AdminService {
      * Get reports for a given period
      */
     public AdminReportsDto getReports(String period) {
-        LocalDateTime start;
-        LocalDateTime end = timeProvider.localNow();
+        LocalDateTime startDateTime;
+        LocalDateTime endDateTime = timeProvider.localNow();
 
         if ("week".equalsIgnoreCase(period)) {
-            start = end.minusWeeks(1);
+            startDateTime = endDateTime.minusWeeks(1);
         } else if ("month".equalsIgnoreCase(period)) {
-            start = end.minusMonths(1);
+            startDateTime = endDateTime.minusMonths(1);
         } else if ("quarter".equalsIgnoreCase(period)) {
-            start = end.minusMonths(3);
+            startDateTime = endDateTime.minusMonths(3);
         } else if ("year".equalsIgnoreCase(period)) {
-            start = end.minusYears(1);
+            startDateTime = endDateTime.minusYears(1);
         } else {
             // Default to month
-            start = end.minusMonths(1);
+            startDateTime = endDateTime.minusMonths(1);
         }
+
+        LocalDate start = startDateTime.toLocalDate();
+        LocalDate end = endDateTime.toLocalDate();
 
         // Revenue in period
         Long revenue = bookingRepository.sumTotalPriceByStatusAndDateBetween("COMPLETED", start, end);
@@ -115,8 +119,8 @@ public class AdminService {
                 .collect(Collectors.toList());
 
         // Loyalty stats in period
-        long stampsIssued = loyaltyCardRepository.countStampsSince(start);
-        long stampsRedeemed = loyaltyCardRepository.countRedeemedStampsSince(start);
+        long stampsIssued = loyaltyCardRepository.countStampsSince(startDateTime);
+        long stampsRedeemed = loyaltyCardRepository.countRedeemedStampsSince(startDateTime);
 
         return AdminReportsDto.builder()
                 .period(period)
@@ -282,5 +286,111 @@ public class AdminService {
                 .nickname(note.getNickname())
                 .createdAt(note.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Get revenue report aggregated by period for charting
+     */
+    public RevenueReportDto getRevenueReport(String period) {
+        LocalDateTime endDateTime = timeProvider.localNow();
+        LocalDateTime startDateTime;
+        List<RevenueDataPoint> dataPoints;
+
+        if ("week".equalsIgnoreCase(period)) {
+            startDateTime = endDateTime.minusWeeks(1);
+            // Daily breakdown for week
+            dataPoints = java.util.stream.IntStream.range(0, 7)
+                    .mapToObj(i -> {
+                        LocalDate dayStart = startDateTime.plusDays(i).toLocalDate();
+                        LocalDate dayEnd = dayStart.plusDays(1);
+                        Long revenue = bookingRepository.sumTotalPriceByStatusAndDateBetween("COMPLETED", dayStart, dayEnd);
+                        Long count = bookingRepository.countByStatusAndAppointmentDateBetween("COMPLETED", dayStart, dayEnd);
+                        return RevenueDataPoint.builder()
+                                .label(dayStart.toString())
+                                .revenue(revenue != null ? revenue : 0L)
+                                .bookingsCount(count)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        } else if ("month".equalsIgnoreCase(period)) {
+            startDateTime = endDateTime.minusMonths(1);
+            // Daily breakdown for month
+            dataPoints = java.util.stream.IntStream.range(0, 30)
+                    .mapToObj(i -> {
+                        LocalDate dayStart = startDateTime.plusDays(i).toLocalDate();
+                        LocalDate dayEnd = dayStart.plusDays(1);
+                        Long revenue = bookingRepository.sumTotalPriceByStatusAndDateBetween("COMPLETED", dayStart, dayEnd);
+                        Long count = bookingRepository.countByStatusAndAppointmentDateBetween("COMPLETED", dayStart, dayEnd);
+                        return RevenueDataPoint.builder()
+                                .label(dayStart.toString())
+                                .revenue(revenue != null ? revenue : 0L)
+                                .bookingsCount(count)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        } else if ("quarter".equalsIgnoreCase(period)) {
+            startDateTime = endDateTime.minusMonths(3);
+            // Weekly breakdown for quarter
+            dataPoints = java.util.stream.IntStream.range(0, 12)
+                    .mapToObj(i -> {
+                        LocalDate weekStart = startDateTime.plusWeeks(i).toLocalDate();
+                        LocalDate weekEnd = weekStart.plusWeeks(1);
+                        Long revenue = bookingRepository.sumTotalPriceByStatusAndDateBetween("COMPLETED", weekStart, weekEnd);
+                        Long count = bookingRepository.countByAppointmentDateBetween(weekStart, weekEnd);
+                        return RevenueDataPoint.builder()
+                                .label("Week " + (i + 1))
+                                .revenue(revenue != null ? revenue : 0L)
+                                .bookingsCount(count)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        } else if ("year".equalsIgnoreCase(period)) {
+            startDateTime = endDateTime.minusYears(1);
+            // Monthly breakdown for year
+            dataPoints = java.util.stream.IntStream.range(0, 12)
+                    .mapToObj(i -> {
+                        YearMonth ym = YearMonth.from(startDateTime).plusMonths(i);
+                        LocalDate monthStart = ym.atDay(1);
+                        LocalDate monthEnd = ym.atEndOfMonth();
+                        Long revenue = bookingRepository.sumTotalPriceByStatusAndDateBetween("COMPLETED", monthStart, monthEnd);
+                        Long count = bookingRepository.countByAppointmentDateBetween(monthStart, monthEnd);
+                        return RevenueDataPoint.builder()
+                                .label(ym.toString())
+                                .revenue(revenue != null ? revenue : 0L)
+                                .bookingsCount(count)
+                                .build();
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            // Default to month
+            return getRevenueReport("month");
+        }
+
+        Long totalRevenue = dataPoints.stream().mapToLong(RevenueDataPoint::getRevenue).sum();
+
+        return RevenueReportDto.builder()
+                .period(period)
+                .data(dataPoints)
+                .totalRevenue(totalRevenue)
+                .build();
+    }
+
+    /**
+     * Block or unblock a customer
+     */
+    @Transactional
+    public CustomerListDto toggleCustomerBlock(String userId, boolean blocked, String adminId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        // Prevent admin from blocking themselves
+        if (userId.equals(adminId)) {
+            throw new BadRequestException("Cannot block yourself");
+        }
+
+        user.setBlocked(blocked);
+        userRepository.save(user);
+
+        return mapToCustomerListDto(user);
     }
 }

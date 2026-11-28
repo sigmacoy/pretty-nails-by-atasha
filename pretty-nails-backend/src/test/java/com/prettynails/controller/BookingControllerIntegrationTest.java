@@ -120,7 +120,7 @@ class BookingControllerIntegrationTest extends IntegrationTestBase {
 
         // Ensure date is available
         Availability availability = Availability.builder()
-                .date(timeProvider.startOfDay(LocalDate.of(2025, 12, 25)))
+                .date(LocalDate.of(2025, 12, 25))
                 .isAvailable(true)
                 .startTime("08:00")
                 .endTime("22:00")

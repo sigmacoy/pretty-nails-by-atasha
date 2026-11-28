@@ -55,6 +55,7 @@ export default function AdminServicesPage() {
     () => servicesApi.getAll(),
     {
       enabled: true,
+      deps: [],
       onError: (err) => {
         addError(err.message || 'Failed to load services. Please try again.');
       },

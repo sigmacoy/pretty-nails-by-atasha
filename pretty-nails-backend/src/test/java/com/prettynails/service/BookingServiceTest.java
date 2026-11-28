@@ -100,7 +100,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .appointmentDate(LocalDate.of(2025, 12, 25))
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -141,7 +141,7 @@ class BookingServiceTest {
     @Test
     void createBooking_whenDateNotAvailable_shouldThrowBadRequestException() {
         Availability unavailableDate = Availability.builder()
-                .date(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .date(LocalDate.of(2025, 12, 25))
                 .isAvailable(false)
                 .build();
 
@@ -273,7 +273,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .appointmentDate(LocalDate.of(2025, 12, 25))
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -302,7 +302,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .appointmentDate(LocalDate.of(2025, 12, 25))
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -331,7 +331,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .appointmentDate(LocalDate.of(2025, 12, 25))
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -413,7 +413,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(LocalDateTime.of(2025, 12, 25, 0, 0))
+                .appointmentDate(LocalDate.of(2025, 12, 25))
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -462,8 +462,8 @@ class BookingServiceTest {
 
     @Test
     void cancelBookingByCustomer_within24Hours_shouldThrowBadRequestException() {
-        LocalDateTime appointmentSoon = LocalDateTime.now().plusHours(12); // Within 24 hours
-        testBooking.setAppointmentDate(appointmentSoon.withHour(10).withMinute(0));
+        LocalDate appointmentSoon = LocalDate.now().plusDays(1); // Tomorrow (within 24 hours if time is soon)
+        testBooking.setAppointmentDate(appointmentSoon);
         testBooking.setStartTime("10:00");
 
         when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
@@ -476,8 +476,8 @@ class BookingServiceTest {
 
     @Test
     void cancelBookingByCustomer_moreThan24Hours_shouldAllowCancellation() {
-        LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48); // More than 24 hours
-        testBooking.setAppointmentDate(appointmentLater.withHour(10).withMinute(0));
+        LocalDate appointmentLater = LocalDate.now().plusDays(2); // In 2 days (more than 24 hours)
+        testBooking.setAppointmentDate(appointmentLater);
         testBooking.setStartTime("10:00");
 
         when(bookingRepository.findById("booking-123")).thenReturn(Optional.of(testBooking));
@@ -492,12 +492,12 @@ class BookingServiceTest {
 
     @Test
     void rescheduleBooking_within24Hours_shouldThrowBadRequestException() {
-        LocalDateTime appointmentSoon = LocalDateTime.now().plusHours(12);
+        LocalDate appointmentSoon = LocalDate.now().plusDays(1);
         Booking testBookingForReschedule = Booking.builder()
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(appointmentSoon.withHour(10).withMinute(0))
+                .appointmentDate(appointmentSoon)
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -520,12 +520,12 @@ class BookingServiceTest {
 
     @Test
     void rescheduleBooking_moreThan24Hours_shouldAllowReschedule() {
-        LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48);
+        LocalDate appointmentLater = LocalDate.now().plusDays(2);
         Booking testBookingForReschedule = Booking.builder()
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(appointmentLater.withHour(10).withMinute(0))
+                .appointmentDate(appointmentLater)
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -561,12 +561,12 @@ class BookingServiceTest {
 
     @Test
     void rescheduleBooking_whenNewSlotAlreadyBookedByAnother_shouldThrowBadRequestException() {
-        LocalDateTime appointmentLater = LocalDateTime.now().plusHours(48);
+        LocalDate appointmentLater = LocalDate.now().plusDays(2);
         Booking testBookingForReschedule = Booking.builder()
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(appointmentLater.withHour(10).withMinute(0))
+                .appointmentDate(appointmentLater)
                 .startTime("10:00")
                 .endTime("12:00")
                 .totalPrice(50000)
@@ -601,7 +601,7 @@ class BookingServiceTest {
                 .id("booking-123")
                 .userId("user-123")
                 .status("PENDING")
-                .appointmentDate(testAppointmentDate) // Start of day (00:00)
+                .appointmentDate(testDate) // Use LocalDate
                 .startTime("10:00") // Actual start time
                 .endTime("12:00")
                 .totalPrice(50000)

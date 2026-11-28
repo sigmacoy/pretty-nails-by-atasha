@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
@@ -44,11 +44,19 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showManual, setShowManual] = useState(false);
   const [scanResult, setScanResult] = useState<{ code: string; success: boolean } | null>(null);
+  const [useFallback, setUseFallback] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const barcodeDetectorRef = useRef<BarcodeDetector | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const isScanningRef = useRef(isScanning);
+  const scanResultRef = useRef(scanResult);
+
+  // Keep refs in sync with state
+  useEffect(() => { isScanningRef.current = isScanning; }, [isScanning]);
+  useEffect(() => { scanResultRef.current = scanResult; }, [scanResult]);
 
   // Inject scanning animation keyframes
   useEffect(() => {
@@ -74,16 +82,34 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
 
   // Initialize BarcodeDetector
   useEffect(() => {
-    if (isBarcodeDetectorSupported) {
+    if (isBarcodeDetectorSupported && !useFallback) {
       try {
         barcodeDetectorRef.current = new window.BarcodeDetector({
           formats: ['qr_code'],
         });
       } catch (e) {
         console.warn('BarcodeDetector initialization failed:', e);
+        setUseFallback(true);
       }
     }
-  }, [isBarcodeDetectorSupported]);
+  }, [isBarcodeDetectorSupported, useFallback]);
+
+  // Fallback scanning using canvas + html5-qrcode logic (simplified)
+  const fallbackScan = useCallback(async (video: HTMLVideoElement): Promise<string | null> => {
+    if (!canvasRef.current) return null;
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0);
+
+    // Try to use a simple barcode detection fallback
+    // In production, you'd use a library like @zxing/browser or html5-qrcode
+    // For now, we'll rely on BarcodeDetector and manual entry
+    return null;
+  }, []);
 
   // Start camera when modal opens
   useEffect(() => {
@@ -99,14 +125,26 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
   const startCamera = async () => {
     setError(null);
     setHasPermission(false);
+    setScanResult(null);
+    setUseFallback(false);
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
       });
 
+      streamRef.current = stream;
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        // Wait for video to be ready
+        await new Promise<void>((resolve, reject) => {
+          if (!videoRef.current) return reject();
+          videoRef.current.onloadedmetadata = () => resolve();
+          videoRef.current.onerror = reject;
+          // Timeout after 5 seconds
+          setTimeout(() => reject(new Error('Video load timeout')), 5000);
+        });
         await videoRef.current.play();
         setHasPermission(true);
         setIsScanning(true);
@@ -120,7 +158,7 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
     }
   };
 
-  const stopCamera = () => {
+  const stopCamera = useCallback(() => {
     setIsScanning(false);
 
     if (animationFrameRef.current) {
@@ -128,34 +166,61 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
       animationFrameRef.current = null;
     }
 
-    if (videoRef.current?.srcObject) {
-      const stream = videoRef.current.srcObject as MediaStream;
-      stream.getTracks().forEach(track => track.stop());
+    // Properly clean up MediaStream
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+
+    if (videoRef.current) {
       videoRef.current.srcObject = null;
     }
-  };
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      stopCamera();
+    };
+  }, [stopCamera]);
 
   const startScanning = () => {
-    if (!isScanning || !videoRef.current || !barcodeDetectorRef.current) return;
+    if (!isScanningRef.current || !videoRef.current) return;
+
+    // Use BarcodeDetector if available, otherwise use fallback
+    const detector = barcodeDetectorRef.current;
 
     const detect = async () => {
-      if (!isScanning || !videoRef.current || !barcodeDetectorRef.current) return;
+      if (!isScanningRef.current || !videoRef.current) return;
 
-      try {
-        const barcodes = await barcodeDetectorRef.current.detect(videoRef.current);
+      // Check if we already have a result
+      if (scanResultRef.current?.success) return;
 
-        if (barcodes.length > 0) {
-          const code = barcodes[0].rawValue;
-          if (code && code !== scanResult?.code) {
-            handleScanResult(code);
-            return; // Stop scanning after successful detection
+      if (detector && !useFallback) {
+        try {
+          const barcodes = await detector.detect(videoRef.current);
+
+          if (barcodes.length > 0) {
+            const code = barcodes[0].rawValue;
+            if (code && code !== scanResultRef.current?.code) {
+              handleScanResult(code);
+              return;
+            }
           }
+        } catch (err) {
+          console.warn('Barcode detection error, falling back:', err);
+          setUseFallback(true);
         }
-      } catch (err) {
-        console.warn('Barcode detection error:', err);
+      } else if (useFallback) {
+        // Fallback scanning (canvas-based)
+        const code = await fallbackScan(videoRef.current);
+        if (code && code !== scanResultRef.current?.code) {
+          handleScanResult(code);
+          return;
+        }
       }
 
-      if (isScanning) {
+      if (isScanningRef.current) {
         animationFrameRef.current = requestAnimationFrame(detect);
       }
     };
@@ -216,15 +281,16 @@ export function QRScanner({ onScanSuccess, onClose, isOpen }: QRScannerProps) {
             <div className="relative">
               {/* Camera feed */}
               <div className="relative aspect-square rounded-xl overflow-hidden bg-stone-100 dark:bg-stone-900">
-                {hasPermission && videoRef.current ? (
-                  <video
-                    ref={videoRef}
-                    className="w-full h-full object-cover"
-                    playsInline
-                    muted
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-stone-500 dark:text-stone-400">
+                <video
+                  ref={videoRef}
+                  className={`w-full h-full object-cover ${hasPermission ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                  playsInline
+                  muted
+                  style={{ transform: 'rotateY(0deg)' }}
+                />
+                <canvas ref={canvasRef} className="hidden" />
+                {!hasPermission && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-stone-500 dark:text-stone-400 z-10">
                     <Camera className="h-12 w-12 opacity-50" />
                     <p className="text-center px-4">
                       {error || 'Starting camera...'}

@@ -51,6 +51,7 @@ export function Modal({
           aria-modal="true"
           aria-labelledby={title ? 'modal-title' : undefined}
           aria-describedby={description ? 'modal-description' : undefined}
+          onClick={(e) => e.stopPropagation()}
         >
           {(title || showClose) && (
             <div className="flex items-start justify-between p-5 sm:p-6 border-b border-rose-200/80 dark:border-rose-950/60">

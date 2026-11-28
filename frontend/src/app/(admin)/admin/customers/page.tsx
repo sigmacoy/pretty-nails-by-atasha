@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@/hooks/useApi';
+import { useQuery, useMutation } from '@/hooks/useApi';
 import { adminApi } from '@/lib/api';
 import { CustomerListDto } from '@/types';
 import { CustomersTable, CustomerNoteModal } from '@/components/admin/customers';
-import { Search, X, CheckCircle, Ban, Calendar, Users } from 'lucide-react';
+import { Search, X, CheckCircle, Ban, Calendar, Users, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAdminErrors } from '@/components/admin/AdminErrorBanner';
 
@@ -24,10 +24,14 @@ export default function AdminCustomersPage() {
   const [blockedCustomers, setBlockedCustomers] = useState<Set<string>>(new Set());
   const [customerNicknames, setCustomerNicknames] = useState<Record<string, string>>({});
 
+  // Build API params with deps for useQuery
+  const params = { search: search || undefined };
+
   const { data: customersData, isLoading, refetch } = useQuery(
     () => adminApi.getCustomers(search),
     {
       enabled: true,
+      deps: [params],
       onError: (err) => {
         addError(err.message || 'Failed to load customers. Please try again.');
       },
@@ -64,18 +68,56 @@ export default function AdminCustomersPage() {
   ).length;
   const activeCount = Math.max(0, customersList.length - blockedCount);
 
+  // Mutation for blocking/unblocking customer
+  const blockMutation = useMutation(
+    (userId: string) => adminApi.blockCustomer(userId),
+    {
+      onSuccess: (_, userId) => {
+        const customer = customersList.find((c) => c.id === userId);
+        if (customer) {
+          toast.success(`${customer.name} restricted from studio bookings.`);
+        }
+        refetch();
+      },
+      onError: (err) => {
+        toast.error(err.message || 'Failed to restrict customer.');
+      },
+    }
+  );
+
+  const unblockMutation = useMutation(
+    (userId: string) => adminApi.unblockCustomer(userId),
+    {
+      onSuccess: (_, userId) => {
+        const customer = customersList.find((c) => c.id === userId);
+        if (customer) {
+          toast.success(`${customer.name} reinstated for studio bookings.`);
+        }
+        refetch();
+      },
+      onError: (err) => {
+        toast.error(err.message || 'Failed to reinstate customer.');
+      },
+    }
+  );
+
   const handleToggleBlock = (customer: CustomerListDto) => {
-    setBlockedCustomers((prev) => {
-      const next = new Set(prev);
-      if (next.has(customer.id)) {
+    const isCurrentlyBlocked = blockedCustomers.has(customer.id) || customer.role === 'BLOCKED';
+    if (isCurrentlyBlocked) {
+      setBlockedCustomers((prev) => {
+        const next = new Set(prev);
         next.delete(customer.id);
-        toast.success(`${customer.name} reinstated for studio bookings.`);
-      } else {
+        return next;
+      });
+      unblockMutation.mutate(customer.id);
+    } else {
+      setBlockedCustomers((prev) => {
+        const next = new Set(prev);
         next.add(customer.id);
-        toast.success(`${customer.name} restricted from studio bookings.`);
-      }
-      return next;
-    });
+        return next;
+      });
+      blockMutation.mutate(customer.id);
+    }
   };
 
   const handleOpenNoteModal = (customer: CustomerListDto) => {

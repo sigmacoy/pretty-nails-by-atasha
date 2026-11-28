@@ -6,10 +6,13 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "services")
+@Table(name = "services", indexes = {
+        @Index(name = "idx_services_active_cat_created", columnList = "is_active, category, created_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -23,21 +26,27 @@ public class Service {
     private String id;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
-    private String name;
+    @Builder.Default
+    private String name = "";
 
     @Column(name = "category", nullable = false, length = 20)
-    private String category; // GEL, EXTENSION, PEDICURE, ADDON
+    @Builder.Default
+    private String category = "";
 
     @Column(name = "description", length = 2000)
-    private String description;
+    @Builder.Default
+    private String description = "";
 
     @Column(name = "base_price", nullable = false)
-    private Integer basePrice; // in centavos (PHP * 100)
+    @Builder.Default
+    private Integer basePrice = 0;
 
     @Column(name = "duration", nullable = false)
-    private Integer duration; // in minutes
+    @Builder.Default
+    private Integer duration = 0;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @CreationTimestamp
@@ -49,8 +58,10 @@ public class Service {
     private LocalDateTime updatedAt;
 
     @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ServiceVariant> variants;
+    @Builder.Default
+    private List<ServiceVariant> variants = new ArrayList<>();
 
-    @OneToMany(mappedBy = "service", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<BookingService> bookings;
+    @OneToMany(mappedBy = "service")
+    @Builder.Default
+    private List<BookingService> bookings = new ArrayList<>();
 }

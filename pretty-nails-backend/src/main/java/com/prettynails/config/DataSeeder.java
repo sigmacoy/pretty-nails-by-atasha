@@ -206,6 +206,7 @@ public class DataSeeder implements CommandLineRunner {
 
     private void seedAdminUser() {
         // Seed primary owner account with username "admin" and password "admin"
+        // This is the hardcoded prototype credential that must be preserved
         if (userRepository.findByEmailIgnoreCase("admin").isEmpty()) {
             User owner = User.builder()
                     .email("admin")
@@ -225,9 +226,11 @@ public class DataSeeder implements CommandLineRunner {
             loyaltyCardRepository.save(loyaltyCard);
         }
 
-        // Seed configurable admin if distinct
+        // Seed configurable admin if distinct from hardcoded "admin"
+        // FIX: Only seed if adminEmail is non-empty AND not "admin" to avoid bogus empty-email row
         String adminEmail = adminProperties.getEmail();
-        if (!"admin".equalsIgnoreCase(adminEmail) && userRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
+        if (adminEmail != null && !adminEmail.isBlank() && !"admin".equalsIgnoreCase(adminEmail)
+                && userRepository.findByEmailIgnoreCase(adminEmail).isEmpty()) {
             User admin = User.builder()
                     .email(adminEmail)
                     .name("Ma'am Atasha (Owner)")

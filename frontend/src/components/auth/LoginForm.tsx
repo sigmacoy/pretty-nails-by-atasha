@@ -12,6 +12,7 @@ import { StudioMark } from '@/components/layout/Header';
 import { authApi } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { toast } from 'sonner';
+import { isSafeRedirect } from '@/lib/utils';
 
 const OAUTH_GOOGLE_URL = `${process.env.NEXT_PUBLIC_API_BASE || '/api/backend'}/oauth2/authorization/google`;
 const OAUTH_FACEBOOK_URL = `${process.env.NEXT_PUBLIC_API_BASE || '/api/backend'}/oauth2/authorization/facebook`;
@@ -20,7 +21,8 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login } = useAuth();
-  const redirectTo = searchParams.get('redirect') || '/';
+  const rawRedirect = searchParams.get('redirect') || '/';
+  const redirectTo = isSafeRedirect(rawRedirect) ? rawRedirect : '/';
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);

@@ -8,7 +8,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "payments")
+@Table(name = "payments", indexes = {
+        @Index(name = "idx_payments_user_id", columnList = "user_id"),
+        @Index(name = "idx_payments_status_verified_at", columnList = "status, verified_at")
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,28 +25,35 @@ public class Payment {
     private String id;
 
     @Column(name = "booking_id", nullable = false, unique = true)
-    private String bookingId;
+    @Builder.Default
+    private String bookingId = "";
 
     @Column(name = "user_id", nullable = false)
-    private String userId;
+    @Builder.Default
+    private String userId = "";
 
     @Column(name = "amount", nullable = false)
-    private Integer amount; // in centavos
+    @Builder.Default
+    private Integer amount = 0;
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "PENDING"; // PENDING, PAID, REFUNDED, FORFEITED
+    @Builder.Default
+    private String status = "PENDING";
 
     @Column(name = "method", nullable = false, length = 20)
-    private String method; // GCASH
+    @Builder.Default
+    private String method = "";
 
     @Column(name = "reference", length = 100)
-    private String reference; // GCash reference number
+    @Builder.Default
+    private String reference = "";
 
     @Column(name = "verified_at")
     private LocalDateTime verifiedAt;
 
     @Column(name = "verified_by", length = 255)
-    private String verifiedBy; // Admin user ID
+    @Builder.Default
+    private String verifiedBy = "";
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -55,9 +65,10 @@ public class Payment {
 
     @Version
     @Column(name = "version", nullable = false)
+    @Builder.Default
     private Long version = 0L;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "booking_id", referencedColumnName = "id", insertable = false, updatable = false)
     private Booking booking;
 

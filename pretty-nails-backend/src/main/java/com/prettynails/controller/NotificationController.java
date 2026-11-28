@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Sinks;
@@ -125,6 +126,7 @@ public class NotificationController extends BaseController {
     /**
      * Send a notification to a specific user (admin/staff only).
      */
+    @PreAuthorize("hasRole('ADMIN') or hasRole('STAFF')")
     @PostMapping("/send")
     public ResponseEntity<Void> sendNotification(@RequestBody SendNotificationRequest request) {
         notificationService.sendToUser(request.getUserId(), request.getEvent());
@@ -134,6 +136,7 @@ public class NotificationController extends BaseController {
     /**
      * Broadcast a notification to all users (admin only).
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/broadcast")
     public ResponseEntity<Void> broadcastNotification(@RequestBody BroadcastNotificationRequest request) {
         notificationService.broadcast(request.getEvent());

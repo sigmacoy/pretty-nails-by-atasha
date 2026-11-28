@@ -19,6 +19,7 @@ export default function AdminReportsPage() {
     () => adminApi.getReports(period),
     {
       enabled: true,
+      deps: [period],
       onError: (err) => {
         addError(err.message || 'Failed to load reports. Please try again.');
       },

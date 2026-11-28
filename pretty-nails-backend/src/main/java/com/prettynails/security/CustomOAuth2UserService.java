@@ -48,6 +48,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     "Email not found from OAuth2 provider: " + registrationId);
         }
 
+        // Verify email is verified from OAuth2 provider
+        if (!isEmailVerified(oAuth2User, registrationId)) {
+            throw new InternalAuthenticationServiceException(
+                    "Email not verified with OAuth2 provider: " + registrationId);
+        }
+
         // Check if account already linked
         Optional<Account> existingAccount = accountRepository.findByProviderAndProviderAccountId(
                 registrationId, providerId);
@@ -126,9 +132,9 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .role("CUSTOMER")
                 .emailVerified(timeProvider.localNow())
                 .image(imageUrl)
+                .oauth2Provider(provider)
+                .oauth2ProviderId(providerId)
                 .build();
-        user.setOauth2Provider(provider);
-        user.setOauth2ProviderId(providerId);
 
         user = userRepository.save(user);
 
@@ -155,7 +161,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .build();
         accountRepository.save(account);
 
-        log.info("Created new OAuth2 user: {} via {}", email, provider);
+        log.info("Created new OAuth2 user via {}", provider);
         return user;
     }
 
@@ -193,7 +199,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         accountRepository.save(account);
 
-        log.info("Linked OAuth2 account for user: {} via {}", user.getEmail(), provider);
+        log.info("Linked OAuth2 account via {}", provider);
     }
 
     private void updateAccountTokens(Account account, OAuth2UserRequest userRequest) {
@@ -205,5 +211,32 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         account.setScope(userRequest.getAccessToken().getScopes().toString());
 
         accountRepository.save(account);
+    }
+
+    /**
+     * Checks if the email is verified from the OAuth2 provider.
+     * Google returns "email_verified" boolean, Facebook returns "verified" in the response.
+     * For prototype: require verified email before auto-linking accounts.
+     */
+
+    /**
+     * Checks if the email is verified from the OAuth2 provider.
+     * Google returns "email_verified" boolean, Facebook returns "verified" in the response.
+     */
+    private boolean isEmailVerified(OAuth2User oAuth2User, String registrationId) {
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+
+        if ("google".equals(registrationId)) {
+            Object verified = attributes.get("email_verified");
+            return verified instanceof Boolean && (Boolean) verified;
+        } else if ("facebook".equals(registrationId)) {
+            // Facebook doesn't have a direct email_verified field in basic profile
+            // The email is considered verified if it's present in the response
+            return attributes.containsKey("email") && attributes.get("email") != null;
+        }
+
+        // Default: require email_verified field
+        Object verified = attributes.get("email_verified");
+        return verified instanceof Boolean && (Boolean) verified;
     }
 }

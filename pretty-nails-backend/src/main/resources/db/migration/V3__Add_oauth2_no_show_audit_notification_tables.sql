@@ -8,24 +8,27 @@ ALTER TABLE users
     ADD COLUMN IF NOT EXISTS password_changed_at TIMESTAMP,
     ADD COLUMN IF NOT EXISTS password_history TEXT;
 
--- Create audit_logs table
+-- Create audit_logs table (aligned with AuditLog.java entity)
 CREATE TABLE IF NOT EXISTS audit_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    admin_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(36),
+    user_email VARCHAR(255),
+    user_role VARCHAR(20),
     action VARCHAR(100) NOT NULL,
-    entity_type VARCHAR(50) NOT NULL,
+    entity_type VARCHAR(50),
     entity_id VARCHAR(36),
-    old_value TEXT,
-    new_value TEXT,
-    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    description VARCHAR(2000),
+    metadata JSONB,
     ip_address VARCHAR(45),
-    user_agent VARCHAR(500)
+    user_agent VARCHAR(2000),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes for audit_logs
-CREATE INDEX IF NOT EXISTS idx_audit_log_admin_id ON audit_logs(admin_id);
+-- Create indexes for audit_logs (matching AuditLog.java @Index definitions)
+CREATE INDEX IF NOT EXISTS idx_audit_log_user_id ON audit_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_logs(action);
 CREATE INDEX IF NOT EXISTS idx_audit_log_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX IF NOT EXISTS idx_audit_log_timestamp ON audit_logs(timestamp);
+CREATE INDEX IF NOT EXISTS idx_audit_log_created_at ON audit_logs(created_at);
 
 -- Create index for booking no-show queries
 CREATE INDEX IF NOT EXISTS idx_booking_user_status ON bookings(user_id, status);

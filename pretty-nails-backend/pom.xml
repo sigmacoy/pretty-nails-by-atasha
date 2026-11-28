@@ -58,6 +58,10 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
             <optional>true</optional>
@@ -72,7 +76,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <scope>test</scope>
         </dependency>
 
         <!-- JWT -->
@@ -106,10 +110,12 @@
             <artifactId>bucket4j-spring-boot-starter</artifactId>
             <version>0.12.10</version>
         </dependency>
+
+        <!-- Caffeine Cache for Rate Limiting -->
         <dependency>
-            <groupId>com.bucket4j</groupId>
-            <artifactId>bucket4j-core</artifactId>
-            <version>8.10.0</version>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
         </dependency>
 
         <!-- OAuth2 Client -->
@@ -125,6 +131,7 @@
             <version>1.3.0</version>
         </dependency>
 
+        
         <!-- WebFlux for SSE -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -161,14 +168,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- Mockito inline for mocking final classes (Java 21+) -->
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-inline</artifactId>
-            <version>5.2.0</version>
-            <scope>test</scope>
-        </dependency>
-
+        
         <!-- Testcontainers -->
         <dependency>
             <groupId>org.testcontainers</groupId>

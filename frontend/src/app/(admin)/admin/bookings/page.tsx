@@ -69,6 +69,7 @@ export default function AdminBookingsPage() {
     () => bookingsApi.getAdminBookings(params),
     {
       enabled: true,
+      deps: [params],
       onError: (err) => {
         addError(err.message || 'Failed to load bookings. Please try again.');
       },

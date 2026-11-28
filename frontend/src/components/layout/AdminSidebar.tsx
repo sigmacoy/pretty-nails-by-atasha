@@ -18,7 +18,7 @@ const navigation = [
   { name: 'Reports', href: '/admin/reports', icon: BarChart2 },
 ];
 
-export function AdminSidebar({ onClose }: { onClose?: () => void }) {
+export function AdminSidebar({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const pathname = usePathname();
 
   return (

@@ -41,17 +41,15 @@ class AvailabilityServiceTest {
     private AvailabilityService availabilityService;
 
     private LocalDate testDate;
-    private LocalDateTime testDateTime;
     private Availability testAvailability;
 
     @BeforeEach
     void setUp() {
         testDate = LocalDate.of(2025, 12, 25);
-        testDateTime = LocalDateTime.of(2025, 12, 25, 0, 0);
 
         testAvailability = Availability.builder()
                 .id("avail-1")
-                .date(testDateTime)
+                .date(testDate)
                 .isAvailable(true)
                 .startTime("09:00")
                 .endTime("18:00")
@@ -59,13 +57,13 @@ class AvailabilityServiceTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        lenient().when(timeProvider.startOfDay(testDate)).thenReturn(testDateTime);
+        lenient().when(timeProvider.startOfDay(testDate)).thenReturn(testDate.atStartOfDay());
         lenient().when(timeProvider.startOfToday()).thenReturn(LocalDateTime.now().withHour(0).withMinute(0).withSecond(0).withNano(0));
     }
 
     @Test
     void getAvailableSlots_whenNoAvailabilityForDate_shouldReturnEmptyList() {
-        when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.empty());
+        when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.empty());
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -75,7 +73,7 @@ class AvailabilityServiceTest {
     @Test
     void getAvailableSlots_whenAvailabilityNotAvailable_shouldReturnEmptyList() {
         testAvailability.setIsAvailable(false);
-        when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -86,13 +84,13 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_whenSlotHasPendingBooking_shouldMarkSlotUnavailable() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         // Default for all slots - available
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), anyString(), anyList())).thenReturn(false);
+                eq(testDate), anyString(), anyList())).thenReturn(false);
         // Slot 09:00-09:30 has a PENDING booking - override default
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), eq("09:00"), anyList())).thenReturn(true);
+                eq(testDate), eq("09:00"), anyList())).thenReturn(true);
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -113,13 +111,13 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_whenSlotHasConfirmedBooking_shouldMarkSlotUnavailable() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         // Default for all slots - available
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), anyString(), anyList())).thenReturn(false);
+                eq(testDate), anyString(), anyList())).thenReturn(false);
         // Slot 10:00-10:30 has a CONFIRMED booking - override default
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), eq("10:00"), anyList())).thenReturn(true);
+                eq(testDate), eq("10:00"), anyList())).thenReturn(true);
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -132,10 +130,10 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_whenSlotHasCancelledBooking_shouldMarkSlotAvailable() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         // CANCELLED bookings should NOT make slot unavailable
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), anyString(), anyList())).thenReturn(false);
+                eq(testDate), anyString(), anyList())).thenReturn(false);
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -148,10 +146,10 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_whenSlotHasCompletedBooking_shouldMarkSlotAvailable() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         // COMPLETED bookings should NOT make slot unavailable
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), anyString(), anyList())).thenReturn(false);
+                eq(testDate), anyString(), anyList())).thenReturn(false);
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -164,10 +162,10 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_whenSlotHasNoShowBooking_shouldMarkSlotAvailable() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         // NO_SHOW bookings should NOT make slot unavailable - all slots available
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                eq(testDateTime), anyString(), anyList())).thenReturn(false);
+                eq(testDate), anyString(), anyList())).thenReturn(false);
 
         List<AvailabilitySlotDto> slots = availabilityService.getAvailableSlots(testDate);
 
@@ -183,7 +181,7 @@ class AvailabilityServiceTest {
     void getAvailableSlots_respectsMaxSlotsLimit() {
         Availability limitedAvailability = Availability.builder()
                 .id("avail-2")
-                .date(testDateTime)
+                .date(testDate)
                 .isAvailable(true)
                 .startTime("09:00")
                 .endTime("12:00") // 3 hours = 6 slots of 30 min
@@ -191,7 +189,7 @@ class AvailabilityServiceTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(limitedAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(limitedAvailability));
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), anyList()))
                 .thenReturn(false);
 
@@ -205,7 +203,7 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableSlots_usesTimeProviderForStartOfDay() {
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(testAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(testAvailability));
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), anyList()))
                 .thenReturn(false);
 
@@ -218,7 +216,7 @@ class AvailabilityServiceTest {
     void getAvailableSlots_generatesCorrectSlotTimes() {
         Availability customAvailability = Availability.builder()
                 .id("avail-3")
-                .date(testDateTime)
+                .date(testDate)
                 .isAvailable(true)
                 .startTime("10:00")
                 .endTime("11:00") // 1 hour = 2 slots
@@ -226,7 +224,7 @@ class AvailabilityServiceTest {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        lenient().when(availabilityRepository.findByDate(testDateTime)).thenReturn(Optional.of(customAvailability));
+        lenient().when(availabilityRepository.findByDate(testDate)).thenReturn(Optional.of(customAvailability));
         lenient().when(bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(any(), anyString(), anyList()))
                 .thenReturn(false);
 
@@ -241,8 +239,8 @@ class AvailabilityServiceTest {
 
     @Test
     void getAvailableDates_usesTimeProviderForStartOfToday() {
-        LocalDateTime manilaToday = LocalDateTime.of(2025, 12, 20, 0, 0);
-        lenient().when(timeProvider.startOfToday()).thenReturn(manilaToday);
+        LocalDate manilaToday = LocalDate.of(2025, 12, 20);
+        lenient().when(timeProvider.startOfToday()).thenReturn(manilaToday.atStartOfDay());
         lenient().when(availabilityRepository.findAvailableDatesFrom(manilaToday)).thenReturn(List.of(testAvailability));
 
         List<AvailabilityDto> dates = availabilityService.getAvailableDates();

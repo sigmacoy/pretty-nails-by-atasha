@@ -63,6 +63,7 @@ export default function AdminGalleryPage() {
     () => galleryApi.getAdmin(params),
     {
       enabled: true,
+      deps: [params],
       onError: (err) => {
         addError(err.message || 'Failed to load gallery designs. Please try again.');
       },

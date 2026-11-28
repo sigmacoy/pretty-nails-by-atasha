@@ -18,10 +18,10 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
   const [isScanning, setIsScanning] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [lastScannedCode, setLastScannedCode] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const scanTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const html5QrCodeRef = useRef<any>(null);
+  const lastScannedCodeRef = useRef<string | null>(null);
 
   // Initialize html5-qrcode scanner
   useEffect(() => {
@@ -73,15 +73,15 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
           qrbox: { width: 250, height: 250 },
         },
         async (decodedText: string, decodedResult: any) => {
-          // Prevent duplicate scans within 2 seconds
-          if (lastScannedCode === decodedText) return;
+          // Prevent duplicate scans within 2 seconds using ref
+          if (lastScannedCodeRef.current === decodedText) return;
 
-          setLastScannedCode(decodedText);
+          lastScannedCodeRef.current = decodedText;
           setIsProcessing(true);
 
           // Clear the duplicate prevention after 2 seconds
           scanTimeoutRef.current = setTimeout(() => {
-            setLastScannedCode(null);
+            lastScannedCodeRef.current = null;
           }, 2000);
 
           try {
@@ -129,7 +129,7 @@ export function QRScanner({ onScanSuccess, onScanError }: QRScannerProps) {
       setError(err.message || 'Failed to start camera. Please check permissions.');
       setIsScanning(false);
     }
-  }, [isScanning, lastScannedCode, onScanSuccess, onScanError]);
+  }, [isScanning, onScanSuccess, onScanError]);
 
   const stopScanning = useCallback(async () => {
     if (!html5QrCodeRef.current || !isScanning) return;

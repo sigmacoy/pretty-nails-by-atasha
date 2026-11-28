@@ -131,7 +131,7 @@ export default function GalleryPage() {
 
   const { data: galleryData, isLoading } = useQuery(
     () => galleryApi.getPublic({ search: debouncedSearch, category: category || undefined }),
-    { enabled: true }
+    { enabled: true, deps: [debouncedSearch, category] }
   );
 
   // Strict deduplication of lookbook items by imageUrl with curated local fallbacks

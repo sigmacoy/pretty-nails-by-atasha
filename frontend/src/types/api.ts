@@ -297,12 +297,24 @@ export interface AdminReportsDto {
   loyaltyStats: { issued: number; redeemed: number };
 }
 
+export interface RevenueDataPoint {
+  date: string;
+  revenue: number;
+  isCurrentPeriod?: boolean;
+}
+
 export interface LoyaltySettingsDto {
   stampsPerService: number;
   stampsPerAmount: number;
   amountThreshold: number; // in centavos
   freeServiceReward: string;
   cardExpiryMonths: number;
+  loyaltyMaxStamps: number;
+}
+
+export interface SettingsDto {
+  loyalty: LoyaltySettingsDto;
+  updatedAt: string;
 }
 
 export interface CustomerListDto {

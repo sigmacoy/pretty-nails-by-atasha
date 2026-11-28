@@ -1,8 +1,12 @@
 package com.prettynails.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -21,6 +25,8 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     private long expiration;
 
+    private SecretKey key;
+
     @PostConstruct
     public void validateSecret() {
         if (secret == null || secret.isBlank()) {
@@ -29,13 +35,12 @@ public class JwtUtil {
         if (secret.getBytes().length < 32) {
             throw new IllegalStateException("JWT_SECRET must be at least 32 characters (256 bits)");
         }
+        this.key = Keys.hmacShaKeyFor(secret.getBytes());
     }
 
     public String generateToken(UserDetails userDetails) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + expiration);
-
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
 
         return Jwts.builder()
                 .subject(userDetails.getUsername())
@@ -55,7 +60,6 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        SecretKey key = Keys.hmacShaKeyFor(secret.getBytes());
         return Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -64,11 +68,39 @@ public class JwtUtil {
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        try {
+            final String username = extractUsername(token);
+            return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        } catch (ExpiredJwtException e) {
+            // Token expired - return false gracefully
+            return false;
+        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException e) {
+            // Invalid token - return false gracefully
+            return false;
+        }
     }
 
     private boolean isTokenExpired(String token) {
-        return extractClaim(token, Claims::getExpiration).before(new Date());
+        try {
+            return extractClaim(token, Claims::getExpiration).before(new Date());
+        } catch (ExpiredJwtException e) {
+            return true;
+        }
+    }
+
+    /**
+     * Checks if a token is expired without throwing exception.
+     * Returns true if token is expired or invalid.
+     */
+    public boolean isTokenExpiredOrInvalid(String token) {
+        try {
+            return isTokenExpired(token);
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    public long getExpiration() {
+        return expiration;
     }
 }

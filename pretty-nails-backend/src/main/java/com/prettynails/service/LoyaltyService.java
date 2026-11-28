@@ -91,7 +91,7 @@ public class LoyaltyService {
                 .cardId(loyaltyCard.getId())
                 .bookingId(bookingId)
                 .earnedAt(now)
-                .source(source)
+                .source(LoyaltyStamp.StampSource.valueOf(source))
                 .build();
         loyaltyStampRepository.save(stamp);
 
@@ -193,6 +193,7 @@ public class LoyaltyService {
      * Supports formats:
      * - "BOOKING:<bookingId>"
      * - "bookingId:stampType:timestamp"
+     * Verifies booking existence, ownership, and COMPLETED status before awarding stamp.
      */
     @Transactional
     public StampResponse addStampViaQr(String userId, String qrCode) {
@@ -206,7 +207,37 @@ public class LoyaltyService {
 
         try {
             ParsedQr parsed = parseQrCode(qrCode);
-            return addStampCore(userId, parsed.bookingId(), parsed.stampType(), false);
+            String bookingId = parsed.bookingId();
+
+            // Verify booking exists and belongs to this user
+            var bookingOpt = bookingRepository.findById(bookingId);
+            if (bookingOpt.isEmpty()) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Booking not found")
+                        .build();
+            }
+
+            var booking = bookingOpt.get();
+            if (!booking.getUserId().equals(userId)) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Unauthorized: booking does not belong to you")
+                        .build();
+            }
+
+            // Verify booking is COMPLETED (stamps only for completed services)
+            if (!"COMPLETED".equals(booking.getStatus())) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Stamps can only be earned for completed bookings")
+                        .build();
+            }
+
+            return addStampCore(userId, bookingId, parsed.stampType(), false);
         } catch (BadRequestException e) {
             return StampResponse.builder()
                     .success(false)
@@ -249,7 +280,18 @@ public class LoyaltyService {
                         .build();
             }
 
-            String userId = bookingOpt.get().getUserId();
+            var booking = bookingOpt.get();
+
+            // Verify booking is COMPLETED (stamps only for completed services)
+            if (!"COMPLETED".equals(booking.getStatus())) {
+                return StampResponse.builder()
+                        .success(false)
+                        .stampCount(0)
+                        .message("Stamps can only be earned for completed bookings")
+                        .build();
+            }
+
+            String userId = booking.getUserId();
             // Staff source includes "_STAFF" suffix
             return addStampCore(userId, bookingId, parsed.stampType() + "_STAFF", true);
         } catch (BadRequestException e) {
@@ -278,7 +320,7 @@ public class LoyaltyService {
                 .cardId(loyaltyCard.getId())
                 .bookingId(bookingId)
                 .earnedAt(timeProvider.localNow())
-                .source("REWARD_REDEMPTION")
+                .source(LoyaltyStamp.StampSource.REWARD_REDEMPTION)
                 .amount(-stampCountToDeduct)
                 .build();
         loyaltyStampRepository.save(redemptionStamp);
@@ -366,7 +408,7 @@ public class LoyaltyService {
                 .cardId(stamp.getCardId())
                 .bookingId(stamp.getBookingId())
                 .earnedAt(stamp.getEarnedAt())
-                .source(stamp.getSource())
+                .source(stamp.getSource().name())
                 .amount(stamp.getAmount())
                 .build();
     }

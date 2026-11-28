@@ -130,14 +130,14 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
 
         // Ensure date is available - use fixed date but check if already exists (PER_CLASS transaction)
         LocalDate defaultDate = LocalDate.of(2025, 12, 25);
-        if (availabilityRepository.findByDate(timeProvider.startOfDay(defaultDate)).isEmpty()) {
+        if (availabilityRepository.findByDate(defaultDate).isEmpty()) {
             availabilityRepository.save(createAvailability(defaultDate));
         }
     }
 
     private Availability createAvailability(LocalDate date) {
         return Availability.builder()
-                .date(timeProvider.startOfDay(date))
+                .date(date)
                 .isAvailable(true)
                 .startTime("08:00")
                 .endTime("22:00")
@@ -172,7 +172,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
     @Test
     void createBooking_whenDateNotAvailable_shouldThrowBadRequestException() {
         // Given - make date unavailable by updating existing availability
-        Availability existing = availabilityRepository.findByDate(timeProvider.startOfDay(LocalDate.of(2025, 12, 25))).orElseThrow();
+        Availability existing = availabilityRepository.findByDate(LocalDate.of(2025, 12, 25)).orElseThrow();
         existing.setIsAvailable(false);
         availabilityRepository.save(existing);
 
@@ -323,7 +323,7 @@ class BookingServiceIntegrationTest extends IntegrationTestBase {
     void cancelBookingByCustomer_whenOwnBookingAndPending_shouldCancel() {
         // Given - create booking for a future date (more than 24 hours from now)
         LocalDate futureDate = timeProvider.localNow().plusDays(2).toLocalDate();
-        if (availabilityRepository.findByDate(timeProvider.startOfDay(futureDate)).isEmpty()) {
+        if (availabilityRepository.findByDate(futureDate).isEmpty()) {
             availabilityRepository.save(createAvailability(futureDate));
         }
         BookingRequest futureRequest = BookingRequest.builder()

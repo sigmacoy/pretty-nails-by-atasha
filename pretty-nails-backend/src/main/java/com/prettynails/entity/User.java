@@ -1,5 +1,6 @@
 package com.prettynails.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -9,6 +10,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -19,6 +21,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"password", "accounts", "sessions", "bookings", "loyaltyCard", "notes", "adminNotes", "payments"})
 public class User implements UserDetails {
 
     @Id
@@ -45,6 +48,7 @@ public class User implements UserDetails {
     private LocalDateTime passwordResetTokenExpiresAt;
 
     @Column(name = "failed_login_attempts")
+    @Builder.Default
     private Integer failedLoginAttempts = 0;
 
     @Column(name = "locked_until")
@@ -57,12 +61,14 @@ public class User implements UserDetails {
     private String nickname;
 
     @Column(name = "password", length = 255)
+    @JsonIgnore
     private String password;
 
     @Column(name = "image", length = 500)
     private String image;
 
     @Column(name = "role", nullable = false, length = 20)
+    @Builder.Default
     private String role = "CUSTOMER";
 
     @Column(name = "phone", length = 20)
@@ -80,6 +86,10 @@ public class User implements UserDetails {
     @Column(name = "password_history", length = 2000)
     private String passwordHistory;
 
+    @Column(name = "is_blocked")
+    @Builder.Default
+    private Boolean blocked = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -88,30 +98,45 @@ public class User implements UserDetails {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Account> accounts;
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<Account> accounts = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Session> sessions;
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<Session> sessions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Booking> bookings;
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<Booking> bookings = new ArrayList<>();
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @JsonIgnore
     private LoyaltyCard loyaltyCard;
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CustomerNote> notes;
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<CustomerNote> notes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<CustomerNote> adminNotes;
+    @OneToMany(mappedBy = "admin", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<CustomerNote> adminNotes = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Payment> payments;
+    @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = false)
+    @Builder.Default
+    @JsonIgnore
+    private List<Payment> payments = new ArrayList<>();
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + role));
+        String roleName = this.role != null ? this.role : "CUSTOMER";
+        return List.of(new SimpleGrantedAuthority("ROLE_" + roleName));
     }
 
     @Override
@@ -126,10 +151,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        // Account lock status is checked via CustomUserDetails which uses UserAccountLockService
-        // with Manila timezone (TimeProvider). This method should not be called directly
-        // for authentication decisions. Always use CustomUserDetailsService to load users.
-        return true;
+        return lockedUntil == null || lockedUntil.isAfter(LocalDateTime.now());
     }
 
     @Override

@@ -99,4 +99,25 @@ public class AdminController {
         adminService.deleteCustomerNote(noteId, currentUser.getId());
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Get revenue report for charting (aggregated by period)
+     */
+    @GetMapping("/reports/revenue")
+    public ResponseEntity<RevenueReportDto> getRevenueReport(
+            @RequestParam(defaultValue = "month") String period) {
+        return ResponseEntity.ok(adminService.getRevenueReport(period));
+    }
+
+    /**
+     * Block or unblock a customer
+     */
+    @PatchMapping("/customers/{userId}/block")
+    public ResponseEntity<CustomerListDto> toggleCustomerBlock(
+            @PathVariable String userId,
+            @RequestBody BlockCustomerRequest request) {
+        User currentUser = getCurrentUser();
+        CustomerListDto customer = adminService.toggleCustomerBlock(userId, request.getBlocked(), currentUser.getId());
+        return ResponseEntity.ok(customer);
+    }
 }

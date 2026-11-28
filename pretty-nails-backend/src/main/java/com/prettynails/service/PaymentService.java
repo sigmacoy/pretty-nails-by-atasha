@@ -34,12 +34,13 @@ public class PaymentService {
     }
 
     @Transactional
-    public PaymentResponse createPayment(User user, PaymentRequest request) {
-        String userId = (user != null && user.getId() != null) ? user.getId() : "";
-        if (userId.isEmpty() && request.getBookingId() != null) {
-            userId = bookingRepository.findById(request.getBookingId())
-                    .map(Booking::getUserId)
-                    .orElse("");
+    public PaymentResponse createPayment(String userId, PaymentRequest request) {
+        // Verify booking exists and belongs to user
+        Booking booking = bookingRepository.findById(request.getBookingId())
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", request.getBookingId()));
+
+        if (!booking.getUserId().equals(userId)) {
+            throw new org.springframework.security.access.AccessDeniedException("You can only create payments for your own bookings");
         }
 
         // Check if payment already exists for this booking
@@ -47,18 +48,11 @@ public class PaymentService {
         Payment payment;
         if (existingOpt.isPresent()) {
             payment = existingOpt.get();
-            if (!userId.isEmpty()) {
-                payment.setUserId(userId);
-            }
-            if (request.getAmount() != null) {
-                payment.setAmount(request.getAmount());
-            }
-            if (request.getMethod() != null) {
-                payment.setMethod(request.getMethod());
-            }
-            if (request.getReference() != null) {
+            // Prevent overwriting payment details - only allow updating reference if not set
+            if (request.getReference() != null && (payment.getReference() == null || payment.getReference().isBlank())) {
                 payment.setReference(request.getReference());
             }
+            // Do NOT allow changing amount, method, or status here
         } else {
             payment = Payment.builder()
                     .bookingId(request.getBookingId())
@@ -96,18 +90,19 @@ public class PaymentService {
             throw new IllegalStateException("Payment has already been verified.");
         }
 
+        // Verify booking ownership (admin can verify any)
+        String bookingId = payment.getBookingId();
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking", "id", bookingId));
+
         payment.setStatus("PAID");
         payment.setVerifiedAt(timeProvider.localNow());
         payment.setVerifiedBy(admin != null ? admin.getId() : "ADMIN");
         payment = paymentRepository.save(payment);
 
         // Update booking status to CONFIRMED
-        Optional<Booking> bookingOpt = bookingRepository.findById(payment.getBookingId());
-        if (bookingOpt.isPresent()) {
-            Booking booking = bookingOpt.get();
-            booking.setStatus("CONFIRMED");
-            bookingRepository.save(booking);
-        }
+        booking.setStatus("CONFIRMED");
+        bookingRepository.save(booking);
 
         return mapToDto(payment);
     }

@@ -18,12 +18,17 @@ public class UserAccountLockService {
     private final TimeProvider timeProvider;
 
     /**
-     * Checks if the user's account is not locked based on Manila timezone.
+     * Checks if the user's account is not locked based on Manila timezone and block status.
      *
      * @param user the user to check
-     * @return true if account is not locked, false if locked
+     * @return true if account is not locked and not blocked, false otherwise
      */
     public boolean isAccountNonLocked(User user) {
+        // Check if user is blocked by admin
+        if (user.getBlocked() != null && user.getBlocked()) {
+            return false;
+        }
+        // Check temporary lockout from failed login attempts
         LocalDateTime lockedUntil = user.getLockedUntil();
         if (lockedUntil != null && lockedUntil.isAfter(timeProvider.localNow())) {
             return false;

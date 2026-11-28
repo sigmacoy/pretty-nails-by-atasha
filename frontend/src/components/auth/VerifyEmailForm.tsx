@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle, XCircle, Loader2, Chrome, Facebook, AlertCircle } from 'lucide-react';
@@ -22,8 +22,13 @@ export function VerifyEmailForm() {
   const [message, setMessage] = useState('');
   const [isResending, setIsResending] = useState(false);
   const [resendEmail, setResendEmail] = useState('');
+  const verifyAttemptedRef = useRef(false);
 
   useEffect(() => {
+    // StrictMode double-invoke guard
+    if (verifyAttemptedRef.current) return;
+    verifyAttemptedRef.current = true;
+
     const verify = async () => {
       if (!token) {
         setStatus('missing-token');

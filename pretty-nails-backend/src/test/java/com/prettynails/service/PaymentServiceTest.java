@@ -94,7 +94,7 @@ class PaymentServiceTest {
             return saved;
         });
 
-        PaymentResponse response = paymentService.createPayment(testCustomer, request);
+        PaymentResponse response = paymentService.createPayment(testCustomer.getId(), request);
 
         assertThat(response).isNotNull();
         assertThat(response.getBookingId()).isEqualTo("booking-001");
@@ -119,7 +119,7 @@ class PaymentServiceTest {
         when(paymentRepository.findByBookingId("booking-001")).thenReturn(Optional.of(testPayment));
         when(paymentRepository.save(any(Payment.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        PaymentResponse response = paymentService.createPayment(testCustomer, request);
+        PaymentResponse response = paymentService.createPayment(testCustomer.getId(), request);
 
         assertThat(response).isNotNull();
         assertThat(response.getId()).isEqualTo("pay-001");

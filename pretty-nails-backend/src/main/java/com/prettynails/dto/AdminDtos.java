@@ -127,4 +127,33 @@ public class AdminDtos {
         private Boolean first;
         private Boolean last;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class BlockCustomerRequest {
+        @NotNull
+        private Boolean blocked;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RevenueReportDto {
+        private String period;
+        private List<RevenueDataPoint> data;
+        private Long totalRevenue;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RevenueDataPoint {
+        private String label; // e.g., "Jan", "Feb" or "Week 1", "Week 2"
+        private Long revenue; // in centavos
+        private Long bookingsCount;
+    }
 }

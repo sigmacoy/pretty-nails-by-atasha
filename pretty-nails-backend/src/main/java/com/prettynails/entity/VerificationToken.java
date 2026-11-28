@@ -7,7 +7,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "verification_tokens", uniqueConstraints = @UniqueConstraint(columnNames = {"identifier", "token"}))
+@Table(name = "verification_tokens", indexes = {
+        @Index(name = "idx_verification_token_expires", columnList = "expires")
+})
 @Getter
 @Setter
 @NoArgsConstructor

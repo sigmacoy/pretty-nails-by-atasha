@@ -51,6 +51,15 @@ export function Header() {
     }, 120);
   };
 
+  const closeMobileMenu = () => {
+    setIsMenuAnimating(true);
+    setTimeout(() => {
+      setIsMenuOpen(false);
+      // Reset animating after exit animation completes (180ms from CSS)
+      setTimeout(() => setIsMenuAnimating(false), 180);
+    }, 180);
+  };
+
   const navigation = [
     { name: 'Home', href: '/' },
     { name: 'Services', href: '/services' },
@@ -210,8 +219,7 @@ export function Header() {
             className="lg:hidden p-2 rounded-lg text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
             onClick={() => {
               if (isMenuOpen) {
-                setIsMenuAnimating(true);
-                setTimeout(() => setIsMenuOpen(false), 180);
+                closeMobileMenu();
               } else {
                 setIsMenuOpen(true);
               }
@@ -239,10 +247,7 @@ export function Header() {
                   ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-100'
                   : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
               )}
-              onClick={() => {
-                setIsMenuAnimating(true);
-                setTimeout(() => setIsMenuOpen(false), 180);
-              }}
+              onClick={closeMobileMenu}
             >
               {item.name}
             </Link>
@@ -254,10 +259,7 @@ export function Header() {
                 <Link
                   href="/admin"
                   className="block px-3 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
-                  onClick={() => {
-                    setIsMenuAnimating(true);
-                    setTimeout(() => setIsMenuOpen(false), 180);
-                  }}
+                  onClick={closeMobileMenu}
                 >
                   Admin dashboard
                 </Link>
@@ -267,10 +269,7 @@ export function Header() {
                     key={link.name}
                     href={link.href}
                     className="block px-3 py-2 rounded-lg text-sm font-medium text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
-                    onClick={() => {
-                      setIsMenuAnimating(true);
-                      setTimeout(() => setIsMenuOpen(false), 180);
-                    }}
+                    onClick={closeMobileMenu}
                   >
                     {link.name}
                   </Link>
@@ -279,8 +278,7 @@ export function Header() {
               <button
                 onClick={() => {
                   logout();
-                  setIsMenuAnimating(true);
-                  setTimeout(() => setIsMenuOpen(false), 180);
+                  closeMobileMenu();
                 }}
                 className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30"
               >
@@ -291,18 +289,12 @@ export function Header() {
             <div className="flex flex-col gap-2 pt-3 border-t border-stone-200/80 dark:border-stone-800/80 mt-2">
               <Link
                 href="/login"
-                onClick={() => {
-                  setIsMenuAnimating(true);
-                  setTimeout(() => setIsMenuOpen(false), 180);
-                }}
+                onClick={closeMobileMenu}
                 className="w-full text-center py-2 text-xs font-medium uppercase tracking-[0.18em] text-stone-700 dark:text-stone-300"
               >
                 Sign In
               </Link>
-              <Link href="/booking" onClick={() => {
-                setIsMenuAnimating(true);
-                setTimeout(() => setIsMenuOpen(false), 180);
-              }}>
+              <Link href="/booking" onClick={closeMobileMenu}>
                 <button
                   type="button"
                   className="w-full py-2.5 rounded-full text-xs font-medium uppercase tracking-[0.14em] bg-rose-900 hover:bg-rose-950 text-white dark:bg-rose-100 dark:text-stone-950 shadow-xs"

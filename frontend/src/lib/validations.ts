@@ -15,6 +15,22 @@ const LOWERCASE_PATTERN = /[a-z]/;
 const DIGIT_PATTERN = /\d/;
 const SPECIAL_CHAR_PATTERN = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/;
 
+// Philippine mobile number pattern: 09XXXXXXXXX (11 digits starting with 09)
+const PH_MOBILE_PATTERN = /^09\d{9}$/;
+
+// Shared strong password schema
+const strongPasswordSchema = z.string()
+  .min(8, 'Password must be at least 8 characters')
+  .max(128, 'Password too long')
+  .refine((val) => UPPERCASE_PATTERN.test(val), 'Password must contain at least one uppercase letter')
+  .refine((val) => LOWERCASE_PATTERN.test(val), 'Password must contain at least one lowercase letter')
+  .refine((val) => DIGIT_PATTERN.test(val), 'Password must contain at least one digit')
+  .refine((val) => SPECIAL_CHAR_PATTERN.test(val), 'Password must contain at least one special character (!@#$%^&*...)')
+  .refine((val) => !COMMON_PASSWORDS.has(val.toLowerCase()), 'Password is too common. Please choose a more unique password.');
+
+// URL schema that only allows HTTP(S) URLs
+const httpUrlSchema = z.string().url('Invalid URL').refine((u) => /^https?:\/\//i.test(u), 'Must be an HTTP(S) URL');
+
 // Auth validations
 export const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
@@ -23,14 +39,7 @@ export const registerSchema = z.object({
     (val) => !val || PH_MOBILE_PATTERN.test(val.replace(/\s/g, '')),
     'Enter a valid Philippine mobile number (09XXXXXXXXX)'
   ),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password too long')
-    .refine((val) => UPPERCASE_PATTERN.test(val), 'Password must contain at least one uppercase letter')
-    .refine((val) => LOWERCASE_PATTERN.test(val), 'Password must contain at least one lowercase letter')
-    .refine((val) => DIGIT_PATTERN.test(val), 'Password must contain at least one digit')
-    .refine((val) => SPECIAL_CHAR_PATTERN.test(val), 'Password must contain at least one special character (!@#$%^&*...)')
-    .refine((val) => !COMMON_PASSWORDS.has(val.toLowerCase()), 'Password is too common. Please choose a more unique password.'),
+  password: strongPasswordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -55,14 +64,7 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 
 // Reset password validations
 export const resetPasswordSchema = z.object({
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .max(128, 'Password too long')
-    .refine((val) => UPPERCASE_PATTERN.test(val), 'Password must contain at least one uppercase letter')
-    .refine((val) => LOWERCASE_PATTERN.test(val), 'Password must contain at least one lowercase letter')
-    .refine((val) => DIGIT_PATTERN.test(val), 'Password must contain at least one digit')
-    .refine((val) => SPECIAL_CHAR_PATTERN.test(val), 'Password must contain at least one special character (!@#$%^&*...)')
-    .refine((val) => !COMMON_PASSWORDS.has(val.toLowerCase()), 'Password is too common. Please choose a more unique password.'),
+  password: strongPasswordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -87,14 +89,11 @@ export const bookingStep2Schema = z.object({
   startTime: z.string().min(1, 'Select a time'),
 });
 
-// Philippine mobile number pattern: 09XXXXXXXXX (11 digits starting with 09)
-const PH_MOBILE_PATTERN = /^09\d{9}$/;
-
 export const bookingStep3Schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(100),
   phone: z.string().regex(PH_MOBILE_PATTERN, 'Enter a valid Philippine mobile number (09XXXXXXXXX)'),
   notes: z.string().max(500, 'Notes too long').optional(),
-  inspirationImg: z.string().url('Invalid URL').optional().or(z.literal('')),
+  inspirationImg: httpUrlSchema.optional().or(z.literal('')),
 });
 
 export const bookingStep4Schema = z.object({
@@ -118,7 +117,7 @@ export const profileSchema = z.object({
 
 export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1, 'Current password required'),
-  newPassword: z.string().min(8, 'Password must be at least 8 characters'),
+  newPassword: strongPasswordSchema,
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: 'Passwords do not match',
@@ -144,7 +143,7 @@ export const serviceSchema = z.object({
 export const gallerySchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters').max(100),
   description: z.string().max(500).optional(),
-  imageUrl: z.string().url('Invalid image URL'),
+  imageUrl: httpUrlSchema,
   category: z.enum(['GEL', 'EXTENSION', 'PEDICURE', 'NAIL_ART']).optional(),
   isActive: z.boolean().default(true),
 });

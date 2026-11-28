@@ -28,7 +28,7 @@ public class AvailabilityService {
     private final TimeProvider timeProvider;
 
     public List<AvailabilityDto> getAvailableDates() {
-        LocalDateTime today = timeProvider.startOfToday();
+        LocalDate today = timeProvider.today();
         return availabilityRepository.findAvailableDatesFrom(today).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
@@ -38,8 +38,7 @@ public class AvailabilityService {
      * Get available time slots for a specific date
      */
     public List<AvailabilitySlotDto> getAvailableSlots(LocalDate date) {
-        LocalDateTime dateTime = timeProvider.startOfDay(date);
-        Optional<Availability> availability = availabilityRepository.findByDate(dateTime);
+        Optional<Availability> availability = availabilityRepository.findByDate(date);
 
         if (availability.isEmpty() || !availability.get().getIsAvailable()) {
             return List.of();
@@ -70,7 +69,7 @@ public class AvailabilityService {
 
             // Check if this slot is already booked with PENDING or CONFIRMED status
             boolean isBooked = bookingRepository.existsByAppointmentDateAndStartTimeAndStatusIn(
-                    dateTime, slotStartTime, activeStatuses);
+                    date, slotStartTime, activeStatuses);
 
             slots.add(AvailabilitySlotDto.builder()
                     .startTime(slotStartTime)
@@ -98,8 +97,9 @@ public class AvailabilityService {
 
     @Transactional
     public AvailabilityDto createAvailability(AvailabilityRequest request) {
+        LocalDate date = request.getDate().toLocalDate();
         Availability availability = Availability.builder()
-                .date(request.getDate())
+                .date(date)
                 .isAvailable(request.getIsAvailable())
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
@@ -116,7 +116,8 @@ public class AvailabilityService {
         Availability availability = availabilityRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Availability", "id", id));
 
-        availability.setDate(request.getDate());
+        LocalDate date = request.getDate().toLocalDate();
+        availability.setDate(date);
         availability.setIsAvailable(request.getIsAvailable());
         availability.setStartTime(request.getStartTime());
         availability.setEndTime(request.getEndTime());
@@ -137,7 +138,7 @@ public class AvailabilityService {
     private AvailabilityDto mapToDto(Availability a) {
         return AvailabilityDto.builder()
                 .id(a.getId())
-                .date(a.getDate())
+                .date(a.getDate().atStartOfDay())
                 .isAvailable(a.getIsAvailable())
                 .startTime(a.getStartTime())
                 .endTime(a.getEndTime())
