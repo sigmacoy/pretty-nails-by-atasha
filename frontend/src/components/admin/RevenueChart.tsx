@@ -65,7 +65,7 @@ export function RevenueChart({
     setIsMounted(true);
   }, []);
 
-  const chartData = data || [];
+  const chartData = Array.isArray(data) ? data : [];
 
   if (isLoading) {
     return (
