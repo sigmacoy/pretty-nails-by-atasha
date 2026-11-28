@@ -8,7 +8,7 @@ const ADMIN_ROUTES = ['/admin'];
 const STAFF_ROUTES = ['/staff/scanner'];
 
 const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'prettynails-secret-key-for-jwt-token-generation-must-be-at-least-256-bits-long'
+  process.env.JWT_SECRET || 'dev-secret-change-in-production-min-32-chars-for-hs256'
 );
 
 async function getUserRoleFromToken(token: string | undefined): Promise<string | null> {
@@ -25,9 +25,19 @@ function isSafeRedirect(redirectTo: string): boolean {
   return redirectTo.startsWith('/') && !redirectTo.startsWith('//') && !redirectTo.startsWith('/\\');
 }
 
+function extractToken(request: NextRequest): string | undefined {
+  // Check Authorization header first (for API calls with Bearer token)
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) {
+    return authHeader.substring(7);
+  }
+  // Fallback to cookie (legacy - backend still sets it)
+  return request.cookies.get('prettynails_token')?.value;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const token = request.cookies.get('prettynails_token')?.value;
+  const token = extractToken(request);
   const userRole = await getUserRoleFromToken(token);
   const isAdmin = userRole === 'ADMIN';
   const isStaff = userRole === 'STAFF' || userRole === 'ADMIN';
@@ -38,7 +48,7 @@ export async function middleware(request: NextRequest) {
   const isStaffRoute = STAFF_ROUTES.some((route) => pathname.startsWith(route));
 
   // Redirect authenticated users away from auth pages
-  if (isPublicRoute && token) {
+  if (isPublicRoute && userRole) {
     const redirectParam = request.nextUrl.searchParams.get('redirect');
     const redirectTo = isSafeRedirect(redirectParam || '') ? redirectParam! : (isAdmin ? '/admin' : '/');
     return NextResponse.redirect(new URL(redirectTo, request.url));

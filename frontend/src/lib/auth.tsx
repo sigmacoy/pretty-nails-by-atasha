@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback, useMemo, useRef, ReactNode } from 'react';
 import type { UserDto } from '@/types';
-import { authApi } from '@/lib/api';
+import { authApi, clearAuthToken } from '@/lib/api';
 
 interface AuthContextType {
   user: UserDto | null;
@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       if (mountedRef.current) {
         setUserState(null);
+        clearAuthToken();
       }
     } finally {
       if (mountedRef.current) {
@@ -40,7 +41,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     mountedRef.current = true;
-    refreshUser();
+    // Check if token exists in localStorage before calling me()
+    if (typeof window !== 'undefined' && localStorage.getItem('prettynails_token')) {
+      refreshUser();
+    } else {
+      if (mountedRef.current) {
+        setIsLoading(false);
+      }
+    }
     return () => {
       mountedRef.current = false;
     };
@@ -57,6 +65,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Ignore errors, still clear local state
     }
     setUserState(null);
+    clearAuthToken();
   }, []);
 
   const value = useMemo<AuthContextType>(() => ({

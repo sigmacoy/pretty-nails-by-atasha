@@ -13,13 +13,13 @@ import java.util.List;
 public interface GalleryRepository extends JpaRepository<Gallery, String> {
 
     @Query("SELECT g FROM Gallery g WHERE g.isActive = true " +
-            "AND (:search IS NULL OR LOWER(g.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(g.description) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:search IS NULL OR LOWER(g.title) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR LOWER(g.description) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) " +
             "AND (:category IS NULL OR g.category = :category) " +
             "ORDER BY g.createdAt DESC")
     List<Gallery> searchActive(String search, String category);
 
     @Query("SELECT g FROM Gallery g WHERE g.isActive = true " +
-            "AND (:search IS NULL OR LOWER(g.title) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(g.description) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+            "AND (:search IS NULL OR LOWER(g.title) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%')) OR LOWER(g.description) LIKE LOWER(CONCAT('%', CAST(:search AS string), '%'))) " +
             "AND (:category IS NULL OR g.category = :category) " +
             "ORDER BY g.createdAt DESC")
     Page<Gallery> searchActive(String search, String category, Pageable pageable);

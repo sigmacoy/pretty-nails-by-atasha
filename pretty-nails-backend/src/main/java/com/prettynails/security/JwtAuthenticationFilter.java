@@ -47,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/login/oauth2/"
     );
 
-    private static final String JWT_COOKIE_NAME = "access_token";
+    private static final String JWT_COOKIE_NAME = "prettynails_token";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,

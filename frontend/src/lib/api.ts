@@ -1,23 +1,43 @@
 import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import type { ApiError, AuthResponse } from '@/types';
 
-// Create axios instance - uses httpOnly cookies for authentication
+// Token storage key
+const TOKEN_KEY = 'prettynails_token';
+
+// Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE || '/api/backend',
   headers: {
     'Content-Type': 'application/json',
   },
   timeout: 30000,
-  withCredentials: true, // Include httpOnly cookies in requests
 });
 
-// Response interceptor - handle errors
+// Request interceptor - add Authorization header from localStorage
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
+// Response interceptor - handle errors and token storage
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Store token from login/register response
+    if (response.data?.token && typeof window !== 'undefined') {
+      localStorage.setItem(TOKEN_KEY, response.data.token);
+    }
+    return response;
+  },
   (error: AxiosError<ApiError>) => {
     // Handle 401 - token expired or invalid
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
+        localStorage.removeItem(TOKEN_KEY);
         // Redirect to login with return URL
         const currentPath = window.location.pathname;
         if (currentPath !== '/login' && currentPath !== '/register') {
@@ -29,6 +49,13 @@ api.interceptors.response.use(
   }
 );
 
+// Helper to clear token
+export const clearAuthToken = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(TOKEN_KEY);
+  }
+};
+
 // Auth API
 export const authApi = {
   register: (data: { name: string; email: string; phone?: string; password: string }) =>
@@ -37,7 +64,10 @@ export const authApi = {
   login: (data: { email: string; password: string; rememberMe?: boolean }) =>
     api.post<AuthResponse>('/auth/login', data),
 
-  logout: () => api.post<{ message: string }>('/auth/logout'),
+  logout: () => {
+    clearAuthToken();
+    return api.post<{ message: string }>('/auth/logout');
+  },
 
   me: () => api.get<AuthResponse['user']>('/auth/me'),
 

@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💅 Pretty Nails by Atasha
+# Pretty Nails by Atasha
 
 *A comprehensive nail salon booking & management system*
 
